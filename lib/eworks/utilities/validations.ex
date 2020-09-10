@@ -3,7 +3,7 @@ defmodule Eworks.Utils.Validations do
     Provides utility functions for validating an email
   """
 
-  @countries_codes %{
+  @country_codes %{
     "kenya" => "KE",
     "uganda" => "UG",
     "tanzania" => "TZ",

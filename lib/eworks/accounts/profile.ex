@@ -3,6 +3,7 @@ defmodule Eworks.Accounts.Profile do
   import Ecto.Changeset
 
   alias Ecto.Changeset
+  alias Eworks.Utils.Validations
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -90,7 +91,7 @@ defmodule Eworks.Accounts.Profile do
   end # end of the location changeset
 
   @doc false
-  def about_changeset(profile, atts) do: changeset(profile, attrs) |> validate_required([:about])
+  def about_changeset(profile, attrs), do: changeset(profile, attrs) |> validate_required([:about])
 
   # function for validating the email format
   defp validate_email_and_add_to_emails(%Changeset{valid?: true, changes: %{email: email}, data: %__MODULE__{emails: emails}} = changeset) do
@@ -100,13 +101,13 @@ defmodule Eworks.Accounts.Profile do
       changeset |> put_change(:emails, [email | emails])
     else
       # add an error to the changeset
-      changeset |> add_erro(:email, "Failed. The email address: #{email} is invalid.")
+      changeset |> add_error(:email, "Failed. The email address: #{email} is invalid.")
     end # end of if
   end # end of validate_email_format/1
   defp validate_email_and_add_to_emails(changeset), do: changeset
 
   # function for validating phone numbers and adding to the list of phone numbers
-  def validate_phone_and_add_to_phones(%Changeset{valid?: true, changes: %{phone: phone}, data: %__MODULE__{phones: phones, country: country}}) do
+  def validate_phone_and_add_to_phones(%Changeset{valid?: true, changes: %{phone: phone}, data: %__MODULE__{phones: phones, country: country}} = changeset) do
     if Validations.is_valid_phone?(phone, country) do
       # add the phone number to the list of phone numbers and update the changeset
       changeset |> put_change(:phones, [phone | phones]) |> put_change(:email, nil)

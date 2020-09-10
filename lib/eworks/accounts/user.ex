@@ -4,6 +4,7 @@ defmodule Eworks.Accounts.User do
   alias Ecto.Changeset
 
   alias Eworks.Utils.Validations
+  alias Eworks.Accounts.Utils
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -16,7 +17,11 @@ defmodule Eworks.Accounts.User do
     # virtual fields
     field :password, :string, virtual: true
     # has only one profile
-    has_one :profile, Eworks.Accounts.Profile, type: :binary_id
+    has_one :profile, Eworks.Accounts.Profile
+    # has many orders
+    has_many :orders, Eworks.Orders.Order
+    # has many assigned orders
+    has_many :assigned_orders, Eworks.Accounts.AssignedOrder
     # add the timestamp
     timestamps()
   end
@@ -77,7 +82,7 @@ defmodule Eworks.Accounts.User do
   defp validate_email_format(changeset), do: changeset
 
   # function for adding the username
-  defp add_username(%Changeset{valid?: true, changese: %{auth_email: email}} = changeset) do
+  defp add_username(%Changeset{valid?: true, changes: %{auth_email: email}} = changeset) do
     [_email, username, _domain] = Utils.get_username(email)
     # add the username to the changeset
     changeset |> put_change(:username, username)
@@ -98,6 +103,6 @@ defmodule Eworks.Accounts.User do
     # generate a random number between 100000 to 999999
     |> put_change(:activation_key, Enum.random(100_000..999_999))
   end # end of the activation key
-  defp add_activation_code(changeset), do: changeset
+  defp add_activation_key(changeset), do: changeset
 
 end
