@@ -1,4 +1,4 @@
-defmodule Eworks.User.AssignedOrder do
+defmodule Eworks.Accounts.AssignedOrder do
   use Ecto.Schema
 
   @primary_key {:id, :binary_id, autogenerate: true}

@@ -25,6 +25,7 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
 
       add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
       add :assigned_order_id, references(:assigned_orders, on_delete: :nothing, type: :binary_id)
+      add :invite_id, references(:invites, :on_delete: :nothing, type: :binary_id)
 
       timestamps()
     end

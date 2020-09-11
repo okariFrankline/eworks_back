@@ -22,6 +22,8 @@ defmodule Eworks.Accounts.User do
     has_many :orders, Eworks.Orders.Order
     # has many assigned orders
     has_many :assigned_orders, Eworks.Accounts.AssignedOrder
+    # has many collaboration invites
+    has_many :invites, Eworks.Collaborations.Invite
     # add the timestamp
     timestamps()
   end

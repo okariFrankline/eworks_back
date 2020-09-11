@@ -6,7 +6,7 @@ defmodule Eworks do
   Contexts are also responsible for managing your data, regardless
   if it comes from the database, an external API or others.
   """
-  alias Eworks.{Accounts, Orders}
+  alias Eworks.{Accounts}
   alias Eworks.Repo
 
   @doc """
@@ -27,7 +27,7 @@ defmodule Eworks do
   @doc """
     Creates a new offer for a given order
   """
-  def create_offer(%User{} = user, order_id, offer_params) do
+  def create_offer(%Accounts.User{} = user, order_id, offer_params) do
     # create an association with the user
     user
     # add the user id to the params

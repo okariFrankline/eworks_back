@@ -3,7 +3,7 @@ defmodule Eworks.Collaborations.Invite do
   import Ecto.Changeset
 
   alias Ecto.Changeset
-  alist Eworks.Utils.UniqueCode, as: Unique
+  alias Eworks.Utils.UniqueCode, as: Unique
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -20,10 +20,13 @@ defmodule Eworks.Collaborations.Invite do
     field :payment_schedule, :string
     field :title, :string
     field :verification_code, :integer
-    field :user_id, :binary_id
     field :invite_type, :string
     field :is_draft, :boolean, default: true
-
+    # belong to one user
+    belongs_to  :user, Eworks.Accounts.User, type: :binary_id
+    # has one order
+    has_one :order, Eworks.Orders.Order
+    # created at and updated at
     timestamps()
   end
 
@@ -56,6 +59,8 @@ defmodule Eworks.Collaborations.Invite do
     ])
     # insert the verification code
     |> add_verification_code()
+    # ensure the user id is given
+    |> foreign_key_constraint(:user_id)
   end # end of the creation_changeset/2
 
   @doc false

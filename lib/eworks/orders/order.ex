@@ -30,6 +30,8 @@ defmodule Eworks.Orders.Order do
     field :rating, :integer
     field :comment, :string
     field :assigned_order_id, :binary_id
+    # invite id
+    field :invite_id, :binary_id
     # belongs to one user
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
     # has many order_offers
