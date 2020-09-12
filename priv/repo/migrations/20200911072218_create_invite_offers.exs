@@ -9,6 +9,7 @@ defmodule Eworks.Repo.Migrations.CreateInviteOffers do
       add :is_cancelled, :boolean, default: false, null: false
       add :is_rejected, :boolean, default: false, null: false
       add :is_accepted, :boolean, default: false, null: false
+      # rlships
       add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
       add :invite_id, references(:invites, on_delete: :nothing, type: :binary_id)
 

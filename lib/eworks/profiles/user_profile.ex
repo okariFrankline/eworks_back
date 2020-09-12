@@ -1,4 +1,4 @@
-defmodule Eworks.Accounts.Profile do
+defmodule Eworks.Profiles.UserProfile do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -7,7 +7,7 @@ defmodule Eworks.Accounts.Profile do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  schema "profiles" do
+  schema "user_profiles" do
     field :about, :string
     field :city, :string
     field :company_name, :string
@@ -19,7 +19,7 @@ defmodule Eworks.Accounts.Profile do
     field :phone, :string, virtual: true
     field :phones, {:array, :string}
     field :profile_pic, :string
-    belongs_to :user, Eworks.Accounts.User, type: :binary_id
+    belongs_to :user, Eworks.Profiles.User, type: :binary_id
 
     timestamps()
   end
@@ -120,5 +120,4 @@ defmodule Eworks.Accounts.Profile do
     end # end of if
   end # end ov validate_phone_and_add_to_phones/1
   def validate_phon_and_add_to_phones(changeset), do: changeset
-
 end

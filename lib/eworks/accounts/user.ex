@@ -16,14 +16,8 @@ defmodule Eworks.Accounts.User do
     field :activation_key, :string
     # virtual fields
     field :password, :string, virtual: true
-    # has only one profile
-    has_one :profile, Eworks.Accounts.Profile
-    # has many orders
-    has_many :orders, Eworks.Orders.Order
     # has many assigned orders
     has_many :assigned_orders, Eworks.Accounts.AssignedOrder
-    # has many collaboration invites
-    has_many :invites, Eworks.Collaborations.Invite
     # has many sessions ( for authentication )
     has_many :sessions, Eworks.Accounts.Session
     # add the timestamp

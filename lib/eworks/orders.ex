@@ -4,9 +4,15 @@ defmodule Eworks.Orders do
   """
 
   import Ecto.Query, warn: false
-  alias Eworks.Repo
+  alias Eworks.{Repo, Accounts}
 
   alias Eworks.Orders.Order
+
+  # function for creating a new Order user from Accounts user
+  def order_user_from_account(%Accounts.User{id: id} = user), do: %__MODULE__.User{id: user}
+
+  # function for returning an account user from the order user
+  def user_from_order_user(%__MODULE__.User{id: id}  = _user), do: %Accounts.User(id: user)
 
   @doc """
   Returns the list of orders.

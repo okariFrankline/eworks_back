@@ -1,8 +1,8 @@
-defmodule Eworks.Repo.Migrations.CreateProfiles do
+defmodule Eworks.Repo.Migrations.CreateUserProfiles do
   use Ecto.Migration
 
   def change do
-    create table(:profiles, primary_key: false) do
+    create table(:user_profiles, primary_key: false) do
       add :id, :binary_id, primary_key: true
       # bio ddata
       add :first_name, :string, null: true
@@ -24,7 +24,8 @@ defmodule Eworks.Repo.Migrations.CreateProfiles do
       timestamps()
     end
 
-    create index(:profiles, [:user_id])
-    create index(:profiles, [:skills])
+    create index(:user_profiles, [:user_id])
+    create index(:user_profiles, [:skills])
+  endreate index(:user_profiles, [:user_id])
   end
 end

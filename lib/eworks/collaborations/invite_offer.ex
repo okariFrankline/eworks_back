@@ -10,8 +10,10 @@ defmodule Eworks.Collaborations.InviteOffer do
     field :is_cancelled, :boolean, default: false
     field :is_pending, :boolean, default: false
     field :is_rejected, :boolean, default: false
-    field :user_id, :binary_id
-    field :invite_id, :binary_id
+    # belongs to one user
+    belongs_to :user, Eworks.Collaborations.User, type: :binary_id
+    # belongs to one invite
+    belongs_to :invite, Eworks.Collaborations.Invite
 
     timestamps()
   end
@@ -19,8 +21,20 @@ defmodule Eworks.Collaborations.InviteOffer do
   @doc false
   def changeset(invite_offer, attrs) do
     invite_offer
-    |> cast(attrs, [:asking_amount, :is_pending, :is_cancelled, :is_rejected, :is_accepted])
-    |> validate_required([:asking_amount, :is_pending, :is_cancelled, :is_rejected, :is_accepted])
+    |> cast(attrs, [
+      :is_pending,
+      :is_accepted,
+      :is_rejected,
+      :is_cancelled,
+      :asking_mount
+    ])
+    |> validate_required([
+      :asking_mount
+    ])
+    # ensure the user_id is given
+    |> foreign_key_constraint(:user_id)
+    # ensure the order id is given
+    |> foreign_key_constraint(:order_id)
   end
-  
+
 end

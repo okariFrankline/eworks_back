@@ -23,9 +23,9 @@ defmodule Eworks.Collaborations.Invite do
     field :invite_type, :string
     field :is_draft, :boolean, default: true
     # belong to one user
-    belongs_to  :user, Eworks.Accounts.User, type: :binary_id
+    belongs_to  :user, Eworks.Collaborations..User, type: :binary_id
     # has one order
-    has_one :order, Eworks.Orders.Order
+    has_one :order, __MODULE__.Order
     # created at and updated at
     timestamps()
   end

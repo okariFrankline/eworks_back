@@ -4,11 +4,17 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
   def change do
     create table(:users, primary_key: false) do
       add :id, :binary_id, primary_key: true
+      # authentication email of the user
       add :auth_email, :string, null: false
+      # hashed password
       add :password_hash, :string, null: false
+      # indicates whether the user is logged in or note
       add :is_active, :boolean, default: false, null: false
+      # indicates the type of user that the user is
       add :user_type, :string, defualt: "Client"
+      # activation code: a 6 digit figure that is sent to the user upon successful creation of an account
       add :activation_key, :integer, null: true
+      # unique username
       add :username, :string, null: false
 
       timestamps()

@@ -14,9 +14,7 @@ defmodule Eworks.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Eworks.PubSub},
       # Start the Endpoint (http/https)
-      EworksWeb.Endpoint,
-      # start the guardian sweeper
-      {Guardian.DB.Token.SweeperServer, []}
+      EworksWeb.Endpoint
       # Start a worker by calling: Eworks.Worker.start_link(arg)
       # {Eworks.Worker, arg}
     ]
