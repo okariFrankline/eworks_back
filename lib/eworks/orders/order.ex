@@ -3,7 +3,7 @@ defmodule Eworks.Orders.Order do
   import Ecto.Changeset
 
   alias Ecto.Changeset
-  alias Eworks.Util.UniqueCode, as: Unique
+  alias Eworks.Utils.UniqueCode, as: Unique
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -32,6 +32,8 @@ defmodule Eworks.Orders.Order do
     field :assigned_order_id, :binary_id
     # belongs to one user
     belongs_to :user, Eworks.Orders.User, type: :binary_id
+    # has many assignees
+    has_many :assignees, __MODULE__.Assignee
     # has many order_offers
     has_many :order_offers, Eworks.Orders.OrderOffer
 

@@ -3,7 +3,7 @@ use Mix.Config
 # Configure your database
 config :eworks, Eworks.Repo,
   username: "postgres",
-  password: "postgres",
+  password: "okari5678",
   database: "eworks_dev",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,

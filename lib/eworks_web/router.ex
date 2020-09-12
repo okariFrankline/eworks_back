@@ -27,7 +27,7 @@ defmodule EworksWeb.Router do
 
   # scope for the logged in user
   scope "/api", EworksWeb do
-    pipe_thorught [:api, :authenticated]
+    pipe_through [:api, :authenticated]
   end # end of scope for logged in users
 
   # Enables LiveDashboard only for development

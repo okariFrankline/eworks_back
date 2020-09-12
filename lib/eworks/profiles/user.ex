@@ -1,4 +1,4 @@
-defmodule Eworks.Profile.User do
+defmodule Eworks.Profiles.User do
   @moduledoc """
     Defines a user to be used to the profile page
   """
@@ -10,7 +10,7 @@ defmodule Eworks.Profile.User do
     # has one work_profile
     has_one :user_profile, Eworks.Profiles.UserProfile
     # has one work profile
-    has_one :work_profile, Ework.Profiles.WorkProfile
+    has_one :work_profile, Eworks.Profiles.WorkProfile
   end # end of the schema
 
 end # end of the module

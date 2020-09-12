@@ -8,7 +8,6 @@ defmodule Eworks.Profiles.UserProfile do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "user_profiles" do
-    field :about, :string
     field :city, :string
     field :company_name, :string
     field :country, :string
@@ -35,7 +34,6 @@ defmodule Eworks.Profiles.UserProfile do
       :city,
       :emails,
       :phones,
-      :about,
       :profile_pic
     ])
   end
@@ -89,9 +87,6 @@ defmodule Eworks.Profiles.UserProfile do
       :city
     ])
   end # end of the location changeset
-
-  @doc false
-  def about_changeset(profile, attrs), do: changeset(profile, attrs) |> validate_required([:about])
 
   # function for validating the email format
   defp validate_email_and_add_to_emails(%Changeset{valid?: true, changes: %{email: email}, data: %__MODULE__{emails: emails}} = changeset) do

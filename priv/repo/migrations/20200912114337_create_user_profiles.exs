@@ -9,7 +9,6 @@ defmodule Eworks.Repo.Migrations.CreateUserProfiles do
       add :last_name, :string, null: true
       add :company_name, :string, null: true
       add :profile_pic, :string, null: true
-      add :about, :text, null: true
       # location information
       add :country, :string, null: true
       add :city, :string, null: true
@@ -26,6 +25,5 @@ defmodule Eworks.Repo.Migrations.CreateUserProfiles do
 
     create index(:user_profiles, [:user_id])
     create index(:user_profiles, [:skills])
-  endreate index(:user_profiles, [:user_id])
   end
 end

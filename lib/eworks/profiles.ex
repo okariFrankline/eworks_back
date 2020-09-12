@@ -9,10 +9,10 @@ defmodule Eworks.Profiles do
   alias Eworks.Profiles.WorkProfile
 
   # function for creating a new profile user from Accounts user
-  def order_user_from_account(%Accounts.User{id: id} = user), do: %__MODULE__.User{id: user}
+  def profile_user_from_account_user(%Accounts.User{id: id} = _user), do: %__MODULE__.User{id: id}
 
   # function for returning an account user from the profile user
-  def user_from_order_user(%__MODULE__.User{id: id}  = _user), do: %Accounts.User(id: user)
+  def account_user_from_profile_user(%__MODULE__.User{id: id}  = _user), do: %Accounts.User{id: id}
 
   @doc """
   Returns the list of work_profiles.
@@ -172,6 +172,78 @@ defmodule Eworks.Profiles do
   def update_user_profile(%UserProfile{} = user_profile, attrs) do
     user_profile
     |> UserProfile.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a profile by adding an email address.
+
+  ## Examples
+
+      iex> add_email_to_profile(profile, %{email: new_value})
+      {:ok, %Profile{}}
+
+      iex> add_email_to_profile(profile, %{email: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_profile_email(%UserProfile{} = profile, attrs) do
+    profile
+    |> UserProfile.email_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a profile by adding a phone number.
+
+  ## Examples
+
+      iex> add_phone_to_profile(profile, %{phone: new_value})
+      {:ok, %Profile{}}
+
+      iex> add_phone_to_profile(profile, %{phone: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_profile_phone(%UserProfile{} = profile, attrs) do
+    profile
+    |> UserProfile.phone_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a profile by adding city and country to the profile.
+
+  ## Examples
+
+      iex> add_location_to_profile(profile, %{city: new_value, country: new_value})
+      {:ok, %Profile{}}
+
+      iex> add_location_to_profile(profile, %{city: bad_value, country: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_profile_location(%UserProfile{} = profile, attrs) do
+    profile
+    |> UserProfile.location_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a profile by adding bio details to the user.
+
+  ## Examples
+
+      iex> add_bio_to_profile(profile, %{bio: new_value})
+      {:ok, %Profile{}}
+
+      iex> add_bio_to_profile(profile, %{bio: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_profile_bio(%UserProfile{} = profile, attrs) do
+    profile
+    |> UserProfile.bio_changeset(attrs)
     |> Repo.update()
   end
 

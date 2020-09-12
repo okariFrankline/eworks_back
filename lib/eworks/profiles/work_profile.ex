@@ -5,6 +5,7 @@ defmodule Eworks.Profiles.WorkProfile do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "work_profiles" do
+    field :cover_letter, :string
     field :job_hires, :integer
     field :professional_intro, :string
     field :rating, :integer
@@ -21,7 +22,7 @@ defmodule Eworks.Profiles.WorkProfile do
   @doc false
   def changeset(work_profile, attrs) do
     work_profile
-    |> cast(attrs, [:rating, :success_rate, :skills, :professional_intro, :job_hires])
-    |> validate_required([:rating, :success_rate, :skills, :professional_intro, :job_hires])
+    |> cast(attrs, [:rating, :success_rate, :skills, :professional_intro, :job_hires, :cover_letter])
+    |> validate_required([:rating, :success_rate, :skills, :professional_intro, :job_hires, :cover_letter])
   end
 end

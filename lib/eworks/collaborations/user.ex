@@ -10,7 +10,7 @@ defmodule Eworks.Collaborations.User do
     # has many invites
     has_many :invites, Eworks.Collaborations.Invite
     # has many invite_offers
-    hash_many :invite_offers, Eworks.Collaborations.InviteOffer
+    has_many :invite_offers, Eworks.Collaborations.InviteOffer
   end # end of users scham
 
 end # end of User module

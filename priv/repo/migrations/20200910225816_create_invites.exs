@@ -16,6 +16,7 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
       add :verification_code, :integer
       add :invite_type, :string
       add :is_draft, :boolean, default: true
+      # owner of the collaboration invite
       add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
 
       timestamps()
@@ -23,9 +24,8 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
 
     create index(:invites, [:user_id])
     create index(:invites, [:is_draft])
-    create index(:invites, [:title]),
-    create index(:invite_type, [:title])
-    crete index(:invites, [:is_paid_for])
+    create index(:invites, [:title])
+    create index(:invites, [:is_paid_for])
     create index(:invites, [:is_verified])
   end
 end

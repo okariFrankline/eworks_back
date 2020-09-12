@@ -9,10 +9,10 @@ defmodule Eworks.Orders do
   alias Eworks.Orders.Order
 
   # function for creating a new Order user from Accounts user
-  def order_user_from_account(%Accounts.User{id: id} = user), do: %__MODULE__.User{id: user}
+  def order_user_from_account_user(%Accounts.User{id: id} = _user), do: %__MODULE__.User{id: id}
 
   # function for returning an account user from the order user
-  def user_from_order_user(%__MODULE__.User{id: id}  = _user), do: %Accounts.User(id: user)
+  def account_user_from_order_user(%__MODULE__.User{id: id}  = _user), do: %Accounts.User{id: id}
 
   @doc """
   Returns the list of orders.

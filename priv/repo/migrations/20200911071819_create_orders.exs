@@ -11,31 +11,32 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :is_paid_for, :boolean, default: false, null: false
       add :duration, :string, null: true
       add :deadline, :date, null: true
+      add :order_type, :string, null: true
       add :category, :string, null: true
-      add :payable_amount, :string, null:true
+      add :payable_amount, :string, null: true
       add :required_contractors, :integer, null: false
       add :title, :string, null: false
       add :specialty, :string, null: true
       add :attachments, {:array, :string}, default: []
       add :payment_schedule, :string, null: true
       add :verification_code, :integer, null: false
-      add :is_draft, :boolean, default: true,
+      add :is_draft, :boolean, default: true
+      # client comment and review
       add :comment, :text, null: true
       add :rating, :integer, null: true
-
+      # owner of the job
       add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
       add :assigned_order_id, references(:assigned_orders, on_delete: :nothing, type: :binary_id)
-      add :invite_id, references(:invites, :on_delete: :nothing, type: :binary_id)
-      add :work_profile_id, references(:work_profile_id, :on_delete: :nothing, type: :binary_id)
+      # invite for which this order has been used to create a new invite
+      add :invite_id, references(:invites, on_delete: :nothing, type: :binary_id)
 
       timestamps()
     end
 
     create index(:orders, [:user_id])
     create index(:orders, [:assigned_order_id])
-    create index(:orders, [:work_profile_id])
     create index(:orders, [:is_draft])
-    create index(:orders, [:title]),
+    create index(:orders, [:title])
     create index(:orders, [:is_verified])
     create index(:orders, [:is_assigned])
     create index(:orders, [:is_complete])

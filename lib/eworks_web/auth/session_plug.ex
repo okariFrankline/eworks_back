@@ -17,7 +17,7 @@ defmodule EworksWeb.Plugs.SessionPlug do
   def init(opts), do: opts
 
   # call function
-  def call(conn, options) do
+  def call(conn, _options) do
     # get the token from guardian
     token = current_token(conn)
     # get the user with the given session
