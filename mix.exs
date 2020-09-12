@@ -46,7 +46,13 @@ defmodule Eworks.MixProject do
       # password hashing library
       {:argon2_elixir, "~> 2.3"},
       # library for validating the phone number
-      {:ex_phone_number, "~> 0.2.0"}
+      {:ex_phone_number, "~> 0.2.0"},
+      # bamboo library for sending an email
+      {:bamboo, "~> 1.5"},
+      # guardian for authentication
+      {:guardian, "~> 2.1"},
+      # guardian db for the tracking of the tokens
+      {:guardian_db, "~> 2.0"}
     ]
   end
 

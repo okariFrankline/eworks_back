@@ -1,16 +1,34 @@
 defmodule EworksWeb.Router do
   use EworksWeb, :router
+  alias EworksWeb.Authentication.Guardian
+  alias EworksWeb.Plugs
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug Plug.Parsers,
+      parsers: [:urlencoded, :multipart, :json],
+      pass: ["*/*"],
+      json_decoder: Jason
+  end
+
+  # define an auth pipeline
+  pipeline :authenticated do
+    plug Guardian.AuthPipeline
+    # plug for adding the current user in the connection
+    plug Plugs.SessionPlug
   end
 
   scope "/api", EworksWeb do
     pipe_through :api
 
-    resources "/users", UserController, except: [:new, :edit]
-    resources "/profiles", ProfileController, except: [:new, :edit]
+    post "/register", UserController, :register
+    post "/login", SessionController, :login
   end
+
+  # scope for the logged in user
+  scope "/api", EworksWeb do
+    pipe_thorught [:api, :authenticated]
+  end # end of scope for logged in users
 
   # Enables LiveDashboard only for development
   #

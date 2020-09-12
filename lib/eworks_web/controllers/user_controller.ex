@@ -1,8 +1,10 @@
 defmodule EworksWeb.UserController do
   use EworksWeb, :controller
 
+  alias Eworks
   alias Eworks.Accounts
   alias Eworks.Accounts.User
+  alias Eworks.Utils.{Mailer, NewEmail}
 
   action_fallback EworksWeb.FallbackController
 
@@ -11,14 +13,41 @@ defmodule EworksWeb.UserController do
     render(conn, "index.json", users: users)
   end
 
+  @doc """
+  Creates a new account using the details given by the user
+  user params must include auth_email, password, and user_account
+  """
   def create(conn, %{"user" => user_params}) do
-    with {:ok, %User{} = user} <- Accounts.create_user(user_params) do
+    # create a new user
+    with {:ok, %User{} = user} <- Eworks.register_user(user_params) do
+      # Generate a new email
+      NewEmail.new_activation_email(user)
+      # send the email
+      |> Mailer.deliver_later()
+
+      # return a response
       conn
+      #  put the status of created
       |> put_status(:created)
-      |> put_resp_header("location", Routes.user_path(conn, :show, user))
-      |> render("show.json", user: user)
-    end
-  end
+      # render the new_user json
+      |> render("new_user.json", user: user)
+    end # end of with for creating a new user
+  end # end of creation changeset
+
+  @doc """
+    Endpoint for activating a user's account
+  """
+  def activate_account(conn, %{"user" => activation_params}) do
+    # actiate the account
+    with {:ok, user} <- Eworks.verify_account(activation_params), {:ok, auth} <- Authentication.login(user) do
+      # return the result
+      conn
+      # put the okay status
+      |> put_status(:ok)
+      # render the loggedin.json
+      |> render("logged_in.json", [user: user, auth: auth])
+    end # end of with for verifying account
+  end # end of the activate_account/2
 
   def show(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)

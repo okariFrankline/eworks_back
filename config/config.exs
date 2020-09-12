@@ -27,6 +27,23 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# configuration for bamboo
+config :eworks, Eworks.Utils.Mailer,
+  adapter: Bamboo.SendGridAdapter,
+  api_key: {:system, "SENDGRID_API_KEY"}
+
+# configure guardian
+config :eworks, EworksWeb.Authentication.Guardian,
+  issuer: "eworks",
+  secret_key: {:system, "GUARDIAN_SECRET_KEY"}
+
+# configure guardian
+# config :guardian, Guardian.DB,
+#   repo: Eworks.Repo,
+#   schema_name: "guardian_tokens",
+#   token_type: ["refress_tokens"],
+#   sweep_intervals: 60
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
