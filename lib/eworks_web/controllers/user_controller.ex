@@ -41,13 +41,13 @@ defmodule EworksWeb.UserController do
   """
   def activate_account(%{assigns: %{current_user: user}} = conn, %{"activation" => %{"activation_key" => key}}) do
     # actiate the account
-    with {:ok, user} <- Eworks.verify_account(user, key) do
+    with {:ok, result} <- Eworks.verify_account(user, key) do
       # return the result
       conn
       # put the okay status
       |> put_status(:ok)
       # render the loggedin.json
-      |> render("activated.json", user: user)
+      |> render("activated.json", result: result)
     end # end of with for verifying account
   end # end of the activate_account/2
 

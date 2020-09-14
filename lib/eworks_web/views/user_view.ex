@@ -14,12 +14,12 @@ defmodule EworksWeb.UserView do
   end # end of the new_user.json
 
   # logged_in.json
-  def render("activated.json", %{user: user}) do
+  def render("activated.json", %{user: user, profile: profile}) do
     # return the data
     %{
       data: %{
         user: render_one(user, __MODULE__, "user.json"),
-        user_profile: render_one(user.profile, ProfilesView, "profile.json")
+        user_profile: render_one(profile, ProfilesView, "user_profile.json")
       }
     }
   end # end of logged_in.json
@@ -56,8 +56,9 @@ defmodule EworksWeb.UserView do
   def render("user.json", %{user: user}) do
     # return the user's firstname, last name and is active
     %{
-      name: user.full_name
-      is_active: user.is_active
+      name: user.full_name,
+      is_active: user.is_active,
+      username: user.username
     }
   end
 end # end of the module

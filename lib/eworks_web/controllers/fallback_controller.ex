@@ -21,4 +21,10 @@ defmodule EworksWeb.FallbackController do
     |> put_view(EworksWeb.ErrorView)
     |> render(:"404")
   end
+
+  # error for creating a new user
+  def call(conn, {:error, message}) do
+    conn
+    |> send_resp(400, message)
+  end
 end

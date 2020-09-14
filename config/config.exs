@@ -35,7 +35,7 @@ config :eworks, Eworks.Utils.Mailer,
 # configure guardian
 config :eworks, EworksWeb.Authentication.Guardian,
   issuer: "eworks",
-  secret_key: {:system, "GUARDIAN_SECRET_KEY"}
+  secret_key: "v093/e5DdJwpN4uTAG1nYejCInpiw8/Z4N9BhT3/p3DyHkYmIToLlfl4YujdB5Ax"
 
 # configure guardian
 # config :guardian, Guardian.DB,

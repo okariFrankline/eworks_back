@@ -28,6 +28,8 @@ defmodule EworksWeb.Router do
   # scope for the logged in user
   scope "/api", EworksWeb do
     pipe_through [:api, :authenticated]
+
+    post "/activate", UserController, :activate_account
   end # end of scope for logged in users
 
   # Enables LiveDashboard only for development

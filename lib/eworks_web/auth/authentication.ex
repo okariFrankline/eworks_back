@@ -3,16 +3,8 @@ defmodule EworksWeb.Authentication do
     Provides functions for authenticating a user
   """
   alias Eworks.Accounts
-  alias Eworks.Accounts.User
+  alias Eworks.Accounts.{User, Session}
   alias __MODULE__.Guardian
-
-  @doc """
-        authenitcate returns {:ok, %User{}} if the user if found and the credentials are correct
-        Retruns {:error, "invalid password"} if the user is found and the credentials are wrong
-        Returns {:error, "invalid user-identifier"} if the user is not found in the db
-    """
-    @spec authenticate(user :: Accounts.User, password :: String.t) :: {:ok, Accounts.User} | {:error, String.t} | {:error, String.t}
-    def verify_password(user, password), do: user |> Argon2.check_pass(password)
 
   @doc """
   Authentcates a user given the email address and the password
@@ -26,10 +18,10 @@ defmodule EworksWeb.Authentication do
         {:error, "User with email address: #{email} does not exist."}
 
       # user found
-      %User = user ->
+      %User{} = user ->
         # verify the user's password
-        case verify_password(user, password) do
-          {:ok, _user} = result ->
+        case Argon2.check_pass(user, password) do
+          {:ok, %User{} = _user} = result ->
             # return the resutl
             result
 
@@ -47,7 +39,7 @@ defmodule EworksWeb.Authentication do
   def create_token(user) do
     # create a session for the iser
     # encode and sign the user and create a new session for the user
-    with {:ok, jwt, _claims} <- Guardian.encode_and_sign(user), {:ok, _} <- Accounts.create_session(user, jwt) do
+    with {:ok, jwt, _claims} <- Guardian.encode_and_sign(user), %Session{} = _session <- Accounts.store_session(user, jwt) do
         # return the token
         {:ok, jwt}
     end # end of with for encoding and signing the token

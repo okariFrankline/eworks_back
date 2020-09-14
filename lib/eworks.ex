@@ -6,9 +6,11 @@ defmodule Eworks do
   Contexts are also responsible for managing your data, regardless
   if it comes from the database, an external API or others.
   """
-  alias Eworks.{Accounts}
+  alias Eworks.{Accounts, Profiles}
   alias Eworks.Repo
   alias Eworks.Accounts.{User}
+  alias Eworks.Profiles.UserProfile
+  import Ecto.Query, warn: false
 
   @doc """
     Creates a user account and also the profile for the account
@@ -16,8 +18,10 @@ defmodule Eworks do
   def register_user(params) do
     # create the user
     with {:ok, user} <- Accounts.create_user(params) do
+      # ceate a new profile user from the account user
+      profile_user = Profiles.profile_user_from_account_user(user)
       # create a profile account for the user only after the user has being successfully created.
-       Ecto.build_assoc(user, :user_profile, %{emails: [user.auth_email]})
+       Ecto.build_assoc(profile_user, :user_profile, %{emails: [user.auth_email]})
        # save the profile
        |> Repo.insert!()
       # return the user
@@ -29,6 +33,15 @@ defmodule Eworks do
     Verifies an account and returns the details with the account
   """
   def verify_account(%User{} = user, activation_key) when is_integer(activation_key) do
+    # start a task for getting the profile with the smae id as the current user
+    profile_task = Task.async(fn ->
+      from(
+        profile in UserProfile,
+        where: profile.user_id == ^user.id
+      )
+      # get the profile
+      |> Repo.one!()
+    end)
     # check if the verification key entered by the user and the one stored in the system are equal
     if user.activation_key !== activation_key do
       # return an error
@@ -36,10 +49,13 @@ defmodule Eworks do
     else
       # update the activation to true
       with {:ok, user} <- user |> Ecto.Changeset.change(%{is_active: true}) |> Repo.update() do
-        # prealod the profile for the user
-        user = Repo.preload(user, :user_profile)
+        # load the user who has the smae id as the is as the one with the current user
+        profile = Task.await(profile_task)
         # return the user
-        {:ok, user}
+        {:ok, %{
+          user: user,
+          user_profile: profile
+        }}
       end # end of with for activating the account
     end # end of with for updating the account
   end # end of the verify accounts

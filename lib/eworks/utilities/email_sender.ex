@@ -12,7 +12,7 @@ defmodule Eworks.Utils.NewEmail do
     # add where the email is to be sent to
     |> to(email)
     # subject
-    |> subject("Eworks Registration COnfirmation")
+    |> subject("Eworks Registration Confirmation")
     # text body
     |> text_body("Thank you for registering for an account. Here is your account activation code: \n #{key}")
   end

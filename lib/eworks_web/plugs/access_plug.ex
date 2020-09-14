@@ -4,7 +4,7 @@ defmodule EworksWeb.Plugs.AccessPlug do
   """
   @behaviour Plug
 
-  import Plugg.Conn
+  import Plug.Conn
 
   # init function
   def init(options), do: options

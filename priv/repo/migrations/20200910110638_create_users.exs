@@ -19,7 +19,7 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
       # is_company
       add :is_company, :boolean ,default: false
       # full name
-      add :full_name, :boolean, :string, null: false
+      add :full_name, :string, null: false
 
       timestamps()
     end

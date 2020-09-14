@@ -5,16 +5,16 @@ defmodule EworksWeb.ProfilesView do
   use EworksWeb, :view
 
   # user_profile.json
-  def render("user_profile.json", %{user_profile: profile}) do
+  def render("user_profile.json", %{profile: profile}) do
     %{
-
+      id: profile.id
     }
   end
 
   # function for rendering the work_profile
   def render("work_profile", %{work_profile: profile}) do
     %{
-      
+
     }
   end # end of the work_profile
 

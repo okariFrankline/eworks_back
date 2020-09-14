@@ -41,7 +41,7 @@ defmodule Eworks.Accounts do
     # query for finding user with given email
     from(
       user in User,
-      where: auth_email == ^email
+      where: user.auth_email == ^email
     )
     # check if the user exists
     |> Repo.exists?()
@@ -92,7 +92,7 @@ defmodule Eworks.Accounts do
     # query for getting user with the email address
     from(
       user in User,
-      where: user.email == ^email
+      where: user.auth_email == ^email
     )
     # return one user
     |> Repo.one()
