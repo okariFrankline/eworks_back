@@ -22,4 +22,10 @@ defmodule EworksWeb.ProfileView do
       about: profile.about,
       profile_pic: profile.profile_pic}
   end
+
+  def render("user_profile.json", %{profile: profile}) do
+    %{
+      id: profile.id
+    }
+  end
 end

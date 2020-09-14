@@ -1,6 +1,6 @@
 defmodule EworksWeb.UserView do
   use EworksWeb, :view
-  alias EworksWeb.{UserView, ProfilesView}
+  alias EworksWeb.{UserView, ProfileView}
 
   # new user.json
   def render("new_user.json", %{user: user, token: token}) do
@@ -14,12 +14,12 @@ defmodule EworksWeb.UserView do
   end # end of the new_user.json
 
   # logged_in.json
-  def render("activated.json", %{user: user, profile: profile}) do
+  def render("activated.json", %{user: user, user_profile: profile}) do
     # return the data
     %{
       data: %{
         user: render_one(user, __MODULE__, "user.json"),
-        user_profile: render_one(profile, ProfilesView, "user_profile.json")
+        user_profile: render_one(profile, ProfileView, "user_profile.json")
       }
     }
   end # end of logged_in.json

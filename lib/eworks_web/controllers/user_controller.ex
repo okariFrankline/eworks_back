@@ -47,7 +47,7 @@ defmodule EworksWeb.UserController do
       # put the okay status
       |> put_status(:ok)
       # render the loggedin.json
-      |> render("activated.json", result: result)
+      |> render("activated.json", user: result.user, user_profile: result.user_profile)
     end # end of with for verifying account
   end # end of the activate_account/2
 

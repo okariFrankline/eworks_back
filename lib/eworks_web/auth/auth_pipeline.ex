@@ -9,7 +9,6 @@ defmodule EworksWeb.Authentication.Guardian.AuthPipeline do
   plug Guardian.Plug.VerifyHeader, realm: "Bearer"
   # plug for ensuring the user is authenticated
   plug Guardian.Plug.EnsureAuthenticated
-  # plug for loading the resource
-  plug Guardian.Plug.LoadResource
+
 
 end # end of the module.

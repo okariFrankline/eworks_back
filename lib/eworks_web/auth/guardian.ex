@@ -7,7 +7,7 @@ defmodule EworksWeb.Authentication.Guardian do
   alias Eworks.Accounts.User
 
   # define the subject_for_token
-  @spec subject_for_token(Accounts.User, any) :: {:error, :unauthorized} | {:ok, binary}
+  @spec subject_for_token(User, any) :: {:error, :unauthorized} | {:ok, binary}
   def subject_for_token(%User{} = user, _claims) do
     {:ok, to_string(user.id)}
   end # end of the subject for token
@@ -15,7 +15,7 @@ defmodule EworksWeb.Authentication.Guardian do
 
   # resorce from claims
   @spec resource_from_claims(map()) ::
-          {:error, :unauthorized} | {:error, :unauthorized} | {:ok, Accounts.User}
+          {:error, :unauthorized} | {:error, :unauthorized} | {:ok, User}
   def resource_from_claims(%{"sub" => id} = _claims) do
     # get the user with the id
     case Accounts.get_user(id) do
