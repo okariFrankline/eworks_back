@@ -9,12 +9,9 @@ defmodule Eworks.Profiles.UserProfile do
   @foreign_key_type :binary_id
   schema "user_profiles" do
     field :city, :string
-    field :company_name, :string
     field :country, :string
     field :email, :string, virtual: true
     field :emails, {:array, :string}
-    field :first_name, :string
-    field :last_name, :string
     field :phone, :string, virtual: true
     field :phones, {:array, :string}
     field :profile_pic, :string
@@ -27,9 +24,6 @@ defmodule Eworks.Profiles.UserProfile do
   def changeset(profile, attrs) do
     profile
     |> cast(attrs, [
-      :first_name,
-      :last_name,
-      :company_name,
       :country,
       :city,
       :emails,

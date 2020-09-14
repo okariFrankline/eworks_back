@@ -17,7 +17,7 @@ defmodule EworksWeb.Authentication do
   @doc """
   Authentcates a user given the email address and the password
   """
-  def verify_pass_email(email, password) when is_binary(email) and is_binary(password) do
+  def verify_with_pass_and_email(email, password) when is_binary(email) and is_binary(password) do
     # get the user with the given email address
     case Accounts.get_user_by_email(email) do
       # user not found
@@ -51,5 +51,15 @@ defmodule EworksWeb.Authentication do
         # return the token
         {:ok, jwt}
     end # end of with for encoding and signing the token
-end # end of create token
+  end # end of create token
+
+  @doc """
+  Login a user with theire username and email address
+  """
+  def login_with_email_and_pass(email, password) do
+    with {:ok, user} <- verify_with_pass_and_email(email, password), {:ok, jwt} <- create_token(user) do
+      # return result
+      {:ok, %{user: user, token: jwt}}
+    end # end of with
+  end
 end # end of the authentication module

@@ -9,13 +9,18 @@ defmodule Eworks.Accounts.User do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "users" do
+    field :full_name, :string
     field :auth_email, :string
+    field :is_company, :boolean, default: false
     field :is_active, :boolean, default: false
     field :password_hash, :string
     field :user_type, :string
     field :activation_key, :string
     # virtual fields
     field :password, :string, virtual: true
+    field :first_name, :string, virtual: true
+    field :last_name, :string, virtal: true
+    field :company_name, :string, virtual: true
     # has many assigned orders
     has_many :assigned_orders, Eworks.Accounts.AssignedOrder
     # has many sessions ( for authentication )
@@ -32,7 +37,9 @@ defmodule Eworks.Accounts.User do
       :password_hash,
       :is_active,
       :user_type,
-      :activation_key
+      :activation_key,
+      :full_name,
+      :is_company
     ])
   end
 
@@ -42,13 +49,18 @@ defmodule Eworks.Accounts.User do
     # cast the password
     |> cast(attrs, [
       :password
+      :first_name,
+      :last_name,
+      :company_name
     ])
     # ensure the email, password and accont type are given
     |> validate_required([
       :auth_email,
       :password,
-      :user_type
+      :user_type,
     ])
+    # add the full name
+    |> add_name()
     # ensure the email format is correct
     |> validate_email_format()
     # ensure password is more than 8 characters
@@ -61,10 +73,46 @@ defmodule Eworks.Accounts.User do
     # generate the activation key
     |> add_activation_key()
     # ensure the email is unique
-    |> unique_constraint(:email, [
-      message: "Failed. The email address #{attrs["auth_email"]} is already taken."
-    ])
+    |> unique_constraint(:email)
   end # end of the creation changeset
+
+  # function for adding the full name
+  defp add_name(%Changeset{changes: %{is_company: is_company}} = changeset) do
+    case is_company do
+      true ->
+        # ensure the fullname is given
+        changeset
+        |> validate_required([
+          :company_name
+        ])
+        # add the full name
+        |> add_full_name()
+      false ->
+        # ensure the first name and last name is given
+        changeset
+        |> validate_required([
+          :fist_name,
+          :last_name
+        ])
+        # add the full name
+        |> add_full_name()
+    end # end of the is_company
+  end # end of of the add name
+
+  # function for ensuring the first name and last name are given
+  defp add_full_name(%Changeset{changes: %{is_company: is_company, first_name: f_name, last_name: l_name, company_name: c_name}} = changeset) do
+    # check if the user is a company name
+    if is_company do
+      # return the changeset
+      changeset |> put_change(:full_name, c_name)
+    else
+      # create the full name
+      full_name = "#{String.capitalize(l_name)} #{String.capitalize(f_name)}"
+      # return the changeset
+      changeset |> put_change(:full_name, full_name)
+    end # end of the validate_first_and_last_name
+  end # end of the validate_first_and_last_name/1
+  defp add_full_name(changeset), do: changeset
 
   # functon for validaing the email address
   defp validate_email_format(%Changeset{valid?: true, changes: %{auth_email: email }} = changeset) do

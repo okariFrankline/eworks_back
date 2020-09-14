@@ -4,10 +4,7 @@ defmodule Eworks.Repo.Migrations.CreateUserProfiles do
   def change do
     create table(:user_profiles, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      # bio ddata
-      add :first_name, :string, null: true
-      add :last_name, :string, null: true
-      add :company_name, :string, null: true
+
       add :profile_pic, :string, null: true
       # location information
       add :country, :string, null: true

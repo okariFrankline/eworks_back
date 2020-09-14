@@ -17,7 +17,7 @@ defmodule Eworks do
     # create the user
     with {:ok, user} <- Accounts.create_user(params) do
       # create a profile account for the user only after the user has being successfully created.
-       Ecto.build_assoc(user, :profile, %{emails: [user.auth_email]})
+       Ecto.build_assoc(user, :user_profile, %{emails: [user.auth_email]})
        # save the profile
        |> Repo.insert!()
       # return the user
@@ -28,27 +28,20 @@ defmodule Eworks do
   @doc """
     Verifies an account and returns the details with the account
   """
-  def verify_account(%{user_id: id, activation_key: key} = _params) do
-    # get user with the given key
-    user = Accounts.get_user!(id)
+  def verify_account(%User{} = user, activation_key) when is_integer(activation_key) do
     # check if the verification key entered by the user and the one stored in the system are equal
-    if user.activation_key !== key do
+    if user.activation_key !== activation_key do
       # return an error
       {:error, :invalid_activation_key}
     else
       # update the activation to true
       with {:ok, user} <- user |> Ecto.Changeset.change(%{is_active: true}) |> Repo.update() do
         # prealod the profile for the user
-        user = Repo.preload(user, :profile)
+        user = Repo.preload(user, :user_profile)
         # return the user
         {:ok, user}
       end # end of with for activating the account
     end # end of with for updating the account
-  rescue
-    # the user with the given id doeas not exist
-    Ecto.NoResultsError ->
-      # return error
-      {:error, :not_found}
   end # end of the verify accounts
 
   # def authenticate_user(%User{auth_email: email, password_hash: pass} = user) do

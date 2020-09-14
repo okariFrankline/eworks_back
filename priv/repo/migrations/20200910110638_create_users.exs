@@ -16,6 +16,10 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
       add :activation_key, :integer, null: true
       # unique username
       add :username, :string, null: false
+      # is_company
+      add :is_company, :boolean ,default: false
+      # full name
+      add :full_name, :boolean, :string, null: false
 
       timestamps()
     end
@@ -23,6 +27,8 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
     create unique_index(:users, [:auth_email])
     create unique_index(:users, [:username])
     create index(:users, [:is_active])
+    create index(:users, [:full_name])
+    create index(:users, [:is_company])
 
   end
 end

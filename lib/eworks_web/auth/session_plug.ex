@@ -26,8 +26,12 @@ defmodule EworksWeb.Plugs.SessionPlug do
       assign(conn, :current_user, user)
     else
       {:error, _} ->
-        # set the current user to nil
-        assign(conn, :current_user, nil)
+        # return the plug
+        conn
+        # put a response that indicates that the user is not logged in
+        |> send_resp(401, "Failed. Please log in to register.")
+        # halt the process of processing the conn
+        |> halt()
     end # end of the with for autorizing the current user
   end # end of the connection
 

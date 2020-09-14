@@ -1,4 +1,4 @@
-defmodule Eworks.Plugs.AccessPlug do
+defmodule EworksWeb.Plugs.AccessPlug do
   @moduledoc """
   Defines a plug that ensures any useer does not access account without being logged in
   """
@@ -23,6 +23,8 @@ defmodule Eworks.Plugs.AccessPlug do
       conn
       # send a response of not not authorized
       |> send_resp(401, "Failed. Please log in to continue.")
+      # halt the continuation of the conn processing
+      |> halt()
     end # end of the current user
   end # end of call function
 

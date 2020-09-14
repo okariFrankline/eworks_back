@@ -6,11 +6,9 @@ defmodule EworksWeb.UserController do
   alias Eworks.Accounts.User
   alias Eworks.Utils.{Mailer, NewEmail}
   alias EworksWeb.Authentication
+  alias Eworks.Plugs
 
   action_fallback EworksWeb.FallbackController
-
-  # plug for ensureing that the user is loggen in (this prevents the resuse of tokens)
-  plug :prevent_unauthorized_accedd when action in [:activate_account]
 
   def index(conn, _params) do
     users = Accounts.list_users()
@@ -41,15 +39,15 @@ defmodule EworksWeb.UserController do
   @doc """
     Endpoint for activating a user's account
   """
-  def activate_account(conn, %{"user" => activation_params}) do
+  def activate_account(%{assigns: %{current_user: user}} = conn, %{"activation" => %{"activation_key" => key}}) do
     # actiate the account
-    with {:ok, user} <- Eworks.verify_account(activation_params), {:ok, auth} <- Authentication.login(user) do
+    with {:ok, user} <- Eworks.verify_account(user, key) do
       # return the result
       conn
       # put the okay status
       |> put_status(:ok)
       # render the loggedin.json
-      |> render("logged_in.json", [user: user, auth: auth])
+      |> render("activated.json", user: user)
     end # end of with for verifying account
   end # end of the activate_account/2
 
