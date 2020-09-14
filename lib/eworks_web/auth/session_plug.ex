@@ -24,6 +24,10 @@ defmodule EworksWeb.Plugs.SessionPlug do
     with {:ok, user} <- authorize(token) do
       # assign the current user to the conn
       assign(conn, :current_user, user)
+    else
+      {:error, _} ->
+        # set the current user to nil
+        assign(conn, :current_user, nil)
     end # end of the with for autorizing the current user
   end # end of the connection
 
@@ -36,7 +40,10 @@ defmodule EworksWeb.Plugs.SessionPlug do
     |> Repo.one()
     # check if ther user exists or not
     |> case do
-      nil -> {:ok, :unauthorized}
+      # the session does not exist
+      nil ->
+        # return nil
+        {:error, :not_authorized}
       # the user exist
       %Session{} = session ->
         # get the account

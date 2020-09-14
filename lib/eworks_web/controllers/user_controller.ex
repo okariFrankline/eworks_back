@@ -5,8 +5,12 @@ defmodule EworksWeb.UserController do
   alias Eworks.Accounts
   alias Eworks.Accounts.User
   alias Eworks.Utils.{Mailer, NewEmail}
+  alias EworksWeb.Authentication
 
   action_fallback EworksWeb.FallbackController
+
+  # plug for ensureing that the user is loggen in (this prevents the resuse of tokens)
+  plug :prevent_unauthorized_accedd when action in [:activate_account]
 
   def index(conn, _params) do
     users = Accounts.list_users()
@@ -17,9 +21,9 @@ defmodule EworksWeb.UserController do
   Creates a new account using the details given by the user
   user params must include auth_email, password, and user_account
   """
-  def create(conn, %{"user" => user_params}) do
-    # create a new user
-    with {:ok, %User{} = user} <- Eworks.register_user(user_params) do
+  def register(conn, %{"user" => user_params}) do
+    # create a new user and store a token for them
+    with {:ok, %User{} = user} <- Eworks.register_user(user_params), {:ok, jwt} <- Authentication.create_token(user) do
       # Generate a new email
       NewEmail.new_activation_email(user)
       # send the email
@@ -29,8 +33,8 @@ defmodule EworksWeb.UserController do
       conn
       #  put the status of created
       |> put_status(:created)
-      # render the new_user json
-      |> render("new_user.json", user: user)
+      # return the user details and the token
+      |> render("new_user.json", user: user, token: jwt)
     end # end of with for creating a new user
   end # end of creation changeset
 
