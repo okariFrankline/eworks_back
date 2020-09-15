@@ -35,6 +35,8 @@ defmodule EworksWeb.Router do
     post "/user/profile/:user_profile_id/phones", UserController, :update_user_profile_phones
 
     post "/work/profile/:work_profile_id/skills", UserController, :update_work_profile_skills
+    post "/work/profile/:work_profile_id/into", UserController, :update_work_profile_prof_intro
+    post "/work/profile/:work_profile_id/letter", UserController, :update_work_profile_cover_letter
   end # end of scope for logged in users
 
   # Enables LiveDashboard only for development

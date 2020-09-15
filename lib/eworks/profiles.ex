@@ -101,6 +101,42 @@ defmodule Eworks.Profiles do
       # return no change
       :no_change
     end # end of checking the changeset
+  end # end of the update_work_profile_skills/2
+
+  @doc """
+  Updates a work profile's professional intro.
+
+  ## Examples
+
+      iex> update_work_prof_intro(profile, %{email: new_value})
+      {:ok, %Profile{}}
+
+      iex> update_work_prof_intro(profile, %{email: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_work_profile_prof_intro(%UserProfile{} = profile, attrs) do
+    profile
+    |> WorkerProfile.professional_intro_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a work profile's cover letter.
+
+  ## Examples
+
+      iex> update_work_cover_letter(profile, %{email: new_value})
+      {:ok, %Profile{}}
+
+      iex> update_work_cover_letter(profile, %{email: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_work_profile_cover_letter(%UserProfile{} = profile, attrs) do
+    profile
+    |> WorkerProfile.cover_letter_changeset(attrs)
+    |> Repo.update()
   end
 
   @doc """

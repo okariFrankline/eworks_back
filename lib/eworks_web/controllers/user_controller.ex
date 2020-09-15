@@ -64,7 +64,7 @@ defmodule EworksWeb.UserController do
       # put the view
       |> put_view(ProfileView)
       # render the profiles view
-      |> render("user_profile.json", profile: profile)
+      |> render("user_profile.json", user_profile: profile)
     end # end of update the profile update
   end # end of the update_user_profile_location/2
 
@@ -79,7 +79,7 @@ defmodule EworksWeb.UserController do
       # put the view
       |> put_view(ProfileView)
       # render the profiles view
-      |> render("user_profile.json", profile: profile)
+      |> render("user_profile.json", user_profile: profile)
     end # end of the updating the emails
   end # end of the update_user_profile_emails
 
@@ -94,7 +94,7 @@ defmodule EworksWeb.UserController do
       # put the view
       |> put_view(ProfileView)
       # render the profiles view
-      |> render("user_profile.json", profile: profile)
+      |> render("user_profile.json", user_profile: profile)
     end # end of the updating the emails
   end # end of the update_user_profile_emails
 
@@ -109,9 +109,39 @@ defmodule EworksWeb.UserController do
       # put the profile view
       |> put_view(ProfileView)
       # render the work profile
-      |> render("work_profile.json", user_profile: work_profile)
+      |> render("work_profile.json", work_profile: work_profile)
     end # end of with
   end # end of the uodate_work_profile_skills/2
+
+  @doc """
+    Updates the cover letter of a work profile
+  """
+  def update_work_profile_cover_letter(%{assigns: %{current_user: user}} = conn, %{"work_profile" => %{"cover_letter" => cover_letter}, "work_profile_id" => id}) do
+    with {:ok, work_profile} <- Eworks.update_work_profile_cover_letter(user, id, cover_letter) do
+      conn
+      # update the status
+      |> put_status(:ok)
+      # put view
+      |> put_view(ProfileView)
+      # render the work profile
+      |> render("work_profile.json", work_profile: work_profile)
+    end # end of with
+  end # end of the update the workprofile cover letter
+
+  @doc """
+    Updates the professional introduction of a work profile
+  """
+  def update_work_profile_prof_intro(%{assigns: %{current_user: user}} = conn, %{"work_profile" => %{"professional_intro" => prof_intro}, "work_profile_id" => id}) do
+    with {:ok, work_profile} <- Eworks.update_work_profile_prof_intro(user, id, prof_intro) do
+      conn
+      # update the status
+      |> put_status(:ok)
+      # put view
+      |> put_view(ProfileView)
+      # render the work profile
+      |> render("work_profile.json", work_profile: work_profile)
+    end # end of with
+  end # end of the update the workprofile cover letter
 
   def show(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)

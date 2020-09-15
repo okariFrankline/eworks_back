@@ -33,7 +33,7 @@ defmodule Eworks do
       with {:ok, user} <- Accounts.create_user(params) do
         # ceate a new profile user from the account user
         profile_user = Profiles.profile_user_from_account_user(user)
-        
+
         # create a profile account for the user only after the user has being successfully created.
         Ecto.build_assoc(profile_user, :user_profile, %{emails: [user.auth_email]})
         # save the profile
@@ -70,11 +70,11 @@ defmodule Eworks do
         # return the user
         {:ok, user}
       end # end of eith for creating a new user
-    end # end of checking if the account exists
 
-  else
-    # user exists
-    {:error, :email_exists, %{message: "Failed. The email address #{params["auth_email"]} is already in use."}}
+    else
+      # user exists
+      {:error, :email_exists, %{message: "Failed. The email address #{params["auth_email"]} is already in use."}}
+    end # end of checking if the account exists
   end # end of registering a user for a practise
 
   @doc """
@@ -176,8 +176,47 @@ defmodule Eworks do
           # return the profile as is
           {:ok, profile}
       end # end of with
+
+    else
+      # the user is not the owner
+      {:error, :not_owner}
     end # end of the checking if current user is the owner of the profile
   end # end of the update_profile_skills
+
+
+  @doc """
+    Updates a user's professional introduction
+  """
+  def update_work_profile_prof_intro(%User{} = user, profile_id, prof_intro) do
+    # get the work profiel with the given id
+    work_profile = Profiels.get_work_profile!(profile_id)
+    # ensure the current user is the owner of the profile
+    if profile.user_id == user.id do
+      # update the profile
+      with {:ok, _profile} = result <- Profiles.update_work_profile_prof_intro(profile, %{professional_intro: prof_intro}), do: result
+
+    else
+      # the user is not the owner of the job
+      {:error, :not_owner}
+    end # end of checking whether the current user is the owner of the profile
+  end # end of the update_work_profile_prof_intro/2
+
+  @doc """
+    Updates a user's cover letter
+  """
+  def update_work_profile_cover_letter(%User{} = user, profile_id, cover_letter) do
+    # get the work profiel with the given id
+    work_profile = Profiels.get_work_profile!(profile_id)
+    # ensure the current user is the owner of the profile
+    if profile.user_id == user.id do
+      # update the profile
+      with {:ok, _profile} = result <- Profiles.update_work_profile_cover_letter(profile, %{cover_letter: cover_letter}), do: result
+
+    else
+      # the user is not the owner of the job
+      {:error, :not_owner}
+    end # end of checking whether the current user is the owner of the profile
+  end # end of the update_work_profile_prof_intro/2
 
   # def authenticate_user(%User{auth_email: email, password_hash: pass} = user) do
   #   # get the user with the email address

@@ -43,6 +43,24 @@ defmodule Eworks.Profiles.WorkProfile do
     |> add_to_skills()
   end # end of the skills_changeset/2
 
+  @doc false
+  def cover_letter_changeset(profile, changeset) do
+    changeset(profile, attrs)
+    # ensure the cover letter is give
+    |> validate_required([
+      :cover_letter
+    ])
+  end # end of cover_letter changeset/2
+
+  @doc false
+  def professional_intro_changeset(profile, changeset) do
+    changeset(profile, attrs)
+    # ensure the cover letter is give
+    |> validate_required([
+      :professional_into
+    ])
+  end # end of cover_letter changeset/2
+
   # function for adding the skills to the changeset
   def add_to_skills(%Changeset{valid?: true, changes: %{skills: new_skills}, data: %__MODULE__{skills: saved_skills}} = changeset) do
     # check that any of the elements in the new skills is not in the saved skills
