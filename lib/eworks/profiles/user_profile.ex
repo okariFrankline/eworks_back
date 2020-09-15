@@ -15,6 +15,7 @@ defmodule Eworks.Profiles.UserProfile do
     field :phone, :string, virtual: true
     field :phones, {:array, :string}
     field :profile_pic, :string
+    field :skills, {:array, :string}
     belongs_to :user, Eworks.Profiles.User, type: :binary_id
 
     timestamps()
@@ -29,8 +30,20 @@ defmodule Eworks.Profiles.UserProfile do
       :emails,
       :phones,
       :profile_pic
+      :skills
     ])
   end
+
+  @doc false
+  def skills_changeset(profile, attrs) do
+    changeset(profile, attrs)
+    # ensure the skiils is given
+    |> validate_requred([
+      :skills
+    ])
+    # add the skills to the skills already in the changeset
+    |> add_to_skills()
+  end # end of the skills_changeset/2
 
   @doc false
   def email_changeset(profile, attrs) do
@@ -77,10 +90,28 @@ defmodule Eworks.Profiles.UserProfile do
     changeset(profile, attrs)
     # ensure country and city are given
     |> validate_required([
-      :county,
+      :country,
       :city
     ])
   end # end of the location changeset
+
+  # function for adding the skills to the changeset
+  def add_to_skills(%Changeset{valid?: true, changes: %{skills: new_skills}, data: %__MODULE__{skills: saved_skills}} = changeset) do
+    # check that any of the elements in the new skills is not in the saved skills
+    to_save_skills = Enum.map(new_skills, fn skill ->
+      # return the skill if its not in the saved skilled
+      if not Enum.member?(saved_skills, skill), do: skill
+    end)
+    # check if the skills to save have any value
+    if to_save_skills !== [] do
+      # add the new skiils to the already saved skills
+      changeset |> put_change(:skills, [to_save_skills | saved_skills])
+    else
+      # set the changeset action to nil to prevent any update
+      changeset |> put_change(:action, nil)
+    end # end of if
+  end # end of add_to_skills/1
+  def add_to_skills(changeset), do: changeset
 
   # function for validating the email format
   defp validate_email_and_add_to_emails(%Changeset{valid?: true, changes: %{email: email}, data: %__MODULE__{emails: emails}} = changeset) do

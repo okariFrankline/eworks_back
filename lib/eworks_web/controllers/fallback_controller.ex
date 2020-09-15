@@ -22,9 +22,31 @@ defmodule EworksWeb.FallbackController do
     |> render(:"404")
   end
 
-  # error for creating a new user
-  def call(conn, {:error, message}) do
+  # error when the user is not the owner of the asset they are changing
+  def call(conn, {:error, :not_owner}) do
     conn
-    |> send_resp(400, message)
-  end
+    # put status
+    |> put_status(:bad_request)
+    # put the error view
+    |> put_view(Eworks.ErrorView)
+    # render the not found page
+    |> render("not_owner.json")
+  end # end of call for :not_error
+
+  # error for creating a new user
+  # def call(conn, {:error, message}) do
+  #   conn
+  #   |> send_resp(400, message)
+  # end
+
+  # function for handling a similar email error
+  def call(conn, {:error, :email_exists, message}) do
+    conn
+    # put status
+    |> put_status(:bad_request)
+    # put view
+    |> put_view(Eworks.ErrorView)
+    # render the same_email json
+    |> render("same_email.json", message)
+  end # end of handling he similar email error
 end

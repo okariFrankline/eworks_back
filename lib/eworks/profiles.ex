@@ -80,6 +80,30 @@ defmodule Eworks.Profiles do
   end
 
   @doc """
+  Updates a work profile's skills.
+
+  ## Examples
+
+      iex> update_work_profile_skills(profile, %{bio: new_value})
+      {:ok, %Profile{}}
+
+      iex> update_work_profile_skills(profile, %{bio: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_work_profile_skills(%UserProfile{} = profile, attrs) do
+    changeset = profile |> WorkProfile.skills_changeset(attrs)
+    # check the action of the changeset
+    if changeset.action != nil do
+      # update the profile
+      changeset |> Repo.update()
+    else
+      # return no change
+      :no_change
+    end # end of checking the changeset
+  end
+
+  @doc """
   Deletes a work_profile.
 
   ## Examples
@@ -226,24 +250,6 @@ defmodule Eworks.Profiles do
   def update_user_profile_location(%UserProfile{} = profile, attrs) do
     profile
     |> UserProfile.location_changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Updates a profile by adding bio details to the user.
-
-  ## Examples
-
-      iex> add_bio_to_profile(profile, %{bio: new_value})
-      {:ok, %Profile{}}
-
-      iex> add_bio_to_profile(profile, %{bio: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_user_profile_bio(%UserProfile{} = profile, attrs) do
-    profile
-    |> UserProfile.bio_changeset(attrs)
     |> Repo.update()
   end
 

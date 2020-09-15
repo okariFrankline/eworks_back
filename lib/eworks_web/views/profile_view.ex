@@ -23,9 +23,22 @@ defmodule EworksWeb.ProfileView do
       profile_pic: profile.profile_pic}
   end
 
+  # render for the user_profile
   def render("user_profile.json", %{profile: profile}) do
     %{
-      id: profile.id
+      id: profile.id,
+      city: profile.city,
+      county: profile.country,
+      emails: profile.emails,
+      phones: profile.phones
     }
-  end
+  end # end of the render for the user_profile.json
+
+  # render the work profile
+  def render("work_profile.json", %{user_profile: profile}) do
+    %{
+      id: profile.id,
+      skills: profile.skills
+    }
+  end # end of the render for the work_profile.json
 end

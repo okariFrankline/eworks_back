@@ -6,7 +6,7 @@ defmodule EworksWeb.UserController do
   alias Eworks.Accounts.User
   alias Eworks.Utils.{Mailer, NewEmail}
   alias EworksWeb.Authentication
-  alias Eworks.Plugs
+  alias EworksWeb.{ProfileView}
 
   action_fallback EworksWeb.FallbackController
 
@@ -20,8 +20,10 @@ defmodule EworksWeb.UserController do
   user params must include auth_email, password, and user_account
   """
   def register(conn, %{"user" => user_params}) do
+    # get the user type to determine which registration function to call
+    user_type = if user_params["user_type"] == "Client", do: :client, else: :practise
     # create a new user and store a token for them
-    with {:ok, %User{} = user} <- Eworks.register_user(user_params), {:ok, jwt} <- Authentication.create_token(user) do
+    with {:ok, %User{} = user} <- Eworks.register_user(user_type, user_params), {:ok, jwt} <- Authentication.create_token(user) do
       # Generate a new email
       NewEmail.new_activation_email(user)
       # send the email
@@ -50,6 +52,66 @@ defmodule EworksWeb.UserController do
       |> render("activated.json", user: result.user, user_profile: result.user_profile)
     end # end of with for verifying account
   end # end of the activate_account/2
+
+  @doc """
+    Updates the current user's location details
+  """
+  def update_user_profile_location(%{assigns: %{current_user: user}} = conn, %{"user_profile" => %{"location" => location_params}, "profile_id" => id}) do
+    with {:ok, profile} <- Eworks.update_user_profile_location(user, id, location_params) do
+      conn
+      # put an ok status
+      |> put_status(:ok)
+      # put the view
+      |> put_view(ProfileView)
+      # render the profiles view
+      |> render("user_profile.json", profile: profile)
+    end # end of update the profile update
+  end # end of the update_user_profile_location/2
+
+  @doc """
+    Updates the email address of the current user
+  """
+  def update_user_profile_emails(%{assigns: %{current_user: user}} = conn, %{"user_profile" => %{"new_email" => new_email}, "profile_id" => id}) do
+    with {:ok, profile} <- Eworks.update_user_profile_emails(user, id, new_email) do
+      conn
+      # put ok on the status
+      |> put_status(:ok)
+      # put the view
+      |> put_view(ProfileView)
+      # render the profiles view
+      |> render("user_profile.json", profile: profile)
+    end # end of the updating the emails
+  end # end of the update_user_profile_emails
+
+  @doc """
+    Updates the phone number of the current user
+  """
+  def update_user_profile_phones(%{assigns: %{current_user: user}} = conn, %{"user_profile" => %{"new_phone" => new_phone}, "profile_id" => id}) do
+    with {:ok, profile} <- Eworks.update_user_profile_phones(user, id, new_phone) do
+      conn
+      # put ok on the status
+      |> put_status(:ok)
+      # put the view
+      |> put_view(ProfileView)
+      # render the profiles view
+      |> render("user_profile.json", profile: profile)
+    end # end of the updating the emails
+  end # end of the update_user_profile_emails
+
+  @doc """
+    Updates the current user's work profile skills
+  """
+  def update_work_profile_skills(%{assigns: %{current_user: user}} = conn, %{"work_profile" => %{"new_skills" => new_skills}, "work_profile_id" => id}) do
+    with {:ok, work_profile} <- Eworks.update_work_profile_skills(user, id, new_skills) do
+      conn
+      # put ok on the status
+      |> put_status(:ok)
+      # put the profile view
+      |> put_view(ProfileView)
+      # render the work profile
+      |> render("work_profile.json", user_profile: work_profile)
+    end # end of with
+  end # end of the uodate_work_profile_skills/2
 
   def show(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
