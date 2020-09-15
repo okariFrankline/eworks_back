@@ -56,7 +56,7 @@ defmodule EworksWeb.UserController do
   @doc """
     Updates the current user's location details
   """
-  def update_user_profile_location(%{assigns: %{current_user: user}} = conn, %{"user_profile" => %{"location" => location_params}, "profile_id" => id}) do
+  def update_user_profile_location(%{assigns: %{current_user: user}} = conn, %{"user_profile" => %{"location" => location_params}, "user_profile_id" => id}) do
     with {:ok, profile} <- Eworks.update_user_profile_location(user, id, location_params) do
       conn
       # put an ok status
@@ -71,7 +71,7 @@ defmodule EworksWeb.UserController do
   @doc """
     Updates the email address of the current user
   """
-  def update_user_profile_emails(%{assigns: %{current_user: user}} = conn, %{"user_profile" => %{"new_email" => new_email}, "profile_id" => id}) do
+  def update_user_profile_emails(%{assigns: %{current_user: user}} = conn, %{"user_profile" => %{"new_email" => new_email}, "user_profile_id" => id}) do
     with {:ok, profile} <- Eworks.update_user_profile_emails(user, id, new_email) do
       conn
       # put ok on the status
@@ -86,7 +86,7 @@ defmodule EworksWeb.UserController do
   @doc """
     Updates the phone number of the current user
   """
-  def update_user_profile_phones(%{assigns: %{current_user: user}} = conn, %{"user_profile" => %{"new_phone" => new_phone}, "profile_id" => id}) do
+  def update_user_profile_phones(%{assigns: %{current_user: user}} = conn, %{"user_profile" => %{"new_phone" => new_phone}, "user_profile_id" => id}) do
     with {:ok, profile} <- Eworks.update_user_profile_phones(user, id, new_phone) do
       conn
       # put ok on the status

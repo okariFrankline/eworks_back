@@ -30,9 +30,11 @@ defmodule EworksWeb.Router do
     pipe_through [:api, :authenticated]
 
     post "/activate", UserController, :activate_account
-    post "/profile/:profile_id/location", UserController, :update_user_profile_location
-    post "/profile/:profile_id/emails", UserController, :update_user_profile_emails
-    post "/profile/:profile_id/phones", UserController, :update_user_profile_phones
+    post "/user/profile/:user_profile_id/location", UserController, :update_user_profile_location
+    post "/user/profile/:user_profile_id/emails", UserController, :update_user_profile_emails
+    post "/user/profile/:user_profile_id/phones", UserController, :update_user_profile_phones
+
+    post "/work/profile/:work_profile_id/skills", UserController, :update_work_profile_skills
   end # end of scope for logged in users
 
   # Enables LiveDashboard only for development
