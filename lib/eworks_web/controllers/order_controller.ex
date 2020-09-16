@@ -111,7 +111,7 @@ defmodule EworksWeb.OrderController do
   @doc """
     Accepts a given offer for a particular order
   """
-  def accept_order_offer(conn, %{"order_id" => order_id, "order_offer_id" => order_offer_id}) do
+  def accept_order_offer(%{assigns: %{current_user: user}} = conn, %{"order_id" => order_id, "order_offer_id" => order_offer_id}) do
     with %Order{} = order <- Eworks.accept_order_offer(user, order_offer_id, order_id) do
       conn
       # put a status
@@ -120,6 +120,19 @@ defmodule EworksWeb.OrderController do
       |> render("order.json", order: order)
     end # end of accepting the offer
   end # end of accept_order_offer
+
+  @doc """
+    Assign a job to a given user
+  """
+  def assign_order(%{assigns: %{current_user: user}} = conn, %{"order_id" => order_id, "to_assign" => to_assign_id}) do
+    with order <- Eworks.assign_order(user, order_id, to_assign_id) do
+      conn
+      # ok
+      |> put_status(:ok)
+      # render the order
+      |> render("assigned_order.json", assigned_order: order)
+    end # end of with for assigning of the order to the user
+  end # end of assign order
 
   def delete(conn, %{"id" => id}) do
     order = Orders.get_order!(id)

@@ -32,6 +32,7 @@ defmodule EworksWeb.OrderView do
       description: order.description,
       specialty: order.specialty,
       category: order.category,
+      offers_made: order.offers_made,
       attachments: order.attachments,
       duration: order.duration,
       order_type: order.order_type,
@@ -43,4 +44,31 @@ defmodule EworksWeb.OrderView do
       offers: order.offers
     }
   end
-end
+
+  def render("assigned_order.json", %{assigned_order: order}) do
+    %{
+      data: %{
+        assignee: render_one(order.assignee, __MODULE__, "assignee.json")
+        is_assigned: order.is_assigned,
+        description: order.descripiton,
+        payable_amount: order.payable_amount,
+        is_paid_for: order.is_paid_for
+        payment_schedule: order.payment_schedule,
+        category: order.category,
+        is_complete: order.is_complete
+      }
+    }
+  end
+
+  def render("assignee.json", %{assignee: assignee}) do
+    %{
+      id: assignee.id,
+      full_name: assignee.full_name,
+      rating: assignee.work_profile.rating,
+      about: assignee.work_profile.professional_intro
+      asking_amount: assignee.order_offer.asking_amount
+      profile_pic: assignee.profile_pic
+    }
+  end
+
+end # end of the module

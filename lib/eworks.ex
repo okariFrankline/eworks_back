@@ -220,6 +220,7 @@ defmodule Eworks do
 
 
   alias Eworks.Orders
+  alias Eworks.Orders.{Order, OrderOffer}
   @doc """
     Creates a new order
   """
@@ -382,14 +383,31 @@ defmodule Eworks do
         # offer successfully accepted
         :ok ->
           # update the order by reducing the number of required offers by 1 and return the order
-          order
-          # reduce the number of required contractors
-          |> Ecto.Changeset.change(%{
-            required_contractors: order.required_contractors - 1
-          })
-          # update the order
-          |> Repo.update!()
-
+          if order.accepted_offers == 3 do
+            order
+            # reduce the number of required contractors
+            |> Ecto.Changeset.change(%{
+              required_contractors: order.required_contractors - 1
+            })
+            # update the order
+            |> Repo.update!()
+            # get the bid for which the user has accepted
+            |> Repo.preload(:order_offers, [
+              from(
+                offer in OrderOffer,
+                where: offer.is_accepted == true
+              )
+            ])
+          else
+            # the user still can accept other offers
+            order
+            # reduce the number of required contractors
+            |> Ecto.Changeset.change(%{
+              required_contractors: order.required_contractors - 1
+            })
+            # update the order
+            |> Repo.update!()
+          end # end of if for checking if the user can make more offers
         # offer not accepted
         _ ->
           # return the result
@@ -400,6 +418,42 @@ defmodule Eworks do
       {:error, :not_owner}
     end # end of checking if the current user is the owner of the order
   end # end of accept_order_offer
+
+  @doc """
+    Function for assigning an order
+  """
+  def assign_order(%User{} = user, order_id, to_assign_id) do
+    # get the person to be assigned
+    to_assignee_task = Task.async(fn ->
+      Accounts.get_user!(to_assign_id) |> preload([
+        # preload the work profile and return the full name and the professional intro
+        work_profile: from profile in WorkProfile, select: [profile.full_name, profile.professional_intro],
+        # preload the order offer made for this particular offer
+        order_offers: from offer in OrderOffer, where: offer.order_id == ^order_id, select: [offer.asking_amount]
+      ])
+    end)
+    # get the order
+    order = Orders.get_order!(order_id)
+    # check if the job has being assigned
+    if not order.is_assigned and order.already_assigned != order.required_contractors do
+      Task.start(fn ->
+        # update the user and add the current order to the user's assigned orders
+        order
+        # add the order id to the user's assigned orders
+        |> Ecto.build_assoc(:assigned_orders)
+        # update the user
+        |> Repo.update!()
+
+        # send notification to the user about the assigned orders
+      end)
+
+      
+    else
+      # the order has already being assigned
+      {:error, :already_assigned}
+    end # end of checking whether the order has already been assigned or the required contractors have been met
+
+  end # end of assigning an order
 
   # def authenticate_user(%User{auth_email: email, password_hash: pass} = user) do
   #   # get the user with the email address
