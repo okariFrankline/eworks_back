@@ -27,4 +27,11 @@ defmodule EworksWeb.ErrorView do
       details: message
     }}
   end # end of the same_email.json
+
+  # function for handling the is client error
+  def render("is_client", _assigns) do
+    %{:errors: %{
+      details: "Failed. User is a client."
+    }}
+  end
 end

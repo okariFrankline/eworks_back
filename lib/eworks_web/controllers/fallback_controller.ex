@@ -49,4 +49,14 @@ defmodule EworksWeb.FallbackController do
     # render the same_email json
     |> render("same_email.json", message)
   end # end of handling he similar email error
+
+  # function for handling an error where the user is not a client and trying to submit an offer
+  def call(conn, {:error, :is_client}) do
+    conn
+    |> put_status(:unauthorized)
+    # put_view
+    |> put_view(Eworks.ErrorView)
+    # render the is client
+    |> render("is_client.json")
+  end # end of function
 end

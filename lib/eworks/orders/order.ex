@@ -24,7 +24,6 @@ defmodule Eworks.Orders.Order do
     field :payment_schedule, :string
     field :required_contractors, :integer
     field :specialty, :string
-    field :title, :string
     field :is_draft, :boolean, default: true
     field :verification_code, :integer
     field :rating, :integer
@@ -54,12 +53,15 @@ defmodule Eworks.Orders.Order do
       :deadline,
       :category,
       :required_contractors,
-      :title,
       :specialty,
       :attachments,
       :is_draft,
       :verification_code,
-      :order_type
+      :order_type,
+      :comment,
+      :rating,
+      :payable_amount,
+      :payment_schedule
     ])
   end # end of changeset
 
@@ -68,12 +70,12 @@ defmodule Eworks.Orders.Order do
     changeset(order, attrs)
     # cast the min and max payment
     |> cast(attrs, [
-      :title,
-      :required_contractors,
+      :category,
+      :specialty,
     ])
     |> validate_required([
-      :required_contractors,
-      :title,
+      :category,
+      :specialty,
     ])
     # insert the order verification code
     |> add_verification_code()
@@ -111,21 +113,21 @@ defmodule Eworks.Orders.Order do
   end # end of the payment changeset
 
   @doc false
-  def category_specialty_changeset(order, attrs) do
-    changeset(order, attrs)
-    # ensure the fields are given
-    |> validate_required([
-      :category,
-      :specialty
-    ])
-  end # end of the category_speciality_changeset/2
-
-  @doc false
-  def type_duration_changeset(order, attrs) do
+  def type_changeset(order, attrs) do
     changeset(order, attrs)
     # ensure the fields are given
     |> validate_required([
       :order_type,
+      :required_contractors
+    ])
+  end # end of the category_speciality_changeset/2
+
+  @doc false
+  def duration_changeset(order, attrs) do
+    changeset(order, attrs)
+    # ensure the fields are given
+    |> validate_required([
+      :deadline,
       :duration
     ])
   end # end of type_duration_changeset

@@ -161,20 +161,20 @@ defmodule Eworks do
   @doc """
     Updates the skills of a given user
   """
-  def update_work_profile_skills(%Users{} = user, profile_id, new_skills) do
+  def update_work_profile_skills(%User{} = user, profile_id, new_skills) do
     # get the work profile
-    profile = Profiles.get_work_profile!(profile_id)
+    work_profile = Profiles.get_work_profile!(profile_id)
     # ensure the user is the owner of the work profile
-    if profile.user_id == user.id do
+    if work_profile.user_id == user.id do
       # update the profile
-      with {:ok, _profile} = result <- Profiles.update_work_profile_skills(profile, %{skills: new_skills}) do
+      with {:ok, _profile} = result <- Profiles.update_work_profile_skills(work_profile, %{skills: new_skills}) do
         # return the result
         result
         # there are no changese
       else
         :no_changes ->
           # return the profile as is
-          {:ok, profile}
+          {:ok, work_profile}
       end # end of with
 
     else
@@ -189,11 +189,11 @@ defmodule Eworks do
   """
   def update_work_profile_prof_intro(%User{} = user, profile_id, prof_intro) do
     # get the work profiel with the given id
-    work_profile = Profiels.get_work_profile!(profile_id)
+    work_profile = Profiles.get_work_profile!(profile_id)
     # ensure the current user is the owner of the profile
-    if profile.user_id == user.id do
+    if work_profile.user_id == user.id do
       # update the profile
-      with {:ok, _profile} = result <- Profiles.update_work_profile_prof_intro(profile, %{professional_intro: prof_intro}), do: result
+      with {:ok, _profile} = result <- Profiles.update_work_profile_prof_intro(work_profile, %{professional_intro: prof_intro}), do: result
 
     else
       # the user is not the owner of the job
@@ -206,17 +206,200 @@ defmodule Eworks do
   """
   def update_work_profile_cover_letter(%User{} = user, profile_id, cover_letter) do
     # get the work profiel with the given id
-    work_profile = Profiels.get_work_profile!(profile_id)
+    work_profile = Profiles.get_work_profile!(profile_id)
     # ensure the current user is the owner of the profile
-    if profile.user_id == user.id do
+    if work_profile.user_id == user.id do
       # update the profile
-      with {:ok, _profile} = result <- Profiles.update_work_profile_cover_letter(profile, %{cover_letter: cover_letter}), do: result
+      with {:ok, _profile} = result <- Profiles.update_work_profile_cover_letter(work_profile, %{cover_letter: cover_letter}), do: result
 
     else
       # the user is not the owner of the job
       {:error, :not_owner}
     end # end of checking whether the current user is the owner of the profile
   end # end of the update_work_profile_prof_intro/2
+
+
+  alias Eworks.Orders
+  @doc """
+    Creates a new order
+  """
+  def create_new_order(%User{} = user, order_params) do
+    # create a new order user from the current user
+    order_owner = Orders.order_user_from_account_user(user)
+    # create a new order
+    order_owner
+    # add the user id to the order
+    |> Ecto.build_assoc(:orders)
+    # create the order
+    |> Orders.create_order(order_params)
+  end # creates an new order
+
+  @doc """
+    Adds the payment information of the order
+  """
+  def update_order_payment(%User{} = user, order_id, payment_params) do
+    # get the order with the given id
+    order = Orders.get_order!(order_id)
+    # ensure the current user is the owner of the order
+    if order.user_id == user.id do
+      # update the order
+      with {:ok, _order} = result <- Orders.update_order_payment(order, payment_params), do: result
+    else
+      # now owner
+      {:error, :not_owner}
+    end # end of checking if the current user is the owner of the id
+  end # end of the adding the payment information
+
+
+  @doc """
+    Updates the order's type and duration
+  """
+  def update_order_duration(%User{} = user, order_id, duration_params) do
+    # get the order with the given id
+    order = Orders.get_order!(order_id)
+    # ensure the current user is the owner of the order
+    if order.user_id == user.id do
+      # update the order
+      with {:ok, _order} = result <- Orders.update_order_duration(order, duration_params), do: result
+    else
+      # now owner
+      {:error, :not_owner}
+    end # end of checking if the current user is the owner of the id
+  end # end of the update_order_type and duration
+
+  @doc """
+    Updates the order's type and required contractors
+  """
+  def update_order_type_and_contractors(%User{} = user, order_id, type_params) do
+    # get the order with the given id
+    order = Orders.get_order!(order_id)
+    # ensure the current user is the owner of the order
+    if order.user_id == user.id do
+      # update the order
+      with {:ok, _order} = result <- Orders.update_order_type_and_contractors(order, type_params), do: result
+    else
+      # now owner
+      {:error, :not_owner}
+    end # end of checking if the current user is the owner of the id
+  end # end of the update_order_type and the number of required contractors
+
+  @doc """
+    Updates the order's description
+  """
+  def update_order_description(%User{} = user, order_id, description) do
+    # get the order with the given id
+    order = Orders.get_order!(order_id)
+    # ensure the current user is the owner of the order
+    if order.user_id == user.id do
+      # update the order
+      with {:ok, _order} = result <- Orders.update_order_description(order, %{description: description}), do: result
+    else
+      # now owner
+      {:error, :not_owner}
+    end # end of checking if the current user is the owner of the id
+  end # end of the update order description
+
+
+  @doc """
+    Submits an offer
+  """
+  def submit_order_offer(%User{} = user, order_id, asking_amount) do
+    # check if the user is a client or not
+    if user.user_type == "Client" do
+      # return an error
+      {:error, :is_client}
+    else
+      # create a task for creating the offer
+      Task.start(fn ->
+        # get the order with the specified id
+        with {:ok, order} <- Orders.get_order(order_id) do
+          # create a new order
+          user
+          # add the user id and the order id
+          |> Ecto.build_assoc(:order_offers, %{order_id: order.id, asking_amount: asking_amount})
+          # create the offer
+          |> Repo.update!()
+        end # end of with for getting the order
+      end)
+      # return ok
+      :ok
+    end # end of checking if the user is a client
+  end # end of submitting an order offer
+
+  @doc """
+  Functions for rejecting an order offer
+  """
+  def reject_order_offer(order_offer_id) do
+    Task.start(fn ->
+      # get the order_offer with the given id
+      offer = Orders.get_order_offer!(order_offer_id)
+      # check if the offer has been cancelled or not
+      with :true <- offer.is_pending, order_offer <- offer |> Ecto.Changeset.change(%{is_accepted: true}) |> Repo.update!() do
+        # broadcast to the user in realtime that the offer has being decline
+        order_offer
+      end
+    end)
+    # return :ok
+    :ok
+  end # end of the reject offer
+
+
+  defp accept_offer(offer, ) do
+    # check if the offer is cancelled or not
+    if not offer.is_cancelled do
+      # update the offer
+      offer
+      # put the is_accepted to true and set the is_pending to false
+      |> Ecto.Changeset.change(%{
+        :is_accepted: true,
+        :is_pending: false
+      })
+      # update the offer
+      |> Repo.update!()
+
+      # send a notification to the owner of the the offer about the accepting of the offer
+      :ok
+    else
+      # offer is cancelled
+      {:error, :offer_cancelled}
+    end # end of the checking if the offer has being cancelled
+  end
+
+  @doc """
+    Function that accepts an order
+  """
+  def accept_order_offer(%User{} = user, order_id, order_offer_id) do
+    # start the task for getting the offer
+    offer_task = Task.async(fn ->
+      Orders.get_order_offer!(order_offer_id)
+    end)
+    # get the order
+    order = Orders.get_order!(order_id)
+    # check if the current user is the owner of the job
+    if order.user_id == user.id do
+      # update the offer
+      case accept_offer(Task.await(offer_task)) do
+        # offer successfully accepted
+        :ok ->
+          # update the order by reducing the number of required offers by 1 and return the order
+          order
+          # reduce the number of required contractors
+          |> Ecto.Changeset.change(%{
+            required_contractors: order.required_contractors - 1
+          })
+          # update the order
+          |> Repo.update!()
+
+        # offer not accepted
+        _ ->
+          # return the result
+          {:error, :offer_cancelled}
+      end # end of case for accepting the offer
+    else
+      # not user
+      {:error, :not_owner}
+    end # end of checking if the current user is the owner of the order
+  end # end of accept_order_offer
 
   # def authenticate_user(%User{auth_email: email, password_hash: pass} = user) do
   #   # get the user with the email address

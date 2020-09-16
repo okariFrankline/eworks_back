@@ -1,6 +1,7 @@
 defmodule Eworks.Profiles.WorkProfile do
   use Ecto.Schema
   import Ecto.Changeset
+  alias Ecto.Changeset
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -36,7 +37,7 @@ defmodule Eworks.Profiles.WorkProfile do
   def skills_changeset(profile, attrs) do
     changeset(profile, attrs)
     # ensure the skiils is given
-    |> validate_requred([
+    |> validate_required([
       :skills
     ])
     # add the skills to the skills already in the changeset
@@ -44,7 +45,7 @@ defmodule Eworks.Profiles.WorkProfile do
   end # end of the skills_changeset/2
 
   @doc false
-  def cover_letter_changeset(profile, changeset) do
+  def cover_letter_changeset(profile, attrs) do
     changeset(profile, attrs)
     # ensure the cover letter is give
     |> validate_required([
@@ -53,7 +54,7 @@ defmodule Eworks.Profiles.WorkProfile do
   end # end of cover_letter changeset/2
 
   @doc false
-  def professional_intro_changeset(profile, changeset) do
+  def professional_intro_changeset(profile, attrs) do
     changeset(profile, attrs)
     # ensure the cover letter is give
     |> validate_required([

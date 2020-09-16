@@ -91,7 +91,7 @@ defmodule Eworks.Profiles do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_work_profile_skills(%UserProfile{} = profile, attrs) do
+  def update_work_profile_skills(%WorkProfile{} = profile, attrs) do
     changeset = profile |> WorkProfile.skills_changeset(attrs)
     # check the action of the changeset
     if changeset.action != nil do
@@ -115,9 +115,9 @@ defmodule Eworks.Profiles do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_work_profile_prof_intro(%UserProfile{} = profile, attrs) do
+  def update_work_profile_prof_intro(%WorkProfile{} = profile, attrs) do
     profile
-    |> WorkerProfile.professional_intro_changeset(attrs)
+    |> WorkProfile.professional_intro_changeset(attrs)
     |> Repo.update()
   end
 
@@ -133,9 +133,9 @@ defmodule Eworks.Profiles do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_work_profile_cover_letter(%UserProfile{} = profile, attrs) do
+  def update_work_profile_cover_letter(%WorkProfile{} = profile, attrs) do
     profile
-    |> WorkerProfile.cover_letter_changeset(attrs)
+    |> WorkProfile.cover_letter_changeset(attrs)
     |> Repo.update()
   end
 

@@ -29,7 +29,7 @@ defmodule Eworks.Profiles.UserProfile do
       :city,
       :emails,
       :phones,
-      :profile_pic
+      :profile_pic,
       :skills
     ])
   end
@@ -38,7 +38,7 @@ defmodule Eworks.Profiles.UserProfile do
   def skills_changeset(profile, attrs) do
     changeset(profile, attrs)
     # ensure the skiils is given
-    |> validate_requred([
+    |> validate_required([
       :skills
     ])
     # add the skills to the skills already in the changeset

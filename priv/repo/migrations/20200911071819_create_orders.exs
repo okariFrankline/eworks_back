@@ -15,7 +15,6 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :category, :string, null: true
       add :payable_amount, :string, null: true
       add :required_contractors, :integer, null: false
-      add :title, :string, null: false
       add :specialty, :string, null: true
       add :attachments, {:array, :string}, default: []
       add :payment_schedule, :string, null: true
@@ -36,7 +35,6 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
     create index(:orders, [:user_id])
     create index(:orders, [:assigned_order_id])
     create index(:orders, [:is_draft])
-    create index(:orders, [:title])
     create index(:orders, [:is_verified])
     create index(:orders, [:is_assigned])
     create index(:orders, [:is_complete])

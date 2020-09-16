@@ -55,8 +55,8 @@ defmodule Eworks.Orders do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_order(attrs \\ %{}) do
-    %Order{}
+  def create_order(order_changeset, attrs \\ %{}) do
+    order_changeset
     |> Order.changeset(attrs)
     |> Repo.insert()
   end
@@ -76,6 +76,78 @@ defmodule Eworks.Orders do
   def update_order(%Order{} = order, attrs) do
     order
     |> Order.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a order's payment information.
+
+  ## Examples
+
+      iex> update_order_payment(order, %{field: new_value})
+      {:ok, %Order{}}
+
+      iex> update_order_payment(order, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_order_payment(%Order{} = order, attrs) do
+    order
+    |> Order.payment_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a order's type and duration.
+
+  ## Examples
+
+      iex> update_order_duration(order, %{field: new_value})
+      {:ok, %Order{}}
+
+      iex> update_order_duration(order, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_order_duration(%Order{} = order, attrs) do
+    order
+    |> Order.duration_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a order's type and the required numbr of contractors.
+
+  ## Examples
+
+      iex> update_order_type_and_contractors(order, %{field: new_value})
+      {:ok, %Order{}}
+
+      iex> update_order_type_and_contractors(order, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_order_type_and_contractors(%Order{} = order, attrs) do
+    order
+    |> Order.type_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a order's desription.
+
+  ## Examples
+
+      iex> update_order_description(order, %{field: new_value})
+      {:ok, %Order{}}
+
+      iex> update_order_description(order, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_order_desription(%Order{} = order, attrs) do
+    order
+    |> Order.description_changeset(attrs)
     |> Repo.update()
   end
 

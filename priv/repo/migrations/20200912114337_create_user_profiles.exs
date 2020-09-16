@@ -12,8 +12,6 @@ defmodule Eworks.Repo.Migrations.CreateUserProfiles do
       # contact information
       add :emails, {:array, :string}, default: []
       add :phones, {:array, :string}, default: []
-      # skills that the user has
-      add :skills, {:array, :string}, default: []
       # owner of the profile
       add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
       # created_at and updated_at
@@ -21,6 +19,6 @@ defmodule Eworks.Repo.Migrations.CreateUserProfiles do
     end
 
     create index(:user_profiles, [:user_id])
-    create index(:user_profiles, [:skills])
+
   end
 end

@@ -37,6 +37,22 @@ defmodule EworksWeb.Router do
     post "/work/profile/:work_profile_id/skills", UserController, :update_work_profile_skills
     post "/work/profile/:work_profile_id/into", UserController, :update_work_profile_prof_intro
     post "/work/profile/:work_profile_id/letter", UserController, :update_work_profile_cover_letter
+
+    # order routes
+    get "/order/:order_id", OrderController, :get_order
+    post "/order/new", OrderController, :create_new_order
+    post "/order/:order_id/payment", OrderController, :update_order_payment
+    post "/order/:order_id/description", OrderController, :update_order_description
+    post "/order/:order_id/duration", OrderController, :update_order_duration
+    post "/order/:order_id/attachments", OrderController, :update_order_attachement
+    post "/order/:order_id/post", OrderController, :post_order
+
+    # order offers
+    post "/order/:order_id/new/offer", OrderController, :submit_order_offer,
+    post "/order-offer/:order_offer_id/reject", OrderController, :reject_order_offer
+    post "/order/:order_id/offer/:order_offer_id/accept", OrderController, :accept_order_offer
+    post "/order/:order_id/assign", OrderController, :assign_order
+    post "/order/:order_id/accept", OrderController, :accept_order
   end # end of scope for logged in users
 
   # Enables LiveDashboard only for development
