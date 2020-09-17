@@ -34,4 +34,22 @@ defmodule EworksWeb.ErrorView do
       details: "Failed. User is a client."
     }}
   end
+
+  # function for rendering already assigned
+  def render("already_assigned.json", _) do
+    %{
+      errors: %{
+        details: "Failed. Order already assigned"
+      }
+    }
+  end
+
+  # function for rendering cancelled offer error
+  def render("cancelled_offer.json", _) do
+    %{
+      errors: %{
+        details: "Failed. Offer cancelled by owner."
+      }
+    }
+  end
 end

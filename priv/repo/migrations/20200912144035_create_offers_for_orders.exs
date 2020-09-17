@@ -9,6 +9,7 @@ defmodule Eworks.Repo.Migrations.CreateOffersForOrders do
       add :is_rejected, :boolean, default: false, null: false
       add :is_cancelled, :boolean, default: false, null: false
       add :asking_mount, :string, null: false
+      add :accepted_order, :boolean, default: false
       # order for which the offer is for
       add :order_id, references(:orders, on_delete: :nothing, type: :binary_id)
       # owner of the offer
@@ -23,6 +24,7 @@ defmodule Eworks.Repo.Migrations.CreateOffersForOrders do
     create index(:order_offers, [:is_rejected])
     create index(:order_offers, [:is_accepted])
     create index(:order_offers, [:is_cancelled])
+    create index(:order_offers, [:accepted_order])
   end
-  
+
 end

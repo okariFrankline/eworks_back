@@ -45,13 +45,13 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/description", OrderController, :update_order_description
     post "/order/:order_id/duration", OrderController, :update_order_duration
     post "/order/:order_id/attachments", OrderController, :update_order_attachement
-    post "/order/:order_id/post", OrderController, :post_order
+    post "/order/:order_id/post", OrderController, :send_order_verification_code
 
     # order offers
     post "/order/:order_id/new/offer", OrderController, :submit_order_offer,
     post "/order-offer/:order_offer_id/reject", OrderController, :reject_order_offer
     post "/order/:order_id/offer/:order_offer_id/accept", OrderController, :accept_order_offer
-    post "/order/:order_id/assign", OrderController, :assign_order
+    post "/order/:order_id/assign/:to_assign_id", OrderController, :assign_order
     post "/order/:order_id/accept", OrderController, :accept_order
   end # end of scope for logged in users
 

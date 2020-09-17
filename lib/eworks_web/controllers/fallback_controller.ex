@@ -59,4 +59,26 @@ defmodule EworksWeb.FallbackController do
     # render the is client
     |> render("is_client.json")
   end # end of function
+
+  # function for handling an error where a given order has already being assigned
+  def call(conn, {:error, :already_assigned}) do
+    conn
+    # put the status
+    |> put_status(:bad_request)
+    # rput a view
+    |> put_view(Eworks.ErrorView)
+    # render the already assigned
+    |> render("already_assigned.json")
+  end
+
+  # function for handling an error where a given offer has already being cancelled
+  def call(conn, {:error, :offer_cancelled}) do
+    conn
+    # put the status
+    |> put_status(:bad_request)
+    # rput a view
+    |> put_view(Eworks.ErrorView)
+    # render the already assigned
+    |> render("cancelled_offer.json")
+  end
 end

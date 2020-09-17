@@ -10,6 +10,9 @@ defmodule Eworks.Orders.OrderOffer do
     field :is_pending, :boolean, default: true
     field :is_rejected, :boolean, default: false
     field :order_id, :binary_id
+
+    # indicates whether the owner of this offer has accepted to work on the order
+    field :accepted_order, :boolean, default: false
     # belongs to one user
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
 
@@ -23,7 +26,8 @@ defmodule Eworks.Orders.OrderOffer do
       :is_pending,
       :is_accepted,
       :is_rejected,
-      :asking_mount
+      :asking_mount,
+      :accepted_order
     ])
     |> validate_required([
       :asking_mount

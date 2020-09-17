@@ -26,6 +26,8 @@ defmodule Eworks.Accounts.User do
     has_many :assigned_orders, Eworks.Accounts.AssignedOrder
     # has many sessions ( for authentication )
     has_many :sessions, Eworks.Accounts.Session
+    # has many order offers
+    has_many :order_offers, Eworks.Orders.OrderOffer
     # add the timestamp
     timestamps()
   end
