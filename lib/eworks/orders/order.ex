@@ -14,6 +14,8 @@ defmodule Eworks.Orders.Order do
     field :description, :string
     field :duration, :string
     field :order_type, :string
+    field :already_assigned, :integer
+    field :accepted_offers, :integer
     field :is_assigned, :boolean, default: false
     field :is_complete, :boolean, default: false
     field :is_paid_for, :boolean, default: false
@@ -61,7 +63,9 @@ defmodule Eworks.Orders.Order do
       :comment,
       :rating,
       :payable_amount,
-      :payment_schedule
+      :payment_schedule,
+      :already_assigned,
+      :accepted_offers
     ])
   end # end of changeset
 

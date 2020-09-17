@@ -20,6 +20,8 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :payment_schedule, :string, null: true
       add :verification_code, :integer, null: false
       add :is_draft, :boolean, default: true
+      add :already_assigned, :integer
+      add :accepted_offers, :integer
       # client comment and review
       add :comment, :text, null: true
       add :rating, :integer, null: true

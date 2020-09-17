@@ -20,7 +20,7 @@ defmodule Eworks.Utils.NewEmail do
 
   # function for sending the order verification code
   def new_order_verification_code_email(%User{auth_email: email} = _user, %Order{verification_code: code, specialty: specialty}) do
-    base_email()
+    base_mail()
     # put the sender of the email
     |> to(email)
     # subject of the email

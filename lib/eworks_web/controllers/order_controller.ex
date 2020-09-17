@@ -85,7 +85,7 @@ defmodule EworksWeb.OrderController do
   @doc """
     Posts a new order
   """
-  def send_order_verification_code(%{assigns: %{current_user: user}}, %{"order_id" => order_id}) do
+  def send_order_verification_code(%{assigns: %{current_user: user}} = conn, %{"order_id" => order_id}) do
     # get the order with the given order
     with :ok <- Eworks.Orders.API.send_order_verification_code(user, order_id) do
       conn
@@ -152,12 +152,12 @@ defmodule EworksWeb.OrderController do
     Accepts to work on a given order
   """
   def accept_order(%{assigns: %{current_user: user}} = conn, %{"order_offer_id" => offer_id}) do
-    with {:ok, offer} <- Eworks.Orders.API.create_order(user, offer_id) do
+    with {:ok, offer} <- Eworks.Orders.API.accept_order(user, offer_id) do
       conn
       # put status
       |> put_status(:ok)
       # render the offer
-      |> render("accepted_order.json", accepted_offer: offer)
+      |> render("accepted_offer.json", accepted_offer: offer)
     end # end of the with
   end
 

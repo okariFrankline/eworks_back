@@ -30,7 +30,7 @@ defmodule EworksWeb.ErrorView do
 
   # function for handling the is client error
   def render("is_client", _assigns) do
-    %{:errors: %{
+    %{errors: %{
       details: "Failed. User is a client."
     }}
   end

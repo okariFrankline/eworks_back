@@ -29,7 +29,6 @@ defmodule EworksWeb.OrderView do
       is_assigned: order.is_assigned,
       is_complete: order.is_complete,
       is_paid_for: order.is_paid_for,
-      description: order.description,
       specialty: order.specialty,
       category: order.category,
       offers_made: order.offers_made,
@@ -48,11 +47,11 @@ defmodule EworksWeb.OrderView do
   def render("assigned_order.json", %{assigned_order: order, assignees: assignees}) do
     %{
       data: %{
-        assignees: render_many(assignees, __MODULE__, "assignee.json")
+        assignees: render_many(assignees, __MODULE__, "assignee.json"),
         is_assigned: order.is_assigned,
         description: order.descripiton,
         payable_amount: order.payable_amount,
-        is_paid_for: order.is_paid_for
+        is_paid_for: order.is_paid_for,
         payment_schedule: order.payment_schedule,
         category: order.category,
         already_assigned: order.already_assigned,
@@ -66,8 +65,8 @@ defmodule EworksWeb.OrderView do
       id: assignee.id,
       full_name: assignee.full_name,
       rating: assignee.work_profile.rating,
-      about: assignee.work_profile.professional_intro
-      asking_amount: assignee.order_offer.asking_amount
+      about: assignee.work_profile.professional_intro,
+      asking_amount: assignee.order_offer.asking_amount,
       profile_pic: assignee.profile_pic
     }
   end
@@ -94,7 +93,7 @@ defmodule EworksWeb.OrderView do
 
   def render("offer_owner.json", %{user: user}) do
     %{
-      id: user.id
+      id: user.id,
       full_name: user.full_name,
       rating: user.work_profile.rating,
       prefessional_intro: user.work_profile.professional_intro,
@@ -105,7 +104,7 @@ defmodule EworksWeb.OrderView do
   def render("accepted_offer.json", %{accepted_offer: offer}) do
     %{
       data: %{
-        render_one(offer, __MODULE__, "offer.json"),
+        accepted_offer: render_one(offer, __MODULE__, "offer.json"),
         order: %{
           id: offer.order.id,
           description: offer.order.description

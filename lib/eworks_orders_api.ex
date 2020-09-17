@@ -1,12 +1,13 @@
 defmodule Eworks.Orders.API do
-  @doc """
+  @moduledoc """
     Defines api for Order and Order offers
   """
   alias Eworks.Accounts.User
   alias Eworks.Profiles.{WorkProfile}
-  alias Eworks.{Orders, Repo}
+  alias Eworks.{Orders, Repo, Accounts}
   alias Eworks.Orders.{Order, OrderOffer}
   alias Eworks.Utils.{Mailer, NewEmail}
+  import Ecto.Query, warn: false
   @doc """
     Creates a new order
   """
@@ -99,37 +100,17 @@ defmodule Eworks.Orders.API do
     else
       # create a task for creating the offer
       Task.start(fn ->
-        # get the order with the specified id
-        with {:ok, order} <- Orders.get_order(order_id) do
-          # create a new order
-          user
-          # add the user id and the order id
-          |> Ecto.build_assoc(:order_offers, %{order_id: order.id, asking_amount: asking_amount})
-          # create the offer
-          |> Repo.update!()
-        end # end of with for getting the order
+        # create a new order
+        user
+        # add the user id and the order id
+        |> Ecto.build_assoc(:order_offers, %{order_id: order_id, asking_amount: asking_amount})
+        # create the offer
+        |> Repo.insert!()
       end)
       # return ok
       :ok
     end # end of checking if the user is a client
   end # end of submitting an order offer
-
-  @doc """
-  Functions for rejecting an order offer
-  """
-  def reject_order_offer(order_offer_id) do
-    Task.start(fn ->
-      # get the order_offer with the given id
-      offer = Orders.get_order_offer!(order_offer_id)
-      # check if the offer has been cancelled or not
-      with :true <- offer.is_pending, order_offer <- offer |> Ecto.Changeset.change(%{is_accepted: true}) |> Repo.update!() do
-        # broadcast to the user in realtime that the offer has being decline
-        order_offer
-      end
-    end)
-    # return :ok
-    :ok
-  end # end of the reject offer
 
 
   @doc """
@@ -149,36 +130,40 @@ defmodule Eworks.Orders.API do
         # offer successfully accepted
         :ok ->
           # update the order by reducing the number of required offers by 1 and return the order
-          updated_offer = if order.accepted_offers == 3 do
-            order
-            # reduce the number of required contractors
-            |> Ecto.Changeset.change(%{
-              required_contractors: order.required_contractors - 1
-            })
+          if order.accepted_offers == 3 do
             # update the order
-            |> Repo.update!()
-            # get the bid for which the user has accepted
-            |> Repo.preload([order_offers: from offer in OrderOffer, where: offer.is_accepted == true])
+            updated_order = order
+                            # reduce the number of required contractors
+                            |> Ecto.Changeset.change(%{
+                              required_contractors: order.required_contractors - 1
+                            })
+                            # update the order
+                            |> Repo.update!()
+                            # get the bid for which the user has accepted
+                            |> Repo.preload([order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)])
+
+            # preload all the offers
+            {:ok, %{
+              accepted_offers: preload_accepted_offers(updated_order)
+            }}
           else
             # the user still can accept other offers
-            order
-            # reduce the number of required contractors
-            |> Ecto.Changeset.change(%{
-              required_contractors: order.required_contractors - 1,
-              accepted_offers: order.accepted_offers + 1
-            })
-            # update the order
-            |> Repo.update!()
-            # preload the already accepted offers
-            |> Repo.preload([
-              order_offers: from offer in OrderOffer, where: offer.is_accepted == true
-            ])
-          end # end of if for checking if the user can make more offers
+            updated_order = order
+                            # reduce the number of required contractors
+                            |> Ecto.Changeset.change(%{
+                              required_contractors: order.required_contractors - 1,
+                              accepted_offers: order.accepted_offers + 1
+                            })
+                            # update the order
+                            |> Repo.update!()
+                            # preload the already accepted offers
+                            |> Repo.preload([order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)])
 
-          # preload all the offers
-          {:ok, %{
-            accepted_offers: preload_accepted_offers(updated_order)
-          }}
+            # preload all the offers
+            {:ok, %{
+              accepted_offers: preload_accepted_offers(updated_order)
+            }}
+          end # end of if for checking if the user can make more offers
 
         # offer not accepted
         _ ->
@@ -194,7 +179,7 @@ defmodule Eworks.Orders.API do
   @doc """
     Function for assigning an order
   """
-  def assign_order(%User{} = user, order_id, to_assign_id) do
+  def assign_order(%User{} = _user, order_id, to_assign_id) do
     # get the person to be assigned
     to_assignee_task = Task.async(fn -> Accounts.get_user!(to_assign_id) end)
 
@@ -202,11 +187,11 @@ defmodule Eworks.Orders.API do
     order = Orders.get_order!(order_id)
     # check if the job has being assigned
     if not order.is_assigned and order.already_assigned != order.required_contractors do
-      # assign the order
-      :ok = assign_order_to_user(order, Task.await(to_assignee_task))
-
-      # updated order
-      updated_order =  order
+      # assign the job
+      with _user <- Task.await(to_assignee_task) |> Ecto.Changeset.change(%{order_id: order_id}) |> Repo.update!() do
+        # start a task for sending the assignee a notification about the assigning
+        # updated order
+        updated_order =  order
         # set the already assigned by adding one and required contractors by removing one
         |> Ecto.Changeset.change(%{
           already_assigned: order.already_assigned + 1,
@@ -217,25 +202,27 @@ defmodule Eworks.Orders.API do
         # preload the assigned practise
         |> Repo.preload(:assignees)
 
-      # for each of the assignees preload the work profile and the order offers
-      assignees = Enum.map(update_order.assignees, fn assignee ->
-        assignee
-        # create the account user from the order
-        |> Orders.account_user_from_order_user(assignee)
-        # preload the workprofile and the order offers
-        |> Repo.preload([
-          # preload the work profile and return the full name and the professional intro
-          work_profile: from profile in WorkProfile, select: [profile.full_name, profile.professional_intro],
-          # preload the order offer made for this particular offer
-          order_offers: from offer in OrderOffer, where: offer.order_id == ^order_id, select: [offer.asking_amount]
-        ])
-      end)
+        # for each of the assignees preload the work profile and the order offers
+        assignees = Enum.map(updated_order.assignees, fn assignee ->
+          assignee
+          # create the account user from the order
+          |> Orders.account_user_from_order_user()
+          # preload the workprofile and the order offers
+          |> Repo.preload([
+            # preload the work profile and return the full name and the professional intro
+            work_profile: from(profile in WorkProfile, select: [profile.full_name, profile.professional_intro]),
+            # preload the order offer made for this particular offer
+            order_offers: from(offer in OrderOffer, where: offer.order_id == ^order_id, select: [offer.asking_amount])
+          ])
+        end)
 
-      # return the result
-      {:ok, %{
-        order: updated_order,
-        assignees: assignees
-      }}
+        # return the result
+        {:ok, %{
+          order: updated_order,
+          assignees: assignees
+        }}
+      end # end of the assigning the work
+
     else
       # the order has already being assigned
       {:error, :already_assigned}
@@ -314,10 +301,11 @@ defmodule Eworks.Orders.API do
     # ensure that the current user if the owner of the offer
     if order_offer.user_id == user.id do
       # update the offer to set the accepted_order to true
-      with offer <- Ecto.Changeset.change(order_offer, %{accepted_order: true}) |> Repo.update!() |> Repo.preload([order: from order in Order, select: [order.id, order.user_id, order.desription]]) do
+      with offer <- Ecto.Changeset.change(order_offer, %{accepted_order: true}) |> Repo.update!() |> Repo.preload([order: from(order in Order, select: [order.id, order.user_id, order.desription])]) do
         # get the order for which the offer is for
         Task.start(fn ->
           # get the order
+          offer.order
           # order = Repo.one!(from order in Order, where: order.id == ^offer.order_id, select: [order.id])
           # notify the owner of the order of the accepting of the order
         end)
@@ -359,21 +347,6 @@ defmodule Eworks.Orders.API do
 
   ####################################### PRIVATE FUNCTIONS #########################################
 
-  # function for assigning an order to the user
-  defp assign_order_to_user(order, user) do
-    Task.start(fn ->
-      # update the user and add the current order to the user's assigned orders
-      Task.await(to_assignee_task)
-      # add the order id to the user's assigned orders
-      |> Ecto.build_assoc(:assignees)
-      # update the user
-      |> Repo.update!()
-      # send notification to the user about the assigned orders
-    end)
-    # return ok
-    :ok
-  end # end of assign_order_to_user/2
-
   defp accept_offer(offer) do
     # check if the offer is cancelled or not
     if not offer.is_cancelled do
@@ -381,8 +354,8 @@ defmodule Eworks.Orders.API do
       offer
       # put the is_accepted to true and set the is_pending to false
       |> Ecto.Changeset.change(%{
-        :is_accepted: true,
-        :is_pending: false
+        is_accepted: true,
+        is_pending: false
       })
       # update the offer
       |> Repo.update!()
@@ -401,7 +374,7 @@ defmodule Eworks.Orders.API do
       offer
       # preload the user and work_profile
       |> Repo.preload([
-        user: [work_profile: from profile in WorkProfile, select: [profile.rating, profile.professional_intro]]
+        user: [work_profile: from(profile in WorkProfile, select: [profile.rating, profile.professional_intro])]
       ])
       # set teach of the
     end)

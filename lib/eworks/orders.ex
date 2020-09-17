@@ -145,7 +145,7 @@ defmodule Eworks.Orders do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_order_desription(%Order{} = order, attrs) do
+  def update_order_description(%Order{} = order, attrs) do
     order
     |> Order.description_changeset(attrs)
     |> Repo.update()

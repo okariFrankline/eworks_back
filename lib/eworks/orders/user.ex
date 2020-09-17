@@ -8,7 +8,7 @@ defmodule Eworks.Orders.User do
   @foreign_key_type :binary_id
   schema "users" do
     # full name
-    field :full_name, :string,
+    field :full_name, :string
     # has many orders
     has_many :orders, Eworks.Orders.Order
     # has many order offers
