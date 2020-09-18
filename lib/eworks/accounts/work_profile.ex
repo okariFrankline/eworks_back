@@ -1,4 +1,4 @@
-defmodule Eworks.Profiles.WorkProfile do
+defmodule Eworks.Accounts.WorkProfile do
   use Ecto.Schema
   import Ecto.Changeset
   alias Ecto.Changeset
@@ -15,7 +15,7 @@ defmodule Eworks.Profiles.WorkProfile do
     # embeds many previous hires
     has_many :previous_hires, __MODULE__.PreviousHires
     # belongs to one user
-    belongs_to :user, Eworks.Profiles.User, type: :binary_id
+    belongs_to :user, Eworks.Accounts.User, type: :binary_id
     # has many previous hires
     timestamps()
   end

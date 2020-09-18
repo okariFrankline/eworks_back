@@ -29,10 +29,10 @@ defmodule EworksWeb.Router do
   scope "/api", EworksWeb do
     pipe_through [:api, :authenticated]
 
-    post "/activate", UserController, :activate_account
-    post "/user/profile/:user_profile_id/location", UserController, :update_user_profile_location
-    post "/user/profile/:user_profile_id/emails", UserController, :update_user_profile_emails
-    post "/user/profile/:user_profile_id/phones", UserController, :update_user_profile_phones
+    post "/account/activate", UserController, :activate_account
+    post "/user/profile/location", UserController, :update_user_profile_location
+    post "/user/profile/emails", UserController, :update_user_profile_emails
+    post "/user/profile/phones", UserController, :update_user_profile_phones
 
     post "/work/profile/:work_profile_id/skills", UserController, :update_work_profile_skills
     post "/work/profile/:work_profile_id/into", UserController, :update_work_profile_prof_intro

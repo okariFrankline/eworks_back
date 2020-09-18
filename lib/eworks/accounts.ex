@@ -151,6 +151,60 @@ defmodule Eworks.Accounts do
   end
 
   @doc """
+  Updates a profile by adding an email address.
+
+  ## Examples
+
+      iex> add_email_to_profile(profile, %{email: new_value})
+      {:ok, %Profile{}}
+
+      iex> add_email_to_profile(profile, %{email: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_emails(%User{} = user, attrs) do
+    user
+    |> User.email_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a profile by adding a phone number.
+
+  ## Examples
+
+      iex> add_phone_to_profile(profile, %{phone: new_value})
+      {:ok, %Profile{}}
+
+      iex> add_phone_to_profile(profile, %{phone: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_phones(%User{} = user, attrs) do
+    user
+    |> User.phone_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a profile by adding city and country to the profile.
+
+  ## Examples
+
+      iex> add_location_to_profile(profile, %{city: new_value, country: new_value})
+      {:ok, %Profile{}}
+
+      iex> add_location_to_profile(profile, %{city: bad_value, country: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_location(%User{} = user, attrs) do
+    user
+    |> User.location_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Deletes a user.
 
   ## Examples
@@ -177,5 +231,149 @@ defmodule Eworks.Accounts do
   """
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
+  end
+
+  alias Eworks.Accounts.WorkProfile
+
+
+  @doc """
+  Gets a single work_profile.
+
+  Raises `Ecto.NoResultsError` if the Work profile does not exist.
+
+  ## Examples
+
+      iex> get_work_profile!(123)
+      %WorkProfile{}
+
+      iex> get_work_profile!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_work_profile!(id), do: Repo.get!(WorkProfile, id) |> Repo.preload(:user)
+
+  @doc """
+  Creates a work_profile.
+
+  ## Examples
+
+      iex> create_work_profile(%{field: value})
+      {:ok, %WorkProfile{}}
+
+      iex> create_work_profile(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_work_profile(attrs \\ %{}) do
+    %WorkProfile{}
+    |> WorkProfile.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a work_profile.
+
+  ## Examples
+
+      iex> update_work_profile(work_profile, %{field: new_value})
+      {:ok, %WorkProfile{}}
+
+      iex> update_work_profile(work_profile, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_work_profile(%WorkProfile{} = work_profile, attrs) do
+    work_profile
+    |> WorkProfile.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a work profile's skills.
+
+  ## Examples
+
+      iex> update_work_profile_skills(profile, %{bio: new_value})
+      {:ok, %Profile{}}
+
+      iex> update_work_profile_skills(profile, %{bio: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_work_profile_skills(%WorkProfile{} = profile, attrs) do
+    changeset = profile |> WorkProfile.skills_changeset(attrs)
+    # check the action of the changeset
+    if changeset.action != nil do
+      # update the profile
+      changeset |> Repo.update()
+    else
+      # return no change
+      :no_change
+    end # end of checking the changeset
+  end # end of the update_work_profile_skills/2
+
+  @doc """
+  Updates a work profile's professional intro.
+
+  ## Examples
+
+      iex> update_work_prof_intro(profile, %{email: new_value})
+      {:ok, %Profile{}}
+
+      iex> update_work_prof_intro(profile, %{email: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_work_profile_prof_intro(%WorkProfile{} = profile, attrs) do
+    profile
+    |> WorkProfile.professional_intro_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a work profile's cover letter.
+
+  ## Examples
+
+      iex> update_work_cover_letter(profile, %{email: new_value})
+      {:ok, %Profile{}}
+
+      iex> update_work_cover_letter(profile, %{email: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_work_profile_cover_letter(%WorkProfile{} = profile, attrs) do
+    profile
+    |> WorkProfile.cover_letter_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a work_profile.
+
+  ## Examples
+
+      iex> delete_work_profile(work_profile)
+      {:ok, %WorkProfile{}}
+
+      iex> delete_work_profile(work_profile)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_work_profile(%WorkProfile{} = work_profile) do
+    Repo.delete(work_profile)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking work_profile changes.
+
+  ## Examples
+
+      iex> change_work_profile(work_profile)
+      %Ecto.Changeset{data: %WorkProfile{}}
+
+  """
+  def change_work_profile(%WorkProfile{} = work_profile, attrs \\ %{}) do
+    WorkProfile.changeset(work_profile, attrs)
   end
 end # end of the module

@@ -10,7 +10,7 @@ defmodule EworksWeb.SessionController do
   """
   def login(conn, %{"credentials" => %{"email" => email, "password" => password}} = _params) do
     # authenticate the user using the password and email
-    with {:ok, result} <- Authentication.login_with_email_and_password(email, password) do
+    with {:ok, result} <- Authentication.login_with_email_and_pass(email, password) do
       conn
       # put thestatus
       |> put_status(:ok)

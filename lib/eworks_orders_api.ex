@@ -3,7 +3,7 @@ defmodule Eworks.Orders.API do
     Defines api for Order and Order offers
   """
   alias Eworks.Accounts.User
-  alias Eworks.Profiles.{WorkProfile}
+  alias Eworks.Accounts.{WorkProfile}
   alias Eworks.{Orders, Repo, Accounts}
   alias Eworks.Orders.{Order, OrderOffer}
   alias Eworks.Utils.{Mailer, NewEmail}
@@ -210,7 +210,7 @@ defmodule Eworks.Orders.API do
           # preload the workprofile and the order offers
           |> Repo.preload([
             # preload the work profile and return the full name and the professional intro
-            work_profile: from(profile in WorkProfile, select: [profile.full_name, profile.professional_intro]),
+            work_profile: from(profile in WorkProfile, select: [profile.rating, profile.professional_intro]),
             # preload the order offer made for this particular offer
             order_offers: from(offer in OrderOffer, where: offer.order_id == ^order_id, select: [offer.asking_amount])
           ])

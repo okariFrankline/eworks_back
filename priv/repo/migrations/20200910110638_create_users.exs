@@ -20,6 +20,16 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
       add :is_company, :boolean ,default: false
       # full name
       add :full_name, :string, null: false
+      # city
+      add :city, :string, null: true
+      # country
+      add :country, :string, null: true
+      # emails
+      add :emails, {:array, :string}, default: []
+      # phones
+      add :phones, {:array, :string}, default: []
+      # profile pic
+      add :profile_pic, :string, null: true
 
       timestamps()
     end
@@ -29,6 +39,7 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
     create index(:users, [:is_active])
     create index(:users, [:full_name])
     create index(:users, [:is_company])
+    create index(:users, [:user_type])
 
   end
 end
