@@ -45,7 +45,7 @@ defmodule EworksWeb.FallbackController do
     # put status
     |> put_status(:bad_request)
     # put view
-    |> put_view(Eworks.ErrorView)
+    |> put_view(EworksWeb.ErrorView)
     # render the same_email json
     |> render("same_email.json", message)
   end # end of handling he similar email error
@@ -55,7 +55,7 @@ defmodule EworksWeb.FallbackController do
     conn
     |> put_status(:unauthorized)
     # put_view
-    |> put_view(Eworks.ErrorView)
+    |> put_view(EworksWeb.ErrorView)
     # render the is client
     |> render("is_client.json")
   end # end of function
@@ -66,7 +66,7 @@ defmodule EworksWeb.FallbackController do
     # put the status
     |> put_status(:bad_request)
     # rput a view
-    |> put_view(Eworks.ErrorView)
+    |> put_view(EworksWeb.ErrorView)
     # render the already assigned
     |> render("already_assigned.json")
   end
@@ -77,8 +77,16 @@ defmodule EworksWeb.FallbackController do
     # put the status
     |> put_status(:bad_request)
     # rput a view
-    |> put_view(Eworks.ErrorView)
+    |> put_view(EworksWeb.ErrorView)
     # render the already assigned
     |> render("cancelled_offer.json")
+  end
+
+  # invalid activation key error
+  def call(conn, {:error, :invalid_activation_key}) do
+    conn
+    |> put_status(:bad_request)
+    |> put_view(EworksWeb.ErrorView)
+    |> render("invalid_activation_key.json")
   end
 end

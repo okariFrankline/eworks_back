@@ -201,7 +201,7 @@ defmodule Eworks.Accounts.User do
   def validate_phone_and_add_to_phones(%Changeset{valid?: true, changes: %{phone: phone}, data: %__MODULE__{phones: phones, country: country}} = changeset) do
     if Validations.is_valid_phone?(phone, country) do
       # add the phone number to the list of phone numbers and update the changeset
-      changeset |> put_change(:phones, [phone | phones]) |> put_change(:email, nil)
+      changeset |> put_change(:phones, [phone | phones]) |> put_change(:phone, nil)
     else
       changeset
       # add error message to changeset phone

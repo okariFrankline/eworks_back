@@ -12,7 +12,15 @@ defmodule EworksWeb.Router do
   end
 
   # define an auth pipeline
-  pipeline :authenticated do
+  pipeline :authenticated_and_active do
+    plug Guardian.AuthPipeline
+    # plug for adding the current user in the connection
+    plug Plugs.SessionPlug
+    # plug fpor ensureing the user is active
+    plug Plugs.IsActive
+  end
+
+  pipeline :authenticated_and_not_active do
     plug Guardian.AuthPipeline
     # plug for adding the current user in the connection
     plug Plugs.SessionPlug
@@ -25,11 +33,19 @@ defmodule EworksWeb.Router do
     post "/login", SessionController, :login
   end
 
-  # scope for the logged in user
   scope "/api", EworksWeb do
-    pipe_through [:api, :authenticated]
+    pipe_through [:api, :authenticated_and_not_active]
 
     post "/account/activate", UserController, :activate_account
+    get "/account/activation/key/resend", UserController, :new_activation_key_request
+  end
+
+
+
+  # scope for the logged in user
+  scope "/api", EworksWeb do
+    pipe_through [:api, :authenticated_and_active]
+
     post "/user/profile/location", UserController, :update_user_profile_location
     post "/user/profile/emails", UserController, :update_user_profile_emails
     post "/user/profile/phones", UserController, :update_user_profile_phones

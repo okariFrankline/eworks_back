@@ -7,8 +7,9 @@ defmodule Eworks do
   if it comes from the database, an external API or others.
   """
   alias Eworks.{Accounts}
+  alias Eworks.Utils.{Mailer, NewEmail}
   alias Eworks.Repo
-  alias Eworks.Accounts.{User}
+  alias Eworks.Accounts.{User, WorkProfile}
   import Ecto.Query, warn: false
 
   # function for checking whether a user with
@@ -27,7 +28,7 @@ defmodule Eworks do
   """
   def register_user(:client, params) do
     # check if the user exists
-    if user_exists?(params["auth_email"]) do
+    if not user_exists?(params["auth_email"]) do
       # create the user
       with {:ok, _user} = result <- Accounts.create_user(params), do: result
 
@@ -70,17 +71,52 @@ defmodule Eworks do
       {:error, :invalid_activation_key}
     else
       # update the activation to true
-      with %User{} = user <- user |> Ecto.Changeset.change(%{is_active: true, activation_key: nil}) |> Repo.update!(), do: {:ok, user}
+      with %User{} = user <- user |> Ecto.Changeset.change(%{is_active: true, activation_key: nil}) |> Repo.update!() do
+        if user.user_type == "Client" do
+          # return the user
+          {:ok, user}
+        else
+          # return the user preloaded with the work profile
+          user = Repo.preload(user, [:work_profile])
+          # return the user
+          {:ok, user}
+        end
+      end
 
     end # end of with for updating the account
   end # end of the verify accounts
+
+  @doc """
+    Sends a new activation request to the user
+  """
+  def send_new_activation_key(%User{} = user) do
+    # generate a new activation key requst
+    with user <- user |> Ecto.Changeset.change(%{activation_key: Enum.random(100_000..999_999)}) |> Repo.update!() do
+      # create a new activation code email
+      NewEmail.resend_activation_email(user)
+      # send the email
+      |> Mailer.deliver_later()
+      # return :ok
+      :ok
+    end # end of inserting a new activation code
+  end # end of sending a new activation key
 
   @doc """
     Updates the location of a user profile
   """
   def update_user_profile_location(%User{} = user, location_params) do
     # update the profile and return the profile
-    with {:ok, _user} = result <- Accounts.update_user_location(user, location_params), do: result
+    with {:ok, user} = result <- Accounts.update_user_location(user, location_params) do
+      if user.user_type == "Client" do
+        # return the user
+        {:ok, user}
+      else
+        # return the user preloaded with the work profile
+        user = Repo.preload(user, [:work_profile])
+        # return the user
+        {:ok, user}
+      end
+    end # end of with
   end # end of update_profile_location/2
 
   @doc """
@@ -88,7 +124,17 @@ defmodule Eworks do
   """
   def update_user_profile_emails(%User{} = user, new_email) do
     # update the phone number
-    with {:ok, _user} = result <- Accounts.update_user_emails(user, %{email: new_email}), do: result
+    with {:ok, user} = result <- Accounts.update_user_emails(user, %{email: new_email}) do
+      if user.user_type == "Client" do
+        # return the user
+        result
+      else
+        # return the user preloaded with the work profile
+        user = Repo.preload(user, [:work_profile])
+        # return the user
+        {:ok, user}
+      end
+    end # end of with
   end #  end of the update_profile_emails
 
   @doc """
@@ -96,8 +142,17 @@ defmodule Eworks do
   """
   def update_user_profile_phones(%User{} = user, new_phone) do
     # update the phone number
-    with {:ok, _user} = result <- Accounts.update_user_phones(user, %{phone: new_phone}), do: result
-
+    with {:ok, user} = result <- Accounts.update_user_phones(user, %{phone: new_phone}) do
+      if user.user_type == "Client" do
+        # return the user
+        result
+      else
+        # return the user preloaded with the work profile
+        user = Repo.preload(user, [:work_profile])
+        # return the user
+        {:ok, user}
+      end
+    end # end of with
   end #  end of the update_profile_emails
 
 

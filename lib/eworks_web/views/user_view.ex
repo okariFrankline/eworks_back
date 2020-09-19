@@ -18,10 +18,27 @@ defmodule EworksWeb.UserView do
   end # end of the new_user.json
 
   # profile.json
-  def render("profile.json", %{user: user}) do
+  def render("profile.json", %{user: user} = result) do
+    if user.user_type == "Client" do
+      %{
+        data: %{
+          user: render_one(user, __MODULE__, "user.json")
+        }
+      }
+    else
+      # the user is a practise
+      render("practise_profile.json", result)
+    end
+  end
+
+  # new practise profile
+  def render("practise_profile.json", %{user: user}) do
     %{
       data: %{
-        user: render_one(user, __MODULE__, "user.json")
+        user: render_one(user, __MODULE__, "user.json"),
+        work_profile: %{
+          id: user.work_profile.id
+        }
       }
     }
   end
@@ -45,6 +62,7 @@ defmodule EworksWeb.UserView do
         previous_hires: render_many(profile.previous_hires, __MODULE__, "order.json"),
         # profile owner
         user: %{
+          id: profile.user.id
           name: profile.user.full_name,
           is_active: profile.user.is_active,
           username: profile.user.username,
@@ -68,6 +86,7 @@ defmodule EworksWeb.UserView do
   def render("user.json", %{user: user}) do
     # return the user's firstname, last name and is active
     %{
+      id: user.id,
       name: user.full_name,
       is_active: user.is_active,
       username: user.username,
@@ -75,7 +94,9 @@ defmodule EworksWeb.UserView do
       city: user.city,
       is_company: user.is_company,
       user_type: user.user_type,
-      profile_pic: user.profile_pic
+      profile_pic: user.profile_pic,
+      emails: user.emails,
+      phones: user.phones
     }
   end
 
@@ -87,6 +108,15 @@ defmodule EworksWeb.UserView do
       rating: order.rating,
       comment: order.comment,
       owner: order.owner
+    }
+  end
+
+  # success.json
+  def render("success.json", %{message: message}) do
+    %{
+      success: %{
+        details: message
+      }
     }
   end
 end # end of the module

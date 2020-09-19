@@ -52,4 +52,32 @@ defmodule EworksWeb.ErrorView do
       }
     }
   end
-end
+
+  # unauthenticated.json
+  def render("unauthenticated.json", _assigns) do
+    %{
+      errors: %{
+        details: "Failed. Login to continue."
+      }
+    }
+  end
+
+  # not active json
+  def render("not_active.json", _assigns) do
+    %{
+      errors: %{
+        details: "Failed. Account not active. Please verify to continue."
+      }
+    }
+  end
+
+  # invalid activation key
+  def render("invalid_activation_key.json", _assigns) do
+    %{
+      errors: %{
+        details: "Failed. Invalid activation key."
+      }
+    }
+  end
+
+end # end of the module

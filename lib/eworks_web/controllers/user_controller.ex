@@ -44,12 +44,22 @@ defmodule EworksWeb.UserController do
   def activate_account(%{assigns: %{current_user: user}} = conn, %{"activation" => %{"activation_key" => key}}) do
     # actiate the account
     with {:ok, user} <- Eworks.verify_account(user, key) do
-      # return the result
-      conn
-      # put the okay status
-      |> put_status(:ok)
-      # render the loggedin.json
-      |> render("profile.json", user: user)
+      if user.user_type == "Client" do
+        # return the result
+        conn
+        # put the okay status
+        |> put_status(:ok)
+        # render the loggedin.json
+        |> render("profile.json", user: user)
+      else
+        # the user is a practise
+        # return the result
+        conn
+        # put the okay status
+        |> put_status(:ok)
+        # render the loggedin.json
+        |> render("practise_profile.json", user: user)
+      end
     end # end of with for verifying account
   end # end of the activate_account/2
 
@@ -57,12 +67,12 @@ defmodule EworksWeb.UserController do
     Updates the current user's location details
   """
   def update_user_profile_location(%{assigns: %{current_user: user}} = conn, %{"user_profile" => %{"location" => location_params}}) do
-    with {:ok, user} <- Eworks.update_user_profile_location(user, location_params) do
+    with {:ok, new_user} <- Eworks.update_user_profile_location(user, location_params) do
       conn
       # put an ok status
       |> put_status(:ok)
       # render the profiles view
-      |> render("profile.json", user: user)
+      |> render("profile.json", user: new_user)
     end # end of update the profile update
   end # end of the update_user_profile_location/2
 
@@ -130,6 +140,19 @@ defmodule EworksWeb.UserController do
       |> render("work_profile.json", work_profile: work_profile)
     end # end of with
   end # end of the update the workprofile cover letter
+
+  @doc """
+    Requests a new activation key
+  """
+  def new_activation_key_request(%{assigns: %{current_user: user}} = conn, _params) do
+    with :ok <- Eworks.send_new_activation_key(user) do
+      conn
+      # send the response
+      |> put_status(:ok)
+      # render success
+      |> render("success.json", message: "New Activation code successfully sent to #{user.auth_email}.")
+    end # end of send new activation request
+  end # end of new activation key request
 
   def show(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
