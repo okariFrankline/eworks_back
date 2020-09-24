@@ -4,7 +4,6 @@ defmodule Eworks.Orders.Order do
   import Ecto.Changeset
 
   alias Ecto.Changeset
-  alias Eworks.Utils.UniqueCode, as: Unique
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -21,8 +20,6 @@ defmodule Eworks.Orders.Order do
     field :is_complete, :boolean, default: false
     field :is_paid_for, :boolean, default: false
     field :is_verified, :boolean, default: false
-    field :max_payment, :string, virtual: true
-    field :min_payment, :string, virtual: true
     field :payable_amount, :string
     field :payment_schedule, :string
     field :required_contractors, :integer
@@ -32,6 +29,10 @@ defmodule Eworks.Orders.Order do
     field :rating, :integer
     field :comment, :string
     field :assigned_order_id, :binary_id
+    # virtual fields
+    field :max_payment, :string, virtual: true
+    field :min_payment, :string, virtual: true
+    field :deadline_string_date, :string, virtual: true
     # belongs to one user
     belongs_to :user, Eworks.Orders.User, type: :binary_id
     # has many assignees
@@ -85,17 +86,13 @@ defmodule Eworks.Orders.Order do
   @doc false
   def creation_changeset(order, attrs) do
     changeset(order, attrs)
-    # cast the min and max payment
-    |> cast(attrs, [
-      :category,
-      :specialty,
-    ])
+    # ensure the category and the specialty are given
     |> validate_required([
       :category,
-      :specialty,
+      :specialty
     ])
     # insert the order verification code
-    |> add_verification_code()
+    |> put_verification_code()
     # ensure the order has an owner
     |> foreign_key_constraint(:user_id)
   end # end of the creation_changeset
@@ -142,22 +139,38 @@ defmodule Eworks.Orders.Order do
   @doc false
   def duration_changeset(order, attrs) do
     changeset(order, attrs)
+    # cast the deadline_string_date
+    |> cast(attrs, [
+      :deadline_string_date
+    ])
     # ensure the fields are given
     |> validate_required([
-      :deadline,
+      :deadline_string_date,
       :duration
     ])
+    # set the date
+    |> set_deadline_date()
   end # end of type_duration_changeset
 
   @doc false
   def description_changeset(order, attrs), do: changeset(order, attrs) |> validate_required([:description])
 
-  # function for adding the verification code
-  defp add_verification_code(%Changeset{valid?: true} = changeset) do
-    # add a unique number to the changeset
-    changeset |> put_change(:verification_code, Unique.generate())
-  end # end of add-verification_code/1
-  defp add_verification_code(changeset), do: changeset
+  # function for setting the deadline date
+  defp set_deadline_date(%Changeset{valid?: true, changes: %{deadline_string_date: s_date}} = changeset) do
+    # get the date from the given string
+    {:ok, date} = Date.from_iso8601(s_date)
+    # put the date to the changeset
+    changeset |> put_change(:deadline, date) |> put_change(:deadline_string_date, nil)
+  end # end of set_deadline-date/1
+  defp set_deadline_date(changeset), do: changeset
+
+  # fuction for putting a verification code
+  defp put_verification_code(%Changeset{valid?: true} = changeset) do
+    changeset
+    # add the verification code
+    |> put_change(:verification_code, Enum.random(100_00..999_999))
+  end # end of put verification code
+  defp put_verification_code(changeset), do: changeset
 
   # function for adding the payment range
   defp add_payment_range(%Changeset{valid?: true, changes: %{min_payment: m_payment, max_payment: x_payment}} = changeset) do

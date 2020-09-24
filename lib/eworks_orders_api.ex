@@ -4,7 +4,7 @@ defmodule Eworks.Orders.API do
   """
   alias Eworks.Accounts.User
   alias Eworks.Accounts.{WorkProfile}
-  alias Eworks.{Orders, Repo, Accounts}
+  alias Eworks.{Orders, Repo, Accounts, Uploaders}
   alias Eworks.Orders.{Order, OrderOffer}
   alias Eworks.Utils.{Mailer, NewEmail}
   import Ecto.Query, warn: false
@@ -87,6 +87,22 @@ defmodule Eworks.Orders.API do
       {:error, :not_owner}
     end # end of checking if the current user is the owner of the id
   end # end of the update order description
+
+  @doc """
+    Updates the attachments of a given order
+  """
+  def update_order_attachments(%User{} = user, order_id, attachments) do
+    # get the order
+    order = Orders.get_order!(order_id)
+    # check if the current user is the owner of the order
+    if order.user_id == user.id do
+      # upload the documents
+      with {:ok, _order} = result <- Uploaders.OrderAttachment.upload_attachments(order, attachments), do: result
+    else
+      # the user is not the owner of the job
+      {:error, :not_owner}
+    end # end of if
+  end # end of update_order_attachments/2
 
 
   @doc """

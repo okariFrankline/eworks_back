@@ -16,7 +16,7 @@ defmodule EworksWeb.OrderController do
     Creates a new order
     Order params includes: order category, order specialty
   """
-  def create(%{assigns: %{current_user: user}} = conn, %{"order" => order_params}) do
+  def create_new_order(%{assigns: %{current_user: user}} = conn, %{"order" => order_params}) do
     with {:ok, order} <- Eworks.Orders.API.create_new_order(user, order_params) do
       conn
       # put the status
@@ -31,7 +31,7 @@ defmodule EworksWeb.OrderController do
     Adds the payment information
   """
 
-  def update_order_payment(%{assigns: %{current_user: user}} = conn, %{"new_order" => %{"order_payment_params" => payment_params}, "order_id" => id}) do
+  def update_order_payment(%{assigns: %{current_user: user}} = conn, %{"new_order" => %{"order_payment" => payment_params}, "order_id" => id}) do
     with {:ok, order} <- Eworks.Orders.API.update_order_payment(user, id, payment_params) do
       conn
       # put the status
@@ -60,7 +60,7 @@ defmodule EworksWeb.OrderController do
     Adds the order_type and required contractors
   """
 
-  def update_order_duration(%{assigns: %{current_user: user}} = conn, %{"new_order" => %{"order_type" => type_params}, "order_id" => id}) do
+  def update_order_type_and_contractors(%{assigns: %{current_user: user}} = conn, %{"new_order" => %{"order_type" => type_params}, "order_id" => id}) do
     with {:ok, order} <- Eworks.Orders.API.update_order_type_and_contractors(user, id, type_params) do
       conn
       # put the status
@@ -81,6 +81,19 @@ defmodule EworksWeb.OrderController do
       |> render("new_order.json", new_order: order)
     end # end of updating the order
   end # end of the addition of description
+
+  @doc """
+    Updates the order's attachments
+  """
+  def update_order_attachments(%{assigns: %{current_user: user}} = conn, %{"attachments" => attachment_params, "order_id" => id}) do
+    with {:ok, order} <- Eworks.Orders.API.update_order_attachments(user, id, attachment_params) do
+      conn
+      # put status to ok
+      |> put_status(:ok)
+      # render the new order
+      |> render("new_order.json", order: order)
+    end # end of with
+  end # end of update_order_attachments/2
 
   @doc """
     Posts a new order

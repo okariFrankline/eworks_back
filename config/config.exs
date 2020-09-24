@@ -35,26 +35,26 @@ config :eworks, Eworks.Utils.Mailer,
 # configure guardian
 config :eworks, EworksWeb.Authentication.Guardian,
   issuer: "eworks",
-  secret_key: {:system, "GUARDIAN_SECRET_KEY"}
+  secret_key: "v093/e5DdJwpN4uTAG1nYejCInpiw8/Z4N9BhT3/p3DyHkYmIToLlfl4YujdB5Ax"
 
-  config :arc,
+config :arc,
   storage: Arc.Storage.S3,
   # set the virtual to true
   virtual_host: true,
   # bucket name
-  bucket: {:system, "AWS_S3_BUCKET_NAME"},
+  bucket: "cf-simple-s3-origin-eworks-072111920045",
   # the asset host
-  asset_host: {:system, "AWS_S3_ASSET_HOST"},
+  asset_host: "https://d12hykkw3lmuf.cloudfront.net/",
   # the version timroute
-  virtual_timeout: 100_000
+  version_timeout: 100_000
 
 # configure the aws
 config :ex_aws,
   # use the default phoenix jason_library
   json_codec: Jason,
-  secret_access_key: [{:system, "SECRET_ACCESS_KEY"}, :instance_role],
-  access_key_id: [{:system, "ACCESS_KEY_ID"}, :instance_role],
-  region: {:system, "AWS_REGION"}
+  access_key_id: "AKIARBSRUSOWTCDALPES",
+  secret_access_key: "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",
+  region: "ap-south-1"
 
 # configure guardian
 # config :guardian, Guardian.DB,

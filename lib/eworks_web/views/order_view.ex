@@ -7,16 +7,17 @@ defmodule EworksWeb.OrderView do
   def render("new_order.json", %{new_order: order}) do
     %{
       data: %{
+        id: order.id,
         description: order.description,
         specialty: order.specialty,
         category: order.category,
-        attachments: order.attachments,
+        attachments: attachments_url(Eworks.Uploaders.OrderAttachment.url({order.attachments, order})),
         duration: order.duration,
         order_type: order.order_type,
         payment_schedule: order.payment_schedule,
         payable_amount: order.payable_amount,
         is_verified: order.is_verified,
-        deadline: order.deadline,
+        deadline: Date.to_iso8601(order.deadline),
         required_contractors: order.required_contractors
       }
     }
@@ -32,12 +33,12 @@ defmodule EworksWeb.OrderView do
       specialty: order.specialty,
       category: order.category,
       offers_made: order.offers_made,
-      attachments: order.attachments,
+      attachments: attachments_url(Eworks.Uploaders.OrderAttachment.url({order.attachments, order})),
       duration: order.duration,
       order_type: order.order_type,
       payment_schedule: order.payment_schedule,
       payable_amount: order.payable_amount,
-      deadline: order.deadline,
+      deadline: Date.to_iso8601(order.deadline),
       required_contractors: order.required_contractors,
       # all the offers made for the order
       offers: order.offers
@@ -112,5 +113,9 @@ defmodule EworksWeb.OrderView do
       }
     }
   end
+
+  defp attachments_url(url) do
+    if url, do: url |> String.split("?") |> List.first(), else: nil
+  end # end of attachment_url
 
 end # end of the module

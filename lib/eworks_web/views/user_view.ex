@@ -121,5 +121,7 @@ defmodule EworksWeb.UserView do
   end
 
   # function for returning the profile_pic url of the user
-  defp profile_pic_url(url), do: url |> String.split("?") |> List.first()
+  defp profile_pic_url(url) do
+    if url, do: url |> String.split("?") |> List.first(), else: nil
+  end # end of function for getting the profile pic url
 end # end of the module

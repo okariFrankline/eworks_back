@@ -57,7 +57,7 @@ defmodule Eworks.Orders do
   """
   def create_order(order_changeset, attrs \\ %{}) do
     order_changeset
-    |> Order.changeset(attrs)
+    |> Order.creation_changeset(attrs)
     |> Repo.insert()
   end
 
