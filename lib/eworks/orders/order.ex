@@ -1,5 +1,6 @@
 defmodule Eworks.Orders.Order do
   use Ecto.Schema
+  use Arc.Ecto.Schema
   import Ecto.Changeset
 
   alias Ecto.Changeset
@@ -8,7 +9,7 @@ defmodule Eworks.Orders.Order do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "orders" do
-    field :attachments, {:array, :string}
+    field :attachments, Eworks.Uploaders.OrderAttachment.Type
     field :category, :string
     field :deadline, :date
     field :description, :string
@@ -56,7 +57,6 @@ defmodule Eworks.Orders.Order do
       :category,
       :required_contractors,
       :specialty,
-      :attachments,
       :is_draft,
       :verification_code,
       :order_type,
@@ -67,7 +67,20 @@ defmodule Eworks.Orders.Order do
       :already_assigned,
       :accepted_offers
     ])
+    # cast teh changeset
+    |> cast_attachments(attrs, [
+      :attachments
+    ])
   end # end of changeset
+
+  @doc false
+  def attachments_changeset(order, attrs) do
+    changeset(order, attrs)
+    # ensure attachments is given
+    |> validate_required([
+      :attachments
+    ])
+  end # end of attachment changeset
 
   @doc false
   def creation_changeset(order, attrs) do

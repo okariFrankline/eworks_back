@@ -16,7 +16,7 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :payable_amount, :string, null: true
       add :required_contractors, :integer, null: false
       add :specialty, :string, null: true
-      add :attachments, {:array, :string}, default: []
+      add :attachments, :string, null: true
       add :payment_schedule, :string, null: true
       add :verification_code, :integer, null: false
       add :is_draft, :boolean, default: true

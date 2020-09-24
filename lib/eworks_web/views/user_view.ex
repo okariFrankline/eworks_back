@@ -62,7 +62,7 @@ defmodule EworksWeb.UserView do
         previous_hires: render_many(profile.previous_hires, __MODULE__, "order.json"),
         # profile owner
         user: %{
-          id: profile.user.id
+          id: profile.user.id,
           name: profile.user.full_name,
           is_active: profile.user.is_active,
           username: profile.user.username,
@@ -94,7 +94,7 @@ defmodule EworksWeb.UserView do
       city: user.city,
       is_company: user.is_company,
       user_type: user.user_type,
-      profile_pic: user.profile_pic,
+      profile_pic: profile_pic_url(Eworks.Uploaders.ProfilePicture.url({user.profile_pic, user}, :thumb)),
       emails: user.emails,
       phones: user.phones
     }
@@ -119,4 +119,7 @@ defmodule EworksWeb.UserView do
       }
     }
   end
+
+  # function for returning the profile_pic url of the user
+  defp profile_pic_url(url), do: url |> String.split("?") |> List.first()
 end # end of the module

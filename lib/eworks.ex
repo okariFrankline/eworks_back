@@ -9,7 +9,7 @@ defmodule Eworks do
   alias Eworks.{Accounts}
   alias Eworks.Utils.{Mailer, NewEmail}
   alias Eworks.Repo
-  alias Eworks.Accounts.{User, WorkProfile}
+  alias Eworks.Accounts.{User}
   import Ecto.Query, warn: false
 
   # function for checking whether a user with
@@ -109,7 +109,7 @@ defmodule Eworks do
     with {:ok, user} = result <- Accounts.update_user_location(user, location_params) do
       if user.user_type == "Client" do
         # return the user
-        {:ok, user}
+        result
       else
         # return the user preloaded with the work profile
         user = Repo.preload(user, [:work_profile])
@@ -154,6 +154,14 @@ defmodule Eworks do
       end
     end # end of with
   end #  end of the update_profile_emails
+
+  @doc """
+    Function for updating the user profile
+  """
+  def update_user_profile_picture(%User{} = user, %Plug.Upload{} = profile_pic) do
+    # update the current user
+    with {:ok, _user} = result <- Accounts.update_user_profile_pic(user, %{profile_pic: profile_pic}), do: result
+  end # end of update_user_profile/2
 
 
   @doc """

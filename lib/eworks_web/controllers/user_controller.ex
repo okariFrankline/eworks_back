@@ -154,6 +154,20 @@ defmodule EworksWeb.UserController do
     end # end of send new activation request
   end # end of new activation key request
 
+  @doc """
+    Updates the profile picture of the current user
+  """
+  def update_user_profile_picture(%{assigns: %{current_user: user}} = conn, %{"profile_pic" => profile_picture_params}) do
+    # update the profile picture
+    with {:ok, user} <- Eworks.update_user_profile_picture(user, profile_picture_params) do
+      conn
+      # set the status to ok
+      |> put_status(:ok)
+      # render the user_profile
+      |> render("profile.json", user: user)
+    end # end of with
+  end # end of function for updating the profile picture
+
   def show(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
     render(conn, "show.json", user: user)

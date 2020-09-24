@@ -80,6 +80,24 @@ defmodule Eworks.Orders do
   end
 
   @doc """
+  Updates a order's attachments.
+
+  ## Examples
+
+      iex> update_order_attachments(order, %{field: new_value})
+      {:ok, %Order{}}
+
+      iex> update_order_attachments(order, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_order_attachments(%Order{} = order, attrs) do
+    order
+    |> Order.attachments_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Updates a order's payment information.
 
   ## Examples

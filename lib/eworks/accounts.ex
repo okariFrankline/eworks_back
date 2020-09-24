@@ -205,6 +205,24 @@ defmodule Eworks.Accounts do
   end
 
   @doc """
+  Updates a profile picture of the current user.
+
+  ## Examples
+
+      iex> update_user_profile_picprofile, %{city: new_value, country: new_value})
+      {:ok, %Profile{}}
+
+      iex> update_user_profile_pic(profile, %{city: bad_value, country: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_profile_pic(%User{} = user, attrs) do
+    user
+    |> User.profile_pic_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Deletes a user.
 
   ## Examples

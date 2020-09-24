@@ -1,5 +1,7 @@
 defmodule Eworks.Accounts.User do
   use Ecto.Schema
+  # use the arc ecto
+  use Arc.Ecto.Schema
   import Ecto.Changeset
   alias Ecto.Changeset
 
@@ -24,7 +26,7 @@ defmodule Eworks.Accounts.User do
     field :emails, {:array, :string}
     field :phone, :string, virtual: true
     field :phones, {:array, :string}
-    field :profile_pic, :string
+    field :profile_pic, Eworks.Uploaders.ProfilePicture.Type
     # virtual fields
     field :password, :string, virtual: true
     field :first_name, :string, virtual: true
@@ -58,6 +60,22 @@ defmodule Eworks.Accounts.User do
       :city,
       :emails,
       :phones,
+    ])
+    # cast the profile_pic attachmetns
+    |> cast_attachments(attrs, [
+      :profile_pic
+    ])
+  end
+
+  @doc false
+  def profile_pic_changeset(user, attrs) do
+    changeset(user, attrs)
+    # cast the profile_pic
+    |> cast_attachments(attrs, [
+      :profile_pic
+    ])
+    # ensure the profile_picture is given
+    |> validate_required([
       :profile_pic
     ])
   end
@@ -199,15 +217,19 @@ defmodule Eworks.Accounts.User do
 
   # function for validating phone numbers and adding to the list of phone numbers
   def validate_phone_and_add_to_phones(%Changeset{valid?: true, changes: %{phone: phone}, data: %__MODULE__{phones: phones, country: country}} = changeset) do
-    if Validations.is_valid_phone?(phone, country) do
-      # add the phone number to the list of phone numbers and update the changeset
-      changeset |> put_change(:phones, [phone | phones]) |> put_change(:phone, nil)
-    else
-      changeset
-      # add error message to changeset phone
-      |> add_error(:phone, "Failed. The phone number #{phone} has an invalid format or is invalid for your country.")
-      # set the phone to nil
-      |> put_change(:phone, nil)
+    case Validations.is_valid_phone?(phone, country) do
+      # the phone number is valid
+      {:ok, phone_number} ->
+        # add the phone number to the list of phone numbers and update the changeset
+        changeset |> put_change(:phones, [phone_number | phones]) |> put_change(:phone, nil)
+
+      # the phone number is invalid
+      :error
+        changeset
+        # add error message to changeset phone
+        |> add_error(:phone, "Failed. The phone number #{phone} has an invalid format or is invalid for your country.")
+        # set the phone to nil
+        |> put_change(:phone, nil)
     end # end of if
   end # end ov validate_phone_and_add_to_phones/1
   def validate_phon_and_add_to_phones(changeset), do: changeset

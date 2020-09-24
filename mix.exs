@@ -52,7 +52,19 @@ defmodule Eworks.MixProject do
       # guardian for authentication
       {:guardian, "~> 2.1"},
       # guardian db for the tracking of the tokens
-      {:guardian_db, "~> 2.0"}
+      {:guardian_db, "~> 2.0"},
+      # arc for handing uploads and downloads of files
+      {:arc, "~> 0.11.0"},
+      # arc ecto to allow for the storing of information to the db
+      {:arc_ecto, "~> 0.11.3"},
+      # ex_aws for handling the interactions with aws storage
+      {:ex_aws, "~> 2.1"},
+      # ex_aws_s3 for handling uploads and downloads from aws s3 storage\
+      {:ex_aws_s3, "~> 2.0"},
+      # hackney
+      {:hackney, "~> 1.16"},
+      # sweet xml
+      {:sweet_xml, "~> 0.6.6"}
     ]
   end
 
