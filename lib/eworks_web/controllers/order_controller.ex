@@ -91,7 +91,7 @@ defmodule EworksWeb.OrderController do
       # put status to ok
       |> put_status(:ok)
       # render the new order
-      |> render("new_order.json", order: order)
+      |> render("new_order.json", new_order: order)
     end # end of with
   end # end of update_order_attachments/2
 
