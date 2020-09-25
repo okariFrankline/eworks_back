@@ -25,6 +25,13 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       # client comment and review
       add :comment, :text, null: true
       add :rating, :integer, null: true
+      add :is_upgraded, :boolean, default: false
+      # date for indicating how long the upgraded status should last
+      add :is_upgrade_expired, :boolean, default: false
+      # add for indicating the date for which the upgrade was made
+      add :last_upgraded_on :date_time, null: true
+      # add indicating the date the upgrade would end
+      add :upgrade_expiry_date, :date_time, null: true
       # owner of the job
       add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
       add :assigned_order_id, references(:assigned_orders, on_delete: :nothing, type: :binary_id)

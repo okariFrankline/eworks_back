@@ -4,14 +4,6 @@ defmodule EworksWeb.OrderController do
   alias Eworks.Orders
   alias Eworks.Orders.Order
 
-  action_fallback EworksWeb.FallbackController
-
-  def index(conn, _params) do
-    orders = Orders.list_orders()
-    render(conn, "index.json", orders: orders)
-  end
-
-
   @doc """
     Creates a new order
     Order params includes: order category, order specialty
@@ -105,22 +97,55 @@ defmodule EworksWeb.OrderController do
       # put status
       |> put_status(:ok)
       # send the response
-      |> send_resp()
+      |> render("success.json")
     end
   end # end of save order and sending a verification code
+
+  @doc """
+    Verifies an order
+  """
+  def verify_order(%{assigns: %{current_user: user}} = conn, %{"new_order" => %{"verification_code" => verification_code}, "order_id" => id}) do
+    with {:ok, order} <- Eworks.Orders.API.verify_order(user, id, verification_code) do
+      conn
+      # put status to ok
+      |> put_status(:ok)
+      # render the final order
+      |> render("new_order.json", new_order: order)
+    end # end of verification code
+  end # end of verify order
 
   @doc """
     Submits an offer for a given order
   """
   def submit_order_offer(%{assigns: %{current_user: user}} = conn, %{"new_offer" => %{"asking_amount" => asking_amount}, "order_id" => order_id}) do
-    with :ok <- Eworks.Orders.API.submit_order_offer(user, order_id, asking_amount) do
+    if user.user_type == "Client" do
+      # return a response in which the user is a client
+      conn
+      # put the unauthorized status
+      |> put_status(:unauthorized)
+      # put the view
+      |> put_view(EworksWeb.ErrorView)
+      # render the is client
+      |> render("is_client.json")
+
+    else
+      # the user is not a client
+      # place the offer
+      Eworks.Orders.API.submit_order_offer(user, order_id, asking_amount)
       conn
       # put the status
       |> put_status(:created)
       # send a response to the user
-      |> send_resp()
-    end # end of
+      |> render("success.json")
+    end # end of if
   end # end of submit offer
+
+  @doc """
+    Allows a client user to
+  """
+  def upgrade_client_to_practise(%{assigns: %{current_user: user}} = conn, %{"upgrade" => %{"upgrade_duration" => duration}}) do
+    # upgrade the client to the 
+  end # end of upgrade_client_to_practise
 
   @doc """
     Rejects an offer

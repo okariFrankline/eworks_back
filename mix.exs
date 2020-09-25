@@ -20,7 +20,7 @@ defmodule Eworks.MixProject do
   def application do
     [
       mod: {Eworks.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :timex]
     ]
   end
 
@@ -64,7 +64,9 @@ defmodule Eworks.MixProject do
       # hackney
       {:hackney, "~> 1.16"},
       # sweet xml
-      {:sweet_xml, "~> 0.6.6"}
+      {:sweet_xml, "~> 0.6.6"},
+      # timex
+      {:timex, "~> 3.6"}
     ]
   end
 

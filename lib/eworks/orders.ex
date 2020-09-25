@@ -14,6 +14,9 @@ defmodule Eworks.Orders do
   # function for returning an account user from the order user
   def account_user_from_order_user(%__MODULE__.User{id: id}  = _user), do: %Accounts.User{id: id}
 
+  # function for returning an account user from the order assignee
+  def account_user_from_order_assignee(%__MODULE__.Order.Assignee{id: id}  = _user), do: %Accounts.User{id: id}
+
   @doc """
   Returns the list of orders.
 

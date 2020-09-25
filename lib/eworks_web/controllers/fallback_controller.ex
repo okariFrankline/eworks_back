@@ -28,7 +28,7 @@ defmodule EworksWeb.FallbackController do
     # put status
     |> put_status(:bad_request)
     # put the error view
-    |> put_view(Eworks.ErrorView)
+    |> put_view(EworksWeb.ErrorView)
     # render the not found page
     |> render("not_owner.json")
   end # end of call for :not_error
@@ -51,14 +51,21 @@ defmodule EworksWeb.FallbackController do
   end # end of handling he similar email error
 
   # function for handling an error where the user is not a client and trying to submit an offer
+  # def call(conn, {:error, :is_client}) do
+  #   conn
+  #   |> put_status(:unauthorized)
+  #   # put_view
+  #   |> put_view(EworksWeb.ErrorView)
+  #   # render the is client
+  #   |> render("is_client.json")
+  # end # end of function
+
   def call(conn, {:error, :is_client}) do
     conn
     |> put_status(:unauthorized)
-    # put_view
     |> put_view(EworksWeb.ErrorView)
-    # render the is client
     |> render("is_client.json")
-  end # end of function
+  end # end of is client
 
   # function for handling an error where a given order has already being assigned
   def call(conn, {:error, :already_assigned}) do
@@ -89,4 +96,13 @@ defmodule EworksWeb.FallbackController do
     |> put_view(EworksWeb.ErrorView)
     |> render("invalid_activation_key.json")
   end
+
+   # invalid activation key error
+   def call(conn, {:error, :invalid_verification_code}) do
+    conn
+    |> put_status(:bad_request)
+    |> put_view(EworksWeb.ErrorView)
+    |> render("invalid_verification_code.json")
+  end
+
 end

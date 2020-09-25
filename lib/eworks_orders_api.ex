@@ -338,28 +338,46 @@ defmodule Eworks.Orders.API do
     Sends a verification code for a given order
   """
   def send_order_verification_code(%User{} = user, order_id) do
-    # get the order with the given id
-    order_query = from(
-      order in Order,
-      where: order.id == ^order_id,
-      select: [order.id, order.verification_code, order.user_id, order.specialty]
-    )
     # get the order
-    order = Repo.one!(order_query)
+    order = Orders.get_order!(order_id)
     # ensure the user is the owner of the order
     if user.id == order.user_id do
       # send an email to the user with the verification order
       NewEmail.new_order_verification_code_email(user, order)
       # send the email
       |> Mailer.deliver_later()
-
       # return :ok
-
+      :ok
     else
       # not owner
       {:error, :not_owner}
     end # end of checking whether the current user is the owner order
   end # end of sending order verification code
+
+  @doc """
+    Vrifies an order
+  """
+  def verify_order(%User{} = user, order_id, verification_code) do
+    # get the order
+    order = Orders.get_order!(order_id)
+    # ensure the user is the owner of the job
+    if order.user_id == user.id do
+      # check if the verification code is similar
+      if order.verification_code == verification_code do
+        # update the order
+        with {:ok, order} = result <- order |> Ecto.Changeset.change(%{is_verified: true, is_draft: false, verification_code: nil}) |> Repo.update() do
+          # return the result
+          result
+        end # end of with
+      else
+        # not similar
+        {:error, :invalid_verification_code}
+      end # end of if for checking if the verification code is similar
+    else
+      # the current user is not the owner
+      {:error, :not_owner}
+    end # end of if
+  end # end of the
 
   ####################################### PRIVATE FUNCTIONS #########################################
 

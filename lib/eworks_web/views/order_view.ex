@@ -114,6 +114,15 @@ defmodule EworksWeb.OrderView do
     }
   end
 
+  # succes render
+  def render("success.json", _assigns) do
+    %{
+      data: %{
+        success: true
+      }
+    }
+  end
+
   defp attachments_url(url) do
     if url, do: url |> String.split("?") |> List.first(), else: nil
   end # end of attachment_url

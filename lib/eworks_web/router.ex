@@ -63,7 +63,8 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/description", OrderController, :update_order_description
     post "/order/:order_id/duration", OrderController, :update_order_duration
     post "/order/:order_id/attachments", OrderController, :update_order_attachments
-    post "/order/:order_id/post", OrderController, :send_order_verification_code
+    get "/order/:order_id/verification/code", OrderController, :send_order_verification_code
+    post "/order/:order_id/verify", OrderController, :verify_order
 
     # order offers
     post "/order/:order_id/new/offer", OrderController, :submit_order_offer
