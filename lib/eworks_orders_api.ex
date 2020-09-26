@@ -25,9 +25,7 @@ defmodule Eworks.Orders.API do
   @doc """
     Adds the payment information of the order
   """
-  def update_order_payment(%User{} = user, order_id, payment_params) do
-    # get the order with the given id
-    order = Orders.get_order!(order_id)
+  def update_order_payment(%User{} = user, %Order{} = order, payment_params) do
     # ensure the current user is the owner of the order
     if order.user_id == user.id do
       # update the order
@@ -42,9 +40,7 @@ defmodule Eworks.Orders.API do
   @doc """
     Updates the order's type and duration
   """
-  def update_order_duration(%User{} = user, order_id, duration_params) do
-    # get the order with the given id
-    order = Orders.get_order!(order_id)
+  def update_order_duration(%User{} = user, %Order{} = order, duration_params) do
     # ensure the current user is the owner of the order
     if order.user_id == user.id do
       # update the order
@@ -59,9 +55,7 @@ defmodule Eworks.Orders.API do
   @doc """
     Updates the order's type and required contractors
   """
-  def update_order_type_and_contractors(%User{} = user, order_id, type_params) do
-    # get the order with the given id
-    order = Orders.get_order!(order_id)
+  def update_order_type_and_contractors(%User{} = user, %Order{} = order, type_params) do
     # ensure the current user is the owner of the order
     if order.user_id == user.id do
       # update the order
@@ -75,9 +69,7 @@ defmodule Eworks.Orders.API do
   @doc """
     Updates the order's description
   """
-  def update_order_description(%User{} = user, order_id, description) do
-    # get the order with the given id
-    order = Orders.get_order!(order_id)
+  def update_order_description(%User{} = user, %Order{} = order, description) do
     # ensure the current user is the owner of the order
     if order.user_id == user.id do
       # update the order
@@ -91,9 +83,7 @@ defmodule Eworks.Orders.API do
   @doc """
     Updates the attachments of a given order
   """
-  def update_order_attachments(%User{} = user, order_id, attachments) do
-    # get the order
-    order = Orders.get_order!(order_id)
+  def update_order_attachments(%User{} = user, %Order{} = order, attachments) do
     # check if the current user is the owner of the order
     if order.user_id == user.id do
       # upload the documents
@@ -108,37 +98,25 @@ defmodule Eworks.Orders.API do
   @doc """
     Submits an offer
   """
-  def submit_order_offer(%User{} = user, order_id, asking_amount) do
-    # check if the user is a client or not
-    if user.user_type == "Client" do
-      # return an error
-      {:error, :is_client}
-    else
-      # create a task for creating the offer
-      Task.start(fn ->
-        # create a new order
-        user
-        # add the user id and the order id
-        |> Ecto.build_assoc(:order_offers, %{order_id: order_id, asking_amount: asking_amount})
-        # create the offer
-        |> Repo.insert!()
-      end)
-      # return ok
-      :ok
-    end # end of checking if the user is a client
+  def submit_order_offer(%User{} = user, %Order{} = order, asking_amount) do
+    # create a new order
+    user
+    # add the user id and the order id
+    |> Ecto.build_assoc(:order_offers, %{order_id: order_id, asking_amount: asking_amount})
+    # create the offer
+    |> Repo.insert!()
   end # end of submitting an order offer
 
 
   @doc """
     Function that accepts an order
   """
-  def accept_order_offer(%User{} = user, order_id, order_offer_id) do
+  def accept_order_offer(%User{} = user, %Order{} = order, order_offer_id) do
     # start the task for getting the offer
     offer_task = Task.async(fn ->
       Orders.get_order_offer!(order_offer_id)
     end)
-    # get the order
-    order = Orders.get_order!(order_id)
+
     # check if the current user is the owner of the job
     if order.user_id == user.id do
       # update the offer
@@ -146,28 +124,25 @@ defmodule Eworks.Orders.API do
         # offer successfully accepted
         :ok ->
           # update the order by reducing the number of required offers by 1 and return the order
-          if order.accepted_offers == 3 do
+          if order.accepted_offers + 1 == 3 do
             # update the order
             updated_order = order
-                            # reduce the number of required contractors
-                            |> Ecto.Changeset.change(%{
-                              required_contractors: order.required_contractors - 1
-                            })
-                            # update the order
-                            |> Repo.update!()
-                            # get the bid for which the user has accepted
-                            |> Repo.preload([order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)])
+                  # reduce the number of required contractors
+                  |> Ecto.Changeset.change(%{
+                    accepted_offers: order.accepted_offers + 1
+                  })
+                  # update the order
+                  |> Repo.update!()
+                  # get the bid for which the user has accepted
+                  |> Repo.preload([order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)])
 
             # preload all the offers
-            {:ok, %{
-              accepted_offers: preload_accepted_offers(updated_order)
-            }}
+            {:ok, updated_order}
           else
             # the user still can accept other offers
             updated_order = order
                             # reduce the number of required contractors
                             |> Ecto.Changeset.change(%{
-                              required_contractors: order.required_contractors - 1,
                               accepted_offers: order.accepted_offers + 1
                             })
                             # update the order
@@ -176,9 +151,7 @@ defmodule Eworks.Orders.API do
                             |> Repo.preload([order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)])
 
             # preload all the offers
-            {:ok, %{
-              accepted_offers: preload_accepted_offers(updated_order)
-            }}
+            {:ok, updated_offer}
           end # end of if for checking if the user can make more offers
 
         # offer not accepted
@@ -400,18 +373,6 @@ defmodule Eworks.Orders.API do
       # offer is cancelled
       {:error, :offer_cancelled}
     end # end of the checking if the offer has being cancelled
-  end
-
-  defp preload_accepted_offers(order) do
-    # for each of the offer
-    Enum.map(order.order_offers, fn offer ->
-      offer
-      # preload the user and work_profile
-      |> Repo.preload([
-        user: [work_profile: from(profile in WorkProfile, select: [profile.rating, profile.professional_intro])]
-      ])
-      # set teach of the
-    end)
   end
 
 end # end of the api module for orders and order offers

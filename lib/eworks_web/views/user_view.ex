@@ -100,6 +100,28 @@ defmodule EworksWeb.UserView do
     }
   end
 
+  # upgraded-user.json
+  def render("upgraded_work_profile.json", %{work_profile: profile}) do
+    %{
+      data: %{
+        # render the work rofile
+        work_profile: %{
+          id: profile.id,
+          is_upgraded: profile.is_upgraded,
+          last_upgraded_on: profile.last_upgraded_on,
+          upgrade_expiry_date: profile.upgrade_expiry_date,
+          is_upgrade_expired: profile.is_upgrade-expired
+          skills: profile.skills,
+          professional_intro: profile.professional_intro,
+          cover_letter: profile.cover_letter,
+          success_rate: profile.succes_rate,
+          job_hires: profile.job_hires,
+          rating: profile.rating
+        }
+      }
+    }
+  end
+
   # order.json
   def render("order.json", %{previous_hire: order}) do
     %{

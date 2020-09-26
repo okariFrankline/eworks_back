@@ -255,6 +255,29 @@ defmodule Eworks.Accounts do
 
 
   @doc """
+    Creates a new work profile for a client that is requesting a one time upgrade
+  """
+  def create_upgraded_work_profile(%WorkProfile{} = profile, attrs \\ %{}) do
+    profile
+    # pass through the upgrade changeset
+    |> WorkProfile.upgrade_changeset(attrs)
+    # inserthe profile into the db
+    |> Repo.insert()
+  end # end of teh create_upgraded_work_prfile/3
+
+
+  @doc """
+    Upgrades the last upgraded and the expiry date of the new upgrade request
+  """
+  def update_upgrade_information(%WorkProfile{} = profile, attrs \\ %{}) do
+    profile
+    # pass through the upgrade changeset
+    |> WorkProfile.upgrade_changeset(attrs)
+    # inserthe profile into the db
+    |> Repo.update()
+  end # end of the update_upgrade_information
+
+  @doc """
   Gets a single work_profile.
 
   Raises `Ecto.NoResultsError` if the Work profile does not exist.

@@ -14,7 +14,7 @@ defmodule Eworks.Accounts.WorkProfile do
     # field indicating the date the upgrade would end
     field :upgrade_expiry_date, :date_time
     # field for indicating whether the upgrade of an account is expired
-    field :is_upgrade_expired: :boolean, default: false
+    field :has_upgrade_expired: :boolean, default: false
     field :cover_letter, :string
     field :job_hires, :integer
     field :professional_intro, :string
@@ -43,7 +43,7 @@ defmodule Eworks.Accounts.WorkProfile do
       :upgrade_duration,
       :last_upgraded_on,
       :upgrade_expiry_date,
-      :is_upgrade_expired
+      :has_upgrade_expired
     ])
   end
 
@@ -89,6 +89,8 @@ defmodule Eworks.Accounts.WorkProfile do
     ])
     # add the upgrade dates
     |> add_upgrade_information()
+    # ensure the user id is given
+    |> foreign_key_constraint(:user_id)
   end # end of upgrade_changeset/2
 
   # function adding the upgrade information

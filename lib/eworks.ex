@@ -9,7 +9,7 @@ defmodule Eworks do
   alias Eworks.{Accounts}
   alias Eworks.Utils.{Mailer, NewEmail}
   alias Eworks.Repo
-  alias Eworks.Accounts.{User}
+  alias Eworks.Accounts.{User, WorkProfile}
   import Ecto.Query, warn: false
 
   # function for checking whether a user with
@@ -167,61 +167,51 @@ defmodule Eworks do
   @doc """
     Updates the skills of a given user
   """
-  def update_work_profile_skills(%User{} = user, profile_id, new_skills) do
-    # get the work profile
-    work_profile = Accounts.get_work_profile!(profile_id)
-    # ensure the user is the owner of the work profile
-    if work_profile.user_id == user.id do
-      # update the profile
-      with {:ok, _profile} = result <- Accounts.update_work_profile_skills(work_profile, %{skills: new_skills}) do
-        # return the result
-        result
-        # there are no changese
-      else
-        :no_changes ->
-          # return the profile as is
-          {:ok, work_profile}
-      end # end of with
-
+  def update_work_profile_skills(%User{} = user, %WorkProfile{} = work_profile, new_skills) do
+    # update the profile
+    with {:ok, _profile} = result <- Accounts.update_work_profile_skills(work_profile, %{skills: new_skills}) do
+      # return the result
+      result
+      # there are no changese
     else
-      # the user is not the owner
-      {:error, :not_owner}
-    end # end of the checking if current user is the owner of the profile
+      :no_changes ->
+        # return the profile as is
+        {:ok, work_profile}
+    end # end of with
   end # end of the update_profile_skills
 
 
   @doc """
     Updates a user's professional introduction
   """
-  def update_work_profile_prof_intro(%User{} = user, profile_id, prof_intro) do
-    # get the work profiel with the given id
-    work_profile = Accounts.get_work_profile!(profile_id)
-    # ensure the current user is the owner of the profile
-    if work_profile.user_id == user.id do
-      # update the profile
-      with {:ok, _profile} = result <- Accounts.update_work_profile_prof_intro(work_profile, %{professional_intro: prof_intro}), do: result
-
-    else
-      # the user is not the owner of the job
-      {:error, :not_owner}
-    end # end of checking whether the current user is the owner of the profile
+  def update_work_profile_prof_intro(%User{} = user, %WorkProfile{} = work_profile, prof_intro) do
+    # update the profile
+    with {:ok, _profile} = result <- Accounts.update_work_profile_prof_intro(work_profile, %{professional_intro: prof_intro}), do: result
   end # end of the update_work_profile_prof_intro/2
 
   @doc """
     Updates a user's cover letter
   """
-  def update_work_profile_cover_letter(%User{} = user, profile_id, cover_letter) do
-    # get the work profiel with the given id
-    work_profile = Accounts.get_work_profile!(profile_id)
-    # ensure the current user is the owner of the profile
-    if work_profile.user_id == user.id do
-      # update the profile
-      with {:ok, _profile} = result <- Accounts.update_work_profile_cover_letter(work_profile, %{cover_letter: cover_letter}), do: result
-
-    else
-      # the user is not the owner of the job
-      {:error, :not_owner}
-    end # end of checking whether the current user is the owner of the profile
+  def update_work_profile_cover_letter(%User{} = user, %WorkProfile{} = work_profile, cover_letter) do
+    # update the profile
+    with {:ok, _profile} = result <- Accounts.update_work_profile_cover_letter(work_profile, %{cover_letter: cover_letter}), do: result
   end # end of the update_work_profile_prof_intro/2
+
+  @doc """
+    false
+  """
+  def upgrade_client_to_practise(%User{} = user, duration) do
+    # preload the work profile for the given user
+    user = Repo.preload(user, [:work_profile])
+    # check if the user had previously upgraded their work profile
+    if user.work_profile and user.work_profile.is_upgraded do
+      # update hte last updated and the expiry date of this new upgrade
+      with {:ok, _work_profile} = result <- Accounts.update_upgrade_information(user.work_profile, %{upgrade_duration: duration}), do: result
+    else
+      # the account has not being upgraded
+      # create a new upgraded work profile
+      with {:ok, _work_profile} = result <- Ecto.build_assoc(user, :work_profile) |> Accounts.create_upgraded_account(%{upgrade_duration: duration}), do: result
+    end # end of if for checking if the user had previouslu upgraded their account
+  end # end of upgrade_client_to_practise
 
 end # end of the Eworks module

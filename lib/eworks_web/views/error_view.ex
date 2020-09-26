@@ -91,4 +91,14 @@ defmodule EworksWeb.ErrorView do
     }
   end
 
+  # upgrade-expired.json
+  def render("upgrade_expired.json", %{expiry_date: date} do
+    %{
+      errors: %{
+        details: "Failed. Your one time upgrade expired on #{DateTime.to_iso8601(date)}"
+      }
+    }
+  end # end of upgrade_expired.json
+
+
 end # end of the module
