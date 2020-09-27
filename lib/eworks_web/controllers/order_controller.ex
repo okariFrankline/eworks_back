@@ -2,6 +2,7 @@ defmodule EworksWeb.OrderController do
   use EworksWeb, :controller
 
   alias Eworks.Orders
+  alias Eworks.Accounts.User
   alias Eworks.Orders.Order
   alias EworksWeb.Plugs
 
@@ -159,12 +160,12 @@ defmodule EworksWeb.OrderController do
     Accepts a given offer for a particular order
   """
   def accept_order_offer(conn, %{"order_offer_id" => order_offer_id}, user, order) do
-    with {:ok, accepted_offers} <- Eworks.Orders.API.accept_order_offer(user, order, order_offer_id) do
+    with {:ok, result} <- Eworks.Orders.API.accept_order_offer(user, order, order_offer_id) do
       conn
       # put a status
       |> put_status(:ok)
       # render the order
-      |> render("accepted_offers.json", accepted_offers: accepted_offers)
+      |> render("order.json", order: result.order, offers: result.offers)
     end # end of accepting the offer
   end # end of accept_order_offer
 

@@ -100,5 +100,14 @@ defmodule EworksWeb.ErrorView do
     }
   end # end of upgrade_expired.json
 
+  # user_suspended.json
+  def render("user_suspended.json", %{user: user}) do
+    %{
+      errors: %{
+        details: "Failed. The offer owner's account, #{user.full_name} has been suspended."
+      }
+    }
+  end # end of user_suspended.json
+
 
 end # end of the module

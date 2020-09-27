@@ -105,4 +105,15 @@ defmodule EworksWeb.FallbackController do
     |> render("invalid_verification_code.json")
   end
 
+  # user_is_suspended
+  def call(conn, {:error, :user_suspended, user}) do
+    conn
+    # put_status
+    |> put_status(:bad_request)
+    # put the error view
+    |> put_view(EworksWeb.ErrorView)
+    # render the user_is_suspended
+    |> render("user_suspended.json", user: user)
+  end
+
 end

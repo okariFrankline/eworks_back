@@ -114,44 +114,54 @@ defmodule Eworks.Orders.API do
   def accept_order_offer(%User{} = user, %Order{} = order, order_offer_id) do
     # start the task for getting the offer
     offer_task = Task.async(fn ->
-      Orders.get_order_offer!(order_offer_id)
+      # preload the order with the offer with the offer with given offer id
+      Repo.preload(order, [
+        order_offers: from(offer in OrderOffer, where: offer.id == ^order_offer_id)
+      ])
     end)
-
     # check if the current user is the owner of the job
     if order.user_id == user.id do
+      # get the order offer
+      [offer | _rest] = Task.await(offer_task).order_offers
       # update the offer
-      case accept_offer(Task.await(offer_task)) do
+      case accept_offer(offer) do
         # offer successfully accepted
         :ok ->
           # update the order by reducing the number of required offers by 1 and return the order
           if order.accepted_offers + 1 == 3 do
             # update the order
             updated_order = order
-                  # reduce the number of required contractors
-                  |> Ecto.Changeset.change(%{
-                    accepted_offers: order.accepted_offers + 1
-                  })
-                  # update the order
-                  |> Repo.update!()
-                  # get the bid for which the user has accepted
-                  |> Repo.preload([order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)])
+                # reduce the number of required contractors
+                |> Ecto.Changeset.change(%{
+                  accepted_offers: order.accepted_offers + 1
+                })
+                # update the order
+                |> Repo.update!()
+                # get the bid for which the user has accepted
+                |> Repo.preload([order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)])
 
-            # preload all the offers
-            {:ok, updated_order}
+            # preload the owner of each of the offers
+            offers = Enum.map(updated_order.order_offers, fn offer -> Repo.preload(offer, [user: [:work_profile]]) end)
+
+            # return the updated offer, the owner of the offer and the offers
+            {:ok, %{order: updated_order, offers: offers}}
           else
             # the user still can accept other offers
             updated_order = order
-                            # reduce the number of required contractors
-                            |> Ecto.Changeset.change(%{
-                              accepted_offers: order.accepted_offers + 1
-                            })
-                            # update the order
-                            |> Repo.update!()
-                            # preload the already accepted offers
-                            |> Repo.preload([order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)])
+                # reduce the number of required contractors
+                |> Ecto.Changeset.change(%{
+                  accepted_offers: order.accepted_offers + 1
+                })
+                # update the order
+                |> Repo.update!()
+                # preload all the offers and the offer owners
+                |> Repo.preload([:order_offers])
 
-            # preload all the offers
-            {:ok, updated_offer}
+            # preload the owner of the offers for each of the offers
+            offers = Stream.map(updated_order.order_offers, fn offer -> Repo.preload(offer, [user: [:work_profile]]) end) |> Stream.run()
+
+            # return the updated offer, the owner of the offer and the offers
+            {:ok, %{order: updated_order, offers: offers}}
           end # end of if for checking if the user can make more offers
 
         # offer not accepted
@@ -168,49 +178,53 @@ defmodule Eworks.Orders.API do
   @doc """
     Function for assigning an order
   """
-  def assign_order(%User{} = _user, order_id, to_assign_id) do
+  def assign_order(%User{} = _user, %Order{} = order, to_assign_id) do
     # get the person to be assigned
     to_assignee_task = Task.async(fn -> Accounts.get_user!(to_assign_id) end)
 
-    # get the order
-    order = Orders.get_order!(order_id)
-    # check if the job has being assigned
+    # check if the job has already been assigned or the number of already assigned orders matches the number of required contractors
     if not order.is_assigned and order.already_assigned != order.required_contractors do
-      # assign the job
-      with _user <- Task.await(to_assignee_task) |> Ecto.Changeset.change(%{order_id: order_id}) |> Repo.update!() do
-        # start a task for sending the assignee a notification about the assigning
-        # updated order
-        updated_order =  order
-        # set the already assigned by adding one and required contractors by removing one
-        |> Ecto.Changeset.change(%{
-          already_assigned: order.already_assigned + 1,
-          required_contractors: order.required_contractors - 1
-        })
-        # update the order
-        |> Repo.update!()
-        # preload the assigned practise
-        |> Repo.preload(:assignees)
+      # get the assignee
+      to_be_assigned = Task.await(to_assignee_task)
+      # chek if the one be assigned is not suspeded
+      if not to_be_assigned.is_suspended do
+        # assign the job
+        with _user <- to_be_assigned |> Ecto.Changeset.change(%{order_id: order_id}) |> Repo.update!() do
+          # start a task for sending the assignee a notification about the assigning
+          # updated order
+          updated_order =  order
+          # set the already assigned by adding one and required contractors by removing one
+          |> Ecto.Changeset.change(%{
+            already_assigned: order.already_assigned + 1
+          })
+          # update the order
+          |> Repo.update!()
+          # preload the assigned practise
+          |> Repo.preload(:assignees, order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)
 
-        # for each of the assignees preload the work profile and the order offers
-        assignees = Enum.map(updated_order.assignees, fn assignee ->
-          assignee
-          # create the account user from the order
-          |> Orders.account_user_from_order_user()
-          # preload the workprofile and the order offers
-          |> Repo.preload([
-            # preload the work profile and return the full name and the professional intro
-            work_profile: from(profile in WorkProfile, select: [profile.rating, profile.professional_intro]),
-            # preload the order offer made for this particular offer
-            order_offers: from(offer in OrderOffer, where: offer.order_id == ^order_id, select: [offer.asking_amount])
-          ])
-        end)
+          # for each of the assignees preload the work profile and the order offers
+          assignees_task = Task.async(fn -> Enum.map(updated_order.assignees, fn assignee ->
+              assignee
+              # create the account user from the order
+              |> Orders.account_user_from_order_user()
+              # preload the workprofile and the order offers
+              |> Repo.preload([:work_profile, order_offers: from(offer in OrderOffer, where: offer.user_id == assignee.id)])
+            end)
+          end)
 
-        # return the result
-        {:ok, %{
-          order: updated_order,
-          assignees: assignees
-        }}
-      end # end of the assigning the work
+          # taks for loading the accepted offers
+          offers_task = Task.asyn(fn ->
+            Enum.map(updated_order.order_offers, fn offer -> Repo.preload(offer, [user: [:work_profile]]) end)
+          end)
+
+          # return the result
+          {:ok, %{order: updated_order, assignees: Task.await(assignees_task, offers: Task.await(offers_task))}}
+        end # end of the assigning the work
+
+      else # the user is suspended
+        # retun error indicating the user is suspended
+        {:error, :user_suspended, to_be_assigned}
+      end # end of checking if the assignee is suspended or not
 
     else
       # the order has already being assigned
