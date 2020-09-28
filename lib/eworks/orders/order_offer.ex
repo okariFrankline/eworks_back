@@ -6,9 +6,10 @@ defmodule Eworks.Orders.OrderOffer do
   @foreign_key_type :binary_id
   schema "order_offers" do
     field :asking_mount, :string
-    field :is_accepted, :boolean, default: false
+    field :has_accepted_order, :boolean, default: false
     field :is_pending, :boolean, default: true
     field :is_rejected, :boolean, default: false
+    field :is_accepted, :boolean, default: false
     field :order_id, :binary_id
 
     # indicates whether the owner of this offer has accepted to work on the order
@@ -24,10 +25,10 @@ defmodule Eworks.Orders.OrderOffer do
     order_offer
     |> cast(attrs, [
       :is_pending,
-      :is_accepted,
+      :has_accepted_order,
       :is_rejected,
       :asking_mount,
-      :accepted_order
+      :is_accepted
     ])
     |> validate_required([
       :asking_mount

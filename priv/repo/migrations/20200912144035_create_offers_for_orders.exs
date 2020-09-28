@@ -5,8 +5,9 @@ defmodule Eworks.Repo.Migrations.CreateOffersForOrders do
     create table(:order_offers, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :is_pending, :boolean, default: false, null: false
-      add :is_accepted, :boolean, default: false, null: false
+      add :has_accepted_order, :boolean, default: false, null: false
       add :is_rejected, :boolean, default: false, null: false
+      add :is_accepted, :boolean, default: false, null: false
       add :is_cancelled, :boolean, default: false, null: false
       add :asking_mount, :string, null: false
       add :accepted_order, :boolean, default: false

@@ -135,7 +135,7 @@ defmodule EworksWeb.OrderController do
   """
   def submit_order_offer(conn, %{"new_offer" => %{"asking_amount" => asking_amount}}, user, order) do
     # place the offer
-    with %Order{} = _order <- Eworks.Orders.API.submit_order_offer(user, order, asking_amount) do
+    with {:ok, %Order{} = _order} <- Eworks.Orders.API.submit_order_offer(user, order, asking_amount) do
       conn
       # put the status
       |> put_status(:created)
@@ -148,12 +148,14 @@ defmodule EworksWeb.OrderController do
   @doc """
     Rejects an offer
   """
-  def reject_order_offer(conn,  %{"order_offer_id" => id}, user, _order) do
-    Eworks.Orders.API.reject_order_offer(id)
+  def reject_order_offer(conn,  %{"order_offer_id" => id}, user, order) do
+    Eworks.Orders.API.reject_order_offer(user, order, id)
     # return a response
     conn
     # send a response
-    |> send_resp(:ok, " ")
+    |> put_status(:ok)
+    # render success
+    |> render("success.json")
   end # end of reject_order_offer
 
   @doc """
@@ -173,12 +175,12 @@ defmodule EworksWeb.OrderController do
     Assign a job to a given user
   """
   def assign_order(conn, %{"to_assign_id" => to_assign_id}, user, order) do
-    with {:ok, %{order: _order, assignees: _assignees} = result } <- Eworks.Orders.API.assign_order(user, order, to_assign_id) do
+    with {:ok, result } <- Eworks.Orders.API.assign_order(user, order, to_assign_id) do
       conn
       # ok
       |> put_status(:ok)
       # render the order
-      |> render("assigned_order.json", result)
+      |> render("assigned_order.json", order: result.order, offers: order.offers)
     end # end of with for assigning of the order to the user
   end # end of assign order
 

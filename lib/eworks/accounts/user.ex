@@ -40,6 +40,8 @@ defmodule Eworks.Accounts.User do
     has_many :order_offers, Eworks.Orders.OrderOffer
     # has one work profile
     has_one :work_profile, Eworks.Accounts.WorkProfile
+    # has many notifications
+    has_many :notifications, Eworks.Notifications.Notification
     # add the timestamp
     timestamps()
   end

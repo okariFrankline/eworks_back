@@ -4,7 +4,7 @@ defmodule Eworks.Orders.API do
   """
   alias Eworks.Accounts.User
   alias Eworks.Accounts.{WorkProfile}
-  alias Eworks.{Orders, Repo, Accounts, Uploaders}
+  alias Eworks.{Orders, Repo, Accounts, Uploaders, Notifications}
   alias Eworks.Orders.{Order, OrderOffer}
   alias Eworks.Utils.{Mailer, NewEmail}
   import Ecto.Query, warn: false
@@ -100,11 +100,20 @@ defmodule Eworks.Orders.API do
   """
   def submit_order_offer(%User{} = user, %Order{} = order, asking_amount) do
     # create a new order
-    user
-    # add the user id and the order id
-    |> Ecto.build_assoc(:order_offers, %{order_id: order_id, asking_amount: asking_amount})
-    # create the offer
-    |> Repo.insert!()
+    with offer <- user |> Ecto.build_assoc(:order_offers, %{order_id: order_id, asking_amount: asking_amount}) |> Repo.insert!() do
+      # create a notification about the submitting of the offer
+      Task.start(fn ->
+        {:ok, notification} = Notifications.create_notification(%{
+          user_id: order.user_id,
+          asset_type: :offer,
+          :notification_type: :order_offer_submission,
+          message: "#{user.full_name} has submitted an offer for your order looking for #{order.specialty}."
+        })
+        # send the notification to the user using websocket
+      end) # end of the task
+      # return ok
+      {:ok, offer}
+    end # end of with creating an offer
   end # end of submitting an order offer
 
 
@@ -124,11 +133,11 @@ defmodule Eworks.Orders.API do
       # get the order offer
       [offer | _rest] = Task.await(offer_task).order_offers
       # update the offer
-      case accept_offer(offer) do
+      case accept_offer(offer, user.full_name, order.specialty) do
         # offer successfully accepted
         :ok ->
           # update the order by reducing the number of required offers by 1 and return the order
-          if order.accepted_offers + 1 == 3 do
+          if order.accepted_offers + 1 == order.required_contractors * 3 do
             # update the order
             updated_order = order
                 # reduce the number of required contractors
@@ -178,7 +187,7 @@ defmodule Eworks.Orders.API do
   @doc """
     Function for assigning an order
   """
-  def assign_order(%User{} = _user, %Order{} = order, to_assign_id) do
+  def assign_order(%User{} = user, %Order{} = order, to_assign_id) do
     # get the person to be assigned
     to_assignee_task = Task.async(fn -> Accounts.get_user!(to_assign_id) end)
 
@@ -187,38 +196,53 @@ defmodule Eworks.Orders.API do
       # get the assignee
       to_be_assigned = Task.await(to_assignee_task)
       # chek if the one be assigned is not suspeded
-      if not to_be_assigned.is_suspended do
+      if not to_be_assigned.is_suspended do # the person being assigned the order has not being suspended
         # assign the job
-        with _user <- to_be_assigned |> Ecto.Changeset.change(%{order_id: order_id}) |> Repo.update!() do
+        with assigned_user <- to_be_assigned |> Ecto.Changeset.change(%{order_id: order_id}) |> Repo.update!() do
           # start a task for sending the assignee a notification about the assigning
-          # updated order
-          updated_order =  order
-          # set the already assigned by adding one and required contractors by removing one
-          |> Ecto.Changeset.change(%{
-            already_assigned: order.already_assigned + 1
-          })
-          # update the order
-          |> Repo.update!()
-          # preload the assigned practise
-          |> Repo.preload(:assignees, order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)
+          Task.start(fn ->
+            # create a notification about being assigned the job
+            {:ok, notification} = Notifications.create_notification(%{
+              user_id: assigned_user.id,
+              asset_type: :order,
+              notification_type: :order_assignment,
+              message: "#{user.full_name} has assigned you the order looking for #{order.specialty}."
+            })
+            # notify the assigned user through the websocket
 
-          # for each of the assignees preload the work profile and the order offers
-          assignees_task = Task.async(fn -> Enum.map(updated_order.assignees, fn assignee ->
-              assignee
-              # create the account user from the order
-              |> Orders.account_user_from_order_user()
-              # preload the workprofile and the order offers
-              |> Repo.preload([:work_profile, order_offers: from(offer in OrderOffer, where: offer.user_id == assignee.id)])
-            end)
-          end)
+          end) # end of task for sending a notification to the user about the job assignment
 
-          # taks for loading the accepted offers
-          offers_task = Task.asyn(fn ->
-            Enum.map(updated_order.order_offers, fn offer -> Repo.preload(offer, [user: [:work_profile]]) end)
+          # check if once the added assignee is added, it brings the number of assigned equal to the required orders
+          updated_order = if order.required_contractors == order.already_assigned + 1 do
+            # update the order
+            order
+            # increase the number of assigned by one and set the assigned to true
+            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1, is_assigned: true})
+            # update the offer
+            |> Repo.update!()
+            # preload the assignees and the order offers
+            |> Repo.preload(order_offers: from(offer in OrderOffer, where: offer.is_accepted == true))
+
+          else # the number of already assigned is not yet equals to the number of required contractractors
+            # update the order
+            order
+            # increase the number of assigned by one
+            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1})
+            # update the offer
+            |> Repo.update!()
+            # preload the assignees and the order offers
+            |> Repo.preload(order_offers: from(offer in OrderOffer, where: offer.is_accepted == true))
+          end # end of checking if the number of already assigned equals that of the required contractors
+
+          # for each of the offers prload their owners
+          offers = Enum.map(updated_order.order_offers, fn offer ->
+            # preload the owner of the offer and his/her work profile
+            Repo.preload([user: [:work_profile]])
           end)
 
           # return the result
-          {:ok, %{order: updated_order, assignees: Task.await(assignees_task, offers: Task.await(offers_task))}}
+          {:ok, %{order: updated_order, offers: offers}}
+
         end # end of the assigning the work
 
       else # the user is suspended
@@ -230,45 +254,36 @@ defmodule Eworks.Orders.API do
       # the order has already being assigned
       {:error, :already_assigned}
     end # end of checking whether the order has already been assigned or the required contractors have been met
-
   end # end of assigning an order
-
-
-  @doc """
-    Creates a new offer for a given order
-  """
-  def create_offer(%User{} = user, order_id, offer_params) do
-    # create an association with the user
-    user
-    # add the user id to the params
-    |> Ecto.build_assoc(:order_offers, Map.put(offer_params, :order_id, order_id))
-    # create a new offer
-    |> Repo.insert!()
-  end # end of create offer
 
   @doc """
     Function for rejecting an offer
   """
-  def reject_order_offer(offer_id) do
-    # create a tak to reject the offer
-    Task.start(fn ->
-      # get the order_offer with the given id
-      offer = Repo.get!(OrderOffer, offer_id)
-      # only reject the bid if the oofer has not being cancelled
-      with false <- offer.is_cancelled do
-        # update the offer
-        offer
-        # set the is_pending to false and the is_rejected to true
-        |> Ecto.Changeset.change(%{
-          is_pending: false,
-          is_rejected: true
-        })
-        # update the offer
-        |> Repo.update!()
-      end # end of the with
-    end)
-    # return ok
-    :ok
+  def reject_order_offer(%User{} = user, %Order{} = order, offer_id) do
+    # ensure the current user is the owner of the order
+    if order.user_id == user.id do
+      # create a tak to reject the offer
+      Task.start(fn ->
+        # get the order_offer with the given id
+        offer = Repo.get!(OrderOffer, offer_id)
+        # only reject the bid if the oofer has not being cancelled
+        with false <- offer.is_cancelled, updated_offer <- offer |> Ecto.Changeset.change(%{is_pending: false, is_rejected: true}) |> Repo.update!() do
+          # creaate a notification to informat the owner of the offer about the rejection.
+          {:ok, notification} = Notifications.create_notification(%{
+            user_id: updated_offer.user_id,
+            asset: :offer,
+            asset_id: offer_id,
+            notification_type: :order_offer_rejection,
+            message: "#{user.full_name} has rejected your offer for order lookign for #{order.specialty}."
+          })
+          # send notification to the owner of the offer through the websocket
+        end # end of the with
+      end) # end of with for checking the order had being cancelled.
+      # return ok
+      :ok
+    else
+      {:error, :not_owner}
+    end # end of checking if the current user is the owner of the order
   end # end of reject_order_order/1
 
   @doc """
@@ -304,14 +319,23 @@ defmodule Eworks.Orders.API do
     # ensure that the current user if the owner of the offer
     if order_offer.user_id == user.id do
       # update the offer to set the accepted_order to true
-      with offer <- Ecto.Changeset.change(order_offer, %{accepted_order: true}) |> Repo.update!() |> Repo.preload([order: from(order in Order, select: [order.id, order.user_id, order.desription])]) do
-        # get the order for which the offer is for
+      with offer <- Ecto.Changeset.change(order_offer, %{has_accepted_order: true}) |> Repo.update!() do
+        # create a notification for the owner of the offer about the accepting of the order
         Task.start(fn ->
-          # get the order
-          offer.order
-          # order = Repo.one!(from order in Order, where: order.id == ^offer.order_id, select: [order.id])
-          # notify the owner of the order of the accepting of the order
-        end)
+          # get the order and its owner
+          order = Orders.get_order!(order_offer.order_id)
+          # create the notification
+          {:ok, notification} = Notification.create_notification(%{
+            user_id: order.user_id,
+            asset_type: :offer,
+            asset_id: order_offer_id,
+            notification_type: :order_acceptance,
+            message: "#{user.full_name} has accepted to be to work on your order looking for #{order.specialty}."
+          })
+          # send the notification to the user through a websocket.
+
+        end) # end of task
+
         # return the order
         {:ok, offer}
       end # end of with updating the update
@@ -368,21 +392,25 @@ defmodule Eworks.Orders.API do
 
   ####################################### PRIVATE FUNCTIONS #########################################
 
-  defp accept_offer(offer) do
+  defp accept_offer(offer, order_owner_name, order_specialty) do
     # check if the offer is cancelled or not
     if not offer.is_cancelled do
       # update the offer
-      offer
-      # put the is_accepted to true and set the is_pending to false
-      |> Ecto.Changeset.change(%{
-        is_accepted: true,
-        is_pending: false
-      })
-      # update the offer
-      |> Repo.update!()
+      with offer <- offer |> Ecto.Changeset.change(%{is_accepted: true, is_pending: false}) |> Repo.update!() do
+        # start task to create a notification for offer acceptance
+        Task.start(fn ->
+          {:ok, notificaiton} = Notifications.create_notification(%{
+            user_id: offer.user_id,
+            asset_type: :offer,
+            asset_id: offer.id,
+            message: "#{order_owner_name} has accepted your offer to work on his/her order looking for #{order_specilaty}."
+          })
+          # send the noification to the user through the webscoket
+        end) # end of task
 
-      # send a notification to the owner of the the offer about the accepting of the offer
-      :ok
+        # return ok
+        :ok
+      end # end of updating a new order
     else
       # offer is cancelled
       {:error, :offer_cancelled}

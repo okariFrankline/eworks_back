@@ -60,7 +60,7 @@ defmodule EworksWeb.OrderView do
         specialty: order.specialty,
         category: order.category,
         offers_made: order.offers_made,
-        attachments: upload_url(Eworks.Uploaders.OrderAttachment.url({order.attachments, order})),
+        # attachments: upload_url(Eworks.Uploaders.OrderAttachment.url({order.attachments, order})),
         duration: order.duration,
         order_type: order.order_type,
         payment_schedule: order.payment_schedule,
@@ -80,42 +80,45 @@ defmodule EworksWeb.OrderView do
       is_accepted: offer.is_acepted,
       is_rejected: offer.is_rejected,
       is_cancelled: offer.is_cancelled,
-      accepted_order: offer.accepted_order,
+      has_accepted_order: offer.has_accepted_order,
       # owner of the offer
       owner: %{
         id: offer.user.id,
         full_name: offer.user.full_name,
         rating: offer.user.work_profile.rating,
-        prefessional_intro: offer.user.work_profile.professional_intro,
+        about: offer.user.work_profile.professional_intro,
         profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({offer.user.profile_pic, offer.user}))
       }
     }
   end
 
-  def render("assigned_order.json", %{assigned_order: order, assignees: assignees}) do
+  def render("assigned_order.json", %{order: order, offers: offers}) do
     %{
       data: %{
-        assignees: render_many(assignees, __MODULE__, "assignee.json"),
+        assignees: render_assignees(order.id, offers),
         is_assigned: order.is_assigned,
         description: order.descripiton,
         payable_amount: order.payable_amount,
         is_paid_for: order.is_paid_for,
+        is_complete: order.is_complete,
         payment_schedule: order.payment_schedule,
-        category: order.category,
+        specialty: order.specialty,
         already_assigned: order.already_assigned,
-        is_complete: order.is_complete
+        is_complete: order.is_complete,
+        deadline: Date.to_iso8601(order.deadline),
+        offers: render_offers(order.id, offers)
       }
     }
   end
 
-  def render("assignee.json", %{assignee: assignee}) do
+  def render("assignee.json", %{offer: offers}) do
     %{
-      id: assignee.id,
-      full_name: assignee.full_name,
-      rating: assignee.work_profile.rating,
-      about: assignee.work_profile.professional_intro,
-      asking_amount: assignee.order_offer.asking_amount,
-      profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({assignee.profile_pic, assignee}))
+      id: offer.user.id,
+      full_name: offer.user.full_name,
+      rating: offer.user.work_profile.rating,
+      about: offer.user.work_profile.professional_intro,
+      asking_amount: offer.asking_amount,
+      profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({offer.user.profile_pic, offer.user}))
     }
   end
 
@@ -151,8 +154,31 @@ defmodule EworksWeb.OrderView do
     }
   end
 
+############################### PRIVATE FUNCTION ######################################################
+
   defp upload_url(url) do
     if url, do: url |> String.split("?") |> List.first(), else: nil
   end # end of attachment_url
+
+  defp render_assignees(order_id, offers) do
+    # check if the order has been
+    offers_for_assigned_users = Enum.filter(offers, fn offer ->
+      # return only the users whose order id equals the current order id
+      offer.user.order_id == order_id
+    end)
+    # call the render many for assigneess
+    render_many(offers_for_assigned_users, __MODULE__, "assignee.json")
+  end # end of rendering is assigned
+
+  # function for rendering the offers
+  defp render_offers(order_id, offers) do
+    # check if the order has been assigned
+    offers_for_unassigned_users = Enum.filter(offers, fn offer ->
+      # return only the offers whose oofer.user.order_id does not equal the current order id
+      offer.user.order_id != order_id
+    end)
+    # render the offers
+    render_many(offers_for_unassigned_users, __MODULE__, "offer.json")
+  end # end of render_offers/2
 
 end # end of the module
