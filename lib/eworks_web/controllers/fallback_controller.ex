@@ -106,14 +106,25 @@ defmodule EworksWeb.FallbackController do
   end
 
   # user_is_suspended
-  def call(conn, {:error, :user_suspended, user}) do
+  def call(conn, {:error, :user_suspended, user_name}) do
     conn
     # put_status
     |> put_status(:bad_request)
     # put the error view
     |> put_view(EworksWeb.ErrorView)
     # render the user_is_suspended
-    |> render("user_suspended.json", user: user)
+    |> render("user_suspended.json", user_name: user_name)
   end
+
+  # professional not found
+  def call(conn, {:error, :prof_not_found}) do
+    conn
+    # put the view
+    |> put_status(:not_found)
+    # put view
+    |> put_view(EworksWeb.ErrorView)
+    # render the professional not found
+    |> render("prof_not_found.json")
+  end # end of professional found
 
 end

@@ -55,27 +55,27 @@ defmodule EworksWeb.UserView do
   end # end of logged_in.json
 
   # work_profile.json
-  def render("work_profile", %{work_profile: profile}) do
+  def render("work_profile.json", %{work_profile: profile, user: user}) do
     %{
       data: %{
         # previous hires
-        previous_hires: render_many(profile.previous_hires, __MODULE__, "order.json"),
+        previous_hires: render_previous_hires(profile.previous_hires),
         # profile owner
         user: %{
-          id: profile.user.id,
-          name: profile.user.full_name,
-          is_active: profile.user.is_active,
-          username: profile.user.username,
-          country: profile.user.country,
-          city: profile.user.city,
-          profile_pic: profile.user.profile_pic
+          id: user.id,
+          name: user.full_name,
+          is_active: user.is_active,
+          username: user.username,
+          country: user.country,
+          city: user.city,
+          profile_pic: user.profile_pic
         },
         # profile information
         id: profile.id,
         skills: profile.skills,
         professional_intro: profile.professional_intro,
         cover_letter: profile.cover_letter,
-        success_rate: profile.succes_rate,
+        success_rate: profile.success_rate,
         job_hires: profile.job_hires,
         rating: profile.rating
       }
@@ -146,4 +146,8 @@ defmodule EworksWeb.UserView do
   defp profile_pic_url(url) do
     if url, do: url |> String.split("?") |> List.first(), else: nil
   end # end of function for getting the profile pic url
+
+  # render the orders
+  defp render_previous_hires(previous_hires) when is_list(previous_hires), do: render_many(previous_hires, __MODULE__, "order.json")
+  defp render_previous_hires(_), do: nil
 end # end of the module

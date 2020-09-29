@@ -128,7 +128,7 @@ defmodule EworksWeb.UserController do
       # put ok on the status
       |> put_status(:ok)
       # render the work profile
-      |> render("work_profile.json", work_profile: work_profile)
+      |> render("work_profile.json", work_profile: work_profile, user: user)
     end # end of with
   end # end of the uodate_work_profile_skills/2
 
@@ -141,7 +141,7 @@ defmodule EworksWeb.UserController do
       # update the status
       |> put_status(:ok)
       # render the work profile
-      |> render("work_profile.json", work_profile: work_profile)
+      |> render("work_profile.json", work_profile: work_profile, user: user)
     end # end of with
   end # end of the update the workprofile cover letter
 
@@ -154,7 +154,7 @@ defmodule EworksWeb.UserController do
       # update the status
       |> put_status(:ok)
       # render the work profile
-      |> render("work_profile.json", work_profile: work_profile)
+      |> render("work_profile.json", work_profile: work_profile, user: user)
     end # end of with
   end # end of the update the workprofile cover letter
 

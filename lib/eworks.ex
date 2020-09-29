@@ -176,7 +176,7 @@ defmodule Eworks do
         result
         # there are no changese
       else
-        :no_changes ->
+        :no_change ->
           # return the profile as is
           {:ok, work_profile}
       end # end of with

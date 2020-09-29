@@ -17,6 +17,15 @@ defmodule Eworks.Orders do
   # function for returning an account user from the order assignee
   def account_user_from_order_assignee(%__MODULE__.Order.Assignee{id: id}  = _user), do: %Accounts.User{id: id}
 
+  # set up the dataloader
+  def data() do
+    Dataloader.Ecto.new(Repo, query: &query/2)
+  end # end of daaloader
+
+  def query(queryable, _), do: queryable
+
+  # dataloader for the 
+
   @doc """
   Returns the list of orders.
 

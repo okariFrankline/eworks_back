@@ -11,10 +11,11 @@ defmodule Eworks.Repo.Migrations.CreateWorkProfiles do
       add :cover_letter, :text, null: true
       add :job_hires, :integer, defualt: 0
       add :is_upgraded, :boolean, default: false
+      add :assigned_orders, {:array, :binary_id}, default: []
       # date for indicating how long the upgraded status should last
       add :has_upgrade_expired, :boolean, default: false
       # add for indicating the date for which the upgrade was made
-      add :last_upgraded_on :utc_datetime, null: true
+      add :last_upgraded_on, :utc_datetime, null: true
       # add indicating the date the upgrade would end
       add :upgrade_expiry_date, :utc_datetime, null: true
       # owner of the work profile

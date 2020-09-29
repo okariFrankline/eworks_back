@@ -190,28 +190,26 @@ defmodule Eworks.Orders.API do
     Function for assigning an order
   """
   def assign_order(%User{} = user, %Order{} = order, to_assign_id) do
-    # get the person to be assigned
-    to_assignee_task = Task.async(fn -> Accounts.get_user!(to_assign_id) end)
-
+    # get the work profile of the person being assigned the job
+    profile = from(profile in WorkProfile, where: profile.user_id == ^to_assign_id) |> Repo.one!() |> Repo.preload(:user)
     # check if the job has already been assigned or the number of already assigned orders matches the number of required contractors
     if not order.is_assigned and order.already_assigned != order.required_contractors do
-      # get the assignee
-      to_be_assigned = Task.await(to_assignee_task)
       # chek if the one be assigned is not suspeded
-      if not to_be_assigned.is_suspended do # the person being assigned the order has not being suspended
+      if not profile.user.is_suspended do # the person being assigned the order has not being suspended
         # assign the job
-        with assigned_user <- to_be_assigned |> Ecto.Changeset.change(%{order_id: order.id}) |> Repo.update!() do
+        with _assigned_order <- profile |> Ecto.Changeset.change(%{assigned_orders: [order.id | profile.assigned_orders]}) |> Repo.update!() do
           # start a task for sending the assignee a notification about the assigning
           Task.start(fn ->
             # create a notification about being assigned the job
             {:ok, notification} = Notifications.create_notification(%{
-              user_id: assigned_user.id,
+              user_id: to_assign_id,
               asset_type: :order,
+              asset_id: order.id,
               notification_type: :order_assignment,
               message: "#{user.full_name} has assigned you the order looking for #{order.specialty}."
             })
             # notify the assigned user through the websocket using the notification::new_assigned_order
-            Endpoint.broadcast!("notification:#{assigned_user.id}", "notification::new_assigned_order", %{notification: notification})
+            Endpoint.broadcast!("notification:#{to_assign_id}", "notification::new_assigned_order", %{notification: notification})
           end) # end of task for sending a notification to the user about the job assignment
 
           # check if once the added assignee is added, it brings the number of assigned equal to the required orders
@@ -219,7 +217,7 @@ defmodule Eworks.Orders.API do
             # update the order
             order
             # increase the number of assigned by one and set the assigned to true
-            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1, is_assigned: true})
+            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1, is_assigned: true, assignees: [to_assign_id | order.assignees]})
             # update the offer
             |> Repo.update!()
             # preload the assignees and the order offers
@@ -229,7 +227,7 @@ defmodule Eworks.Orders.API do
             # update the order
             order
             # increase the number of assigned by one
-            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1})
+            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1, assignees: [to_assign_id | order.assignees]})
             # update the offer
             |> Repo.update!()
             # preload the assignees and the order offers
@@ -249,13 +247,19 @@ defmodule Eworks.Orders.API do
 
       else # the user is suspended
         # retun error indicating the user is suspended
-        {:error, :user_suspended, to_be_assigned}
+        {:error, :user_suspended, profile.user.full_name}
       end # end of checking if the assignee is suspended or not
 
     else
       # the order has already being assigned
       {:error, :already_assigned}
     end # end of checking whether the order has already been assigned or the required contractors have been met
+
+  rescue
+    # the result not found
+    Ecto.NoResultsError ->
+      # return an error
+      {:error, :prof_not_found}
   end # end of assigning an order
 
   @doc """

@@ -19,7 +19,7 @@ defmodule EworksWeb.Plugs.WorkProfileById do
       # work profile dound
       %Accounts.WorkProfile{} = work_profile ->
         # put the work profile in the assigns
-        assign(conn, :Work_profile, work_profile)
+        assign(conn, :work_profile, work_profile)
 
       # the user has no work_profile
       _ ->

@@ -27,7 +27,7 @@ defmodule Eworks.Notifications.Notification do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
-  schema "notification" do
+  schema "notifications" do
     field :asset_id, :binary_id
     field :asset_type, :string
     field :is_viewed, :boolean, default: false
@@ -43,9 +43,9 @@ defmodule Eworks.Notifications.Notification do
   def changeset(notification, attrs) do
     notification
     # set the correct value for the asset type
-    |> Map.update(:asset_type, fn value -> Map.get(@asset_types, value) end)
+    |> Map.update!(:asset_type, fn value -> Map.get(@asset_types, value) end)
     # set the correct value for the notification type
-    |> Map.update(:notification_type, fn value -> Map.get(@notification_types, value) end)
+    |> Map.update!(:notification_type, fn value -> Map.get(@notification_types, value) end)
     # cast the values
     |> cast(attrs, [
       :notification_type,

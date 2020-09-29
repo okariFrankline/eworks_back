@@ -66,7 +66,8 @@ defmodule Eworks.MixProject do
       # sweet xml
       {:sweet_xml, "~> 0.6.6"},
       # timex
-      {:timex, "~> 3.6"}
+      {:timex, "~> 3.6"},
+      {:dataloader, "~> 1.0"}
     ]
   end
 

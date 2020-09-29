@@ -36,7 +36,7 @@ defmodule Eworks.Orders.Order do
     # belongs to one user
     belongs_to :user, Eworks.Orders.User, type: :binary_id
     # has many assignees
-    has_many :assignees, __MODULE__.Assignee
+    field :assignees, {:array, :binary_id}
     # has many order_offers
     has_many :order_offers, Eworks.Orders.OrderOffer
 
@@ -66,7 +66,8 @@ defmodule Eworks.Orders.Order do
       :payable_amount,
       :payment_schedule,
       :already_assigned,
-      :accepted_offers
+      :accepted_offers,
+      :assignees
     ])
     # cast teh changeset
     |> cast_attachments(attrs, [

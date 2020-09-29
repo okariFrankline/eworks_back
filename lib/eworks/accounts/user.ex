@@ -32,8 +32,6 @@ defmodule Eworks.Accounts.User do
     field :first_name, :string, virtual: true
     field :last_name, :string, virtual: true
     field :company_name, :string, virtual: true
-    # has many assigned orders
-    has_many :assigned_orders, Eworks.Accounts.AssignedOrder
     # has many sessions ( for authentication )
     has_many :sessions, Eworks.Accounts.Session
     # has many order offers
@@ -226,7 +224,7 @@ defmodule Eworks.Accounts.User do
         changeset |> put_change(:phones, [phone_number | phones]) |> put_change(:phone, nil)
 
       # the phone number is invalid
-      :error
+      :error ->
         changeset
         # add error message to changeset phone
         |> add_error(:phone, "Failed. The phone number #{phone} has an invalid format or is invalid for your country.")

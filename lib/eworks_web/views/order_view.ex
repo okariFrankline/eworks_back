@@ -95,7 +95,7 @@ defmodule EworksWeb.OrderView do
   def render("assigned_order.json", %{order: order, offers: offers}) do
     %{
       data: %{
-        assignees: render_assignees(order.id, offers),
+        assignees: render_assignees(order.assignees, offers),
         is_assigned: order.is_assigned,
         description: order.descripiton,
         payable_amount: order.payable_amount,
@@ -105,7 +105,7 @@ defmodule EworksWeb.OrderView do
         already_assigned: order.already_assigned,
         is_complete: order.is_complete,
         deadline: Date.to_iso8601(order.deadline),
-        offers: render_offers(order.id, offers)
+        offers: render_offers(order.assignees, offers)
       }
     }
   end
@@ -159,22 +159,19 @@ defmodule EworksWeb.OrderView do
     if url, do: url |> String.split("?") |> List.first(), else: nil
   end # end of attachment_url
 
-  defp render_assignees(order_id, offers) do
-    # check if the order has been
-    offers_for_assigned_users = Enum.filter(offers, fn offer ->
-      # return only the users whose order id equals the current order id
-      offer.user.order_id == order_id
-    end)
+  defp render_assignees(order_assignees, offers) do
+    # filter the offers to ownly those whose owner's ids are in the list of assignees of the order
+    offers_for_assigned_users = Enum.filter(offers, fn offer -> offer.user_id in order_assignees end)
     # call the render many for assigneess
     render_many(offers_for_assigned_users, __MODULE__, "assignee.json")
   end # end of rendering is assigned
 
   # function for rendering the offers
-  defp render_offers(order_id, offers) do
-    # check if the order has been assigned
+  defp render_offers(order_assignees, offers) do
+    # filter only those offers whose owner's are not in the list of assignees of the order
     offers_for_unassigned_users = Enum.filter(offers, fn offer ->
       # return only the offers whose oofer.user.order_id does not equal the current order id
-      offer.user.order_id != order_id
+      offer.user_id not in order_assignees
     end)
     # render the offers
     render_many(offers_for_unassigned_users, __MODULE__, "offer.json")

@@ -8,6 +8,13 @@ defmodule Eworks.Accounts do
 
   alias Eworks.Accounts.{User, Session}
 
+  # set up the dataloader
+  def data() do
+    Dataloader.Ecto.new(Repo, query: &query/2)
+  end # end of daaloader
+
+  def query(queryable, _), do: queryable
+
   @doc """
   Creaes a new session for a given user
 
@@ -342,16 +349,13 @@ defmodule Eworks.Accounts do
 
   """
   def update_work_profile_skills(%WorkProfile{} = profile, attrs) do
-    changeset = profile |> WorkProfile.skills_changeset(attrs)
-    # check the action of the changeset
-    if changeset.action != nil do
-      # update the profile
-      changeset |> Repo.update()
-    else
-      # return no change
-      :no_change
-    end # end of checking the changeset
+    profile
+    |> WorkProfile.skills_changeset(attrs)
+    |> update_skills()
   end # end of the update_work_profile_skills/2
+
+  defp update_skills(%Ecto.Changeset{valid?: true, changes: nil}), do: :no_change
+  defp update_skills(changeset), do: changeset |> Repo.update()
 
   @doc """
   Updates a work profile's professional intro.

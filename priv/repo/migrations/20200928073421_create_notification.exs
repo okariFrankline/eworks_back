@@ -14,7 +14,7 @@ defmodule Eworks.Repo.Migrations.CreateNotification do
       timestamps()
     end
 
-    create index(:notificationd, [:user_id])
+    create index(:notifications, [:user_id])
     create index(:notifications, [:is_viewed])
   end
 end

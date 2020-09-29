@@ -22,12 +22,12 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :is_draft, :boolean, default: true
       add :already_assigned, :integer
       add :accepted_offers, :integer
+      add :assignees, {:array, :binary_id}, default: []
       # client comment and review
       add :comment, :text, null: true
       add :rating, :integer, null: true
       # owner of the job
       add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
-      add :assigned_order_id, references(:assigned_orders, on_delete: :nothing, type: :binary_id)
       # invite for which this order has been used to create a new invite
       add :invite_id, references(:invites, on_delete: :nothing, type: :binary_id)
 
@@ -35,7 +35,6 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
     end
 
     create index(:orders, [:user_id])
-    create index(:orders, [:assigned_order_id])
     create index(:orders, [:is_draft])
     create index(:orders, [:is_verified])
     create index(:orders, [:is_assigned])

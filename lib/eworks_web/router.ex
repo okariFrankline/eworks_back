@@ -52,7 +52,7 @@ defmodule EworksWeb.Router do
     post "/user/profile/picture", UserController, :update_user_profile_picture
 
     post "/work/profile/:work_profile_id/skills", UserController, :update_work_profile_skills
-    post "/work/profile/:work_profile_id/into", UserController, :update_work_profile_prof_intro
+    post "/work/profile/:work_profile_id/intro", UserController, :update_work_profile_prof_intro
     post "/work/profile/:work_profile_id/letter", UserController, :update_work_profile_cover_letter
 
     # order routes

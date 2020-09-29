@@ -36,7 +36,7 @@ defmodule Eworks.Utils.Validations do
     # get the country from the list of country codes
     country_code = @country_codes |> Map.fetch!(country |> String.downcase)
     # craete the phone number using ExPhoneNUmber
-    {:ok, phone_number} = ExPhoneNumber.parse(phone, country_code)
+    {:ok, phone_number} = result = ExPhoneNumber.parse(phone, country_code)
     # check if the phone number is valid
     if ExPhoneNumber.is_valid_number?(phone_number) do
       # internationalize the number and put it in the changese

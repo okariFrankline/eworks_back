@@ -25,6 +25,8 @@ defmodule Eworks.Accounts.WorkProfile do
     has_many :previous_hires, __MODULE__.PreviousHires
     # belongs to one user
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
+    # has many assigned orders
+    field :assigned_orders, {:array, :binary_id}
     # has many previous hires
     timestamps()
   end
@@ -43,7 +45,8 @@ defmodule Eworks.Accounts.WorkProfile do
       :upgrade_duration,
       :last_upgraded_on,
       :upgrade_expiry_date,
-      :has_upgrade_expired
+      :has_upgrade_expired,
+      :assigned_orders
     ])
   end
 
@@ -72,7 +75,7 @@ defmodule Eworks.Accounts.WorkProfile do
     changeset(profile, attrs)
     # ensure the cover letter is give
     |> validate_required([
-      :professional_into
+      :professional_intro
     ])
   end # end of cover_letter changeset/2
 
@@ -159,17 +162,14 @@ defmodule Eworks.Accounts.WorkProfile do
   # function for adding the skills to the changeset
   def add_to_skills(%Changeset{valid?: true, changes: %{skills: new_skills}, data: %__MODULE__{skills: saved_skills}} = changeset) do
     # check that any of the elements in the new skills is not in the saved skills
-    to_save_skills = Enum.map(new_skills, fn skill ->
-      # return the skill if its not in the saved skilled
-      if not Enum.member?(saved_skills, skill), do: skill
-    end)
+    to_save_skills = Enum.filter(new_skills, fn skill -> not Enum.member?(saved_skills, skill) end)
     # check if the skills to save have any value
-    if to_save_skills !== [] do
+    if not Enum.empty?(to_save_skills) do
       # add the new skiils to the already saved skills
-      changeset |> put_change(:skills, [to_save_skills | saved_skills])
+      changeset |> put_change(:skills, Enum.concat(to_save_skills, saved_skills))
     else
       # set the changeset action to nil to prevent any update
-      changeset |> put_change(:action, nil)
+      changeset |> put_change(:skills, nil)
     end # end of if
   end # end of add_to_skills/1
   def add_to_skills(changeset), do: changeset
