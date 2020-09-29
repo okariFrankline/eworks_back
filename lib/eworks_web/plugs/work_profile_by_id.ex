@@ -25,7 +25,7 @@ defmodule EworksWeb.Plugs.WorkProfileById do
       _ ->
         conn
         # render work_profile_not_found
-        |> send_resp(:not_found, " ")
+        |> send_resp(:not_found, "Work Profile Not Found!")
         # halt the processing of the request
         |> halt()
     end # end of checking if the order is available

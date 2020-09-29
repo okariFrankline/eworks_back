@@ -10,11 +10,11 @@ defmodule Eworks.Accounts.WorkProfile do
     # date for indicating how long the upgraded status should last
     field :upgrade_duration, :string, virtual: true
     # field for indicating the date for which the upgrade was made
-    field :last_upgraded_on :date_time
+    field :last_upgraded_on, :utc_datetime
     # field indicating the date the upgrade would end
-    field :upgrade_expiry_date, :date_time
+    field :upgrade_expiry_date, :utc_datetime
     # field for indicating whether the upgrade of an account is expired
-    field :has_upgrade_expired: :boolean, default: false
+    field :has_upgrade_expired, :boolean, default: false
     field :cover_letter, :string
     field :job_hires, :integer
     field :professional_intro, :string
@@ -110,7 +110,7 @@ defmodule Eworks.Accounts.WorkProfile do
           # put the last_updated_on
           |> put_change(:last_upgraded_on, current_date)
           # set the expiry date on
-          |> put_change(:upgrade_expiry_date: expiry_date)
+          |> put_change(:upgrade_expiry_date, expiry_date)
           # set the is pugraded to true
           |> put_change(:is_upgraded, true)
 
@@ -125,7 +125,7 @@ defmodule Eworks.Accounts.WorkProfile do
           # put the last_updated_on
           |> put_change(:last_upgraded_on, current_date)
           # set the expiry date on
-          |> put_change(:upgrade_expiry_date: expiry_date)
+          |> put_change(:upgrade_expiry_date, expiry_date)
           # set the is pugraded to true
           |> put_change(:is_upgraded, true)
       end # end of case for d_type

@@ -100,7 +100,6 @@ defmodule EworksWeb.OrderView do
         description: order.descripiton,
         payable_amount: order.payable_amount,
         is_paid_for: order.is_paid_for,
-        is_complete: order.is_complete,
         payment_schedule: order.payment_schedule,
         specialty: order.specialty,
         already_assigned: order.already_assigned,
@@ -111,7 +110,7 @@ defmodule EworksWeb.OrderView do
     }
   end
 
-  def render("assignee.json", %{offer: offers}) do
+  def render("assignee.json", %{offer: offer}) do
     %{
       id: offer.user.id,
       full_name: offer.user.full_name,
@@ -122,14 +121,14 @@ defmodule EworksWeb.OrderView do
     }
   end
 
-  def render("offers.json", %{accepted_offers: offers}) do
-    %{
-      data: %{
-        order: render_one()
-        accepted_offers: render_many(offers, __MODULE__, "offer.json")
-      }
-    }
-  end
+  # def render("offers.json", %{accepted_offers: offers}) do
+  #   %{
+  #     data: %{
+  #       order: render_one()
+  #       accepted_offers: render_many(offers, __MODULE__, "offer.json")
+  #     }
+  #   }
+  # end
 
 
 

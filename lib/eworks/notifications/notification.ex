@@ -34,7 +34,7 @@ defmodule Eworks.Notifications.Notification do
     field :message, :string
     field :notification_type, :string
     # belongs to one user
-    field :user, Eworks.Accounts.User, type: :binary_id
+    belongs_to :user, Eworks.Accounts.User, type: :binary_id
 
     timestamps()
   end
@@ -45,7 +45,7 @@ defmodule Eworks.Notifications.Notification do
     # set the correct value for the asset type
     |> Map.update(:asset_type, fn value -> Map.get(@asset_types, value) end)
     # set the correct value for the notification type
-    |> Map.update(:notification_type, fn value -> Map.get(@notification_types, values) end)
+    |> Map.update(:notification_type, fn value -> Map.get(@notification_types, value) end)
     # cast the values
     |> cast(attrs, [
       :notification_type,

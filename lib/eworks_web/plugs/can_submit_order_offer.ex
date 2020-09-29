@@ -1,8 +1,9 @@
 defmodule EworksWeb.Plugs.CanSubmitOrderOffer do
   @behaviour Plug
-  import Plug.Conn
 
+  import Plug.Conn
   alias Eworks.Repo
+  alias Phoenix.Controller
 
   # init function
   def init(opts), do: opts
@@ -25,9 +26,9 @@ defmodule EworksWeb.Plugs.CanSubmitOrderOffer do
           # put the status to bad request
           |> put_status(:unauthorized)
           # put the error view
-          |> put_view(EworksWeb.ErrorView)
+          |> Controller.put_view(EworksWeb.ErrorView)
           # render the is client.json
-          |> render("is_client.json")
+          |> Controller.render("is_client.json")
           # halt the processing of the other conn
           |> halt()
 
@@ -38,9 +39,9 @@ defmodule EworksWeb.Plugs.CanSubmitOrderOffer do
           # put the status to bad request
           |> put_status(:unauthorized)
           # put the error view
-          |> put_view(EworksWeb.ErrorView)
+          |> Controller.put_view(EworksWeb.ErrorView)
           # render the is client.json
-          |> render("upgrade_expired.json", %{expiry_date: user.work_profile.upgrade_expiry_date})
+          |> Controller.render("upgrade_expired.json", %{expiry_date: user.work_profile.upgrade_expiry_date})
           # halt the processing of the other conn
           |> halt()
 

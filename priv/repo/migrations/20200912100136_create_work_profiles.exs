@@ -14,9 +14,9 @@ defmodule Eworks.Repo.Migrations.CreateWorkProfiles do
       # date for indicating how long the upgraded status should last
       add :has_upgrade_expired, :boolean, default: false
       # add for indicating the date for which the upgrade was made
-      add :last_upgraded_on :date_time, null: true
+      add :last_upgraded_on :utc_datetime, null: true
       # add indicating the date the upgrade would end
-      add :upgrade_expiry_date, :date_time, null: true
+      add :upgrade_expiry_date, :utc_datetime, null: true
       # owner of the work profile
       add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
 

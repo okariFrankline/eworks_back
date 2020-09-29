@@ -110,7 +110,7 @@ defmodule EworksWeb.UserView do
           is_upgraded: profile.is_upgraded,
           last_upgraded_on: profile.last_upgraded_on,
           upgrade_expiry_date: profile.upgrade_expiry_date,
-          is_upgrade_expired: profile.is_upgrade-expired
+          is_upgrade_expired: profile.is_upgrade_expired,
           skills: profile.skills,
           professional_intro: profile.professional_intro,
           cover_letter: profile.cover_letter,

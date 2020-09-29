@@ -168,23 +168,30 @@ defmodule Eworks do
     Updates the skills of a given user
   """
   def update_work_profile_skills(%User{} = user, %WorkProfile{} = work_profile, new_skills) do
-    # update the profile
-    with {:ok, _profile} = result <- Accounts.update_work_profile_skills(work_profile, %{skills: new_skills}) do
-      # return the result
-      result
-      # there are no changese
+    # ensure the user is the owner of the work profile
+    if work_profile.user_id == user.id do
+      # update the profile
+      with {:ok, _profile} = result <- Accounts.update_work_profile_skills(work_profile, %{skills: new_skills}) do
+        # return the result
+        result
+        # there are no changese
+      else
+        :no_changes ->
+          # return the profile as is
+          {:ok, work_profile}
+      end # end of with
+
     else
-      :no_changes ->
-        # return the profile as is
-        {:ok, work_profile}
-    end # end of with
+      # user is not the owner of the profile
+      {:error, :not_owner}
+    end # end of checking if the owner of the profile
   end # end of the update_profile_skills
 
 
   @doc """
     Updates a user's professional introduction
   """
-  def update_work_profile_prof_intro(%User{} = user, %WorkProfile{} = work_profile, prof_intro) do
+  def update_work_profile_prof_intro(%User{} = _user, %WorkProfile{} = work_profile, prof_intro) do
     # update the profile
     with {:ok, _profile} = result <- Accounts.update_work_profile_prof_intro(work_profile, %{professional_intro: prof_intro}), do: result
   end # end of the update_work_profile_prof_intro/2
@@ -192,7 +199,7 @@ defmodule Eworks do
   @doc """
     Updates a user's cover letter
   """
-  def update_work_profile_cover_letter(%User{} = user, %WorkProfile{} = work_profile, cover_letter) do
+  def update_work_profile_cover_letter(%User{} = _user, %WorkProfile{} = work_profile, cover_letter) do
     # update the profile
     with {:ok, _profile} = result <- Accounts.update_work_profile_cover_letter(work_profile, %{cover_letter: cover_letter}), do: result
   end # end of the update_work_profile_prof_intro/2
@@ -210,7 +217,7 @@ defmodule Eworks do
     else
       # the account has not being upgraded
       # create a new upgraded work profile
-      with {:ok, _work_profile} = result <- Ecto.build_assoc(user, :work_profile) |> Accounts.create_upgraded_account(%{upgrade_duration: duration}), do: result
+      with {:ok, _work_profile} = result <- Ecto.build_assoc(user, :work_profile) |> Accounts.create_upgraded_work_profile(%{upgrade_duration: duration}), do: result
     end # end of if for checking if the user had previouslu upgraded their account
   end # end of upgrade_client_to_practise
 

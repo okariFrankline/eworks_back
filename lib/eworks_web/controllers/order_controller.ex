@@ -2,7 +2,6 @@ defmodule EworksWeb.OrderController do
   use EworksWeb, :controller
 
   alias Eworks.Orders
-  alias Eworks.Accounts.User
   alias Eworks.Orders.Order
   alias EworksWeb.Plugs
 
