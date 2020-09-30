@@ -21,12 +21,14 @@ defmodule Eworks.Accounts.WorkProfile do
     field :rating, :integer
     field :skills, {:array, :string}
     field :success_rate, :integer
+    # has many assigned orders
+    field :assigned_orders, {:array, :binary_id}
     # embeds many previous hires
     has_many :previous_hires, __MODULE__.PreviousHires
     # belongs to one user
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
-    # has many assigned orders
-    field :assigned_orders, {:array, :binary_id}
+    # has many collaboration invites
+    has_many :invites, Eworks.Collaborations.Invite
     # has many previous hires
     timestamps()
   end

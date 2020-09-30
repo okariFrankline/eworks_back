@@ -2,15 +2,13 @@ defmodule Eworks.Orders.API do
   @moduledoc """
     Defines api for Order and Order offers
   """
-  alias Eworks.Accounts.User
-  alias Eworks.Accounts.{WorkProfile}
+  import Ecto.Query, warn: false
+
+  alias Eworks.Accounts.{WorkProfile, User}
   alias Eworks.{Orders, Repo, Accounts, Uploaders, Notifications}
   alias Eworks.Orders.{Order, OrderOffer}
   alias Eworks.Utils.{Mailer, NewEmail}
   alias EworksWeb.Endpoint
-  import Ecto.Query, warn: false
-
-
 
   @doc """
     Gets an order
@@ -218,18 +216,18 @@ defmodule Eworks.Orders.API do
         # assign the job
         with _assigned_order <- profile |> Ecto.Changeset.change(%{assigned_orders: [order.id | profile.assigned_orders]}) |> Repo.update!() do
           # start a task for sending the assignee a notification about the assigning
-          Task.start(fn ->
-            # create a notification about being assigned the job
-            {:ok, notification} = Notifications.create_notification(%{
-              user_id: to_assign_id,
-              asset_type: :order,
-              asset_id: order.id,
-              notification_type: :order_assignment,
-              message: "#{user.full_name} has assigned you the order looking for #{order.specialty}."
-            })
-            # notify the assigned user through the websocket using the notification::new_assigned_order
-            Endpoint.broadcast!("notification:#{to_assign_id}", "notification::new_assigned_order", %{notification: notification})
-          end) # end of task for sending a notification to the user about the job assignment
+          # Task.start(fn ->
+          #   # create a notification about being assigned the job
+          #   {:ok, notification} = Notifications.create_notification(%{
+          #     user_id: to_assign_id,
+          #     asset_type: :order,
+          #     asset_id: order.id,
+          #     notification_type: :order_assignment,
+          #     message: "#{user.full_name} has assigned you the order looking for #{order.specialty}."
+          #   })
+          #   # notify the assigned user through the websocket using the notification::new_assigned_order
+          #   Endpoint.broadcast!("notification:#{to_assign_id}", "notification::new_assigned_order", %{notification: notification})
+          # end) # end of task for sending a notification to the user about the job assignment
 
           # check if once the added assignee is added, it brings the number of assigned equal to the required orders
           updated_order = if order.required_contractors == order.already_assigned + 1 do
@@ -254,10 +252,7 @@ defmodule Eworks.Orders.API do
           end # end of checking if the number of already assigned equals that of the required contractors
 
           # for each of the offers prload their owners
-          offers = Enum.map(updated_order.order_offers, fn offer ->
-            # preload the owner of the offer and his/her work profile
-            offer |> Repo.preload([user: [:work_profile]])
-          end)
+          offers = Enum.map(updated_order.order_offers, fn offer -> offer |> Repo.preload([user: [:work_profile]]) end)
 
           # return the result
           {:ok, %{order: updated_order, offers: offers}}
@@ -339,17 +334,15 @@ defmodule Eworks.Orders.API do
   @doc """
     Accepts an request from order owner to work on their order
   """
-  def accept_order(%User{} = user, order_offer_id) do
+  def accept_order(%User{} = user, %Order{} = order, order_offer_id) do
     # get the order_offer
-    order_offer = Orders.get_order_offer!(order_offer_id)
+    [order_offer | _rest] = Repo.preload(order, [order_offers: from(offer in OrderOffer, where: offer.id == ^order_offer_id)]).order_offers
     # ensure that the current user if the owner of the offer
     if order_offer.user_id == user.id do
       # update the offer to set the accepted_order to true
       with offer <- Ecto.Changeset.change(order_offer, %{has_accepted_order: true}) |> Repo.update!() do
-        # create a notification for the owner of the offer about the accepting of the order
+        # # create a notification for the owner of the order about the accepting of the order
         Task.start(fn ->
-          # get the order and its owner
-          order = Orders.get_order!(order_offer.order_id)
           # create the notification
           {:ok, notification} = Notifications.create_notification(%{
             user_id: order.user_id,
@@ -360,9 +353,7 @@ defmodule Eworks.Orders.API do
           })
           # send the notification to the user through a websocket.
           Endpoint.broadcast!("notification:#{order.user_id}", "notification::order_acceptance", %{notification: notification})
-
         end) # end of task
-
         # return the order
         {:ok, offer}
       end # end of with updating the update
@@ -418,16 +409,16 @@ defmodule Eworks.Orders.API do
       # update the offer
       with offer <- offer |> Ecto.Changeset.change(%{is_accepted: true, is_pending: false}) |> Repo.update!() do
         # start task to create a notification for offer acceptance
-        # Task.start(fn ->
-        #   {:ok, notification} = Notifications.create_notification(%{
-        #     user_id: offer.user_id,
-        #     asset_type: :offer,
-        #     asset_id: offer.id,
-        #     message: "#{order_owner_name} has accepted your offer to work on his/her order looking for #{order_specialty}."
-        #   })
-        #   # send the noification to the user through the webscoket
-        #   Endpoint.broadcast!("notification:#{offer.user_id}", "notification::offer_accepted", %{notification: notification})
-        # end) # end of task
+        Task.start(fn ->
+          {:ok, notification} = Notifications.create_notification(%{
+            user_id: offer.user_id,
+            asset_type: :offer,
+            asset_id: offer.id,
+            message: "#{order_owner_name} has accepted your offer to work on his/her order looking for #{order_specialty}."
+          })
+          # send the noification to the user through the webscoket
+          Endpoint.broadcast!("notification:#{offer.user_id}", "notification::offer_accepted", %{notification: notification})
+        end) # end of task
 
         # return ok
         :ok

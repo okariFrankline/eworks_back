@@ -96,24 +96,24 @@ defmodule EworksWeb.OrderView do
   end
 
   # offer.json
-  def render("offer.json", %{offer: offer}) do
-    %{
-      id: offer.id,
-      asking_amount: offer.asking_amount,
-      is_accepted: offer.is_acepted,
-      is_rejected: offer.is_rejected,
-      is_cancelled: offer.is_cancelled,
-      has_accepted_order: offer.has_accepted_order,
-      # owner of the offer
-      owner: %{
-        id: offer.user.id,
-        full_name: offer.user.full_name,
-        rating: offer.user.work_profile.rating,
-        about: offer.user.work_profile.professional_intro,
-        profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({offer.user.profile_pic, offer.user}))
-      }
-    }
-  end
+  # def render("offer.json", %{offer: offer}) do
+  #   %{
+  #     id: offer.id,
+  #     asking_amount: offer.asking_amount,
+  #     is_accepted: offer.is_acepted,
+  #     is_rejected: offer.is_rejected,
+  #     is_cancelled: offer.is_cancelled,
+  #     has_accepted_order: offer.has_accepted_order,
+  #     # owner of the offer
+  #     owner: %{
+  #       id: offer.user.id,
+  #       full_name: offer.user.full_name,
+  #       rating: offer.user.work_profile.rating,
+  #       about: offer.user.work_profile.professional_intro,
+  #       profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({offer.user.profile_pic, offer.user}))
+  #     }
+  #   }
+  # end
 
   # def render("assigned_order.json", %{order: order, offers: offers}) do
   #   %{
@@ -133,7 +133,7 @@ defmodule EworksWeb.OrderView do
   #   }
   # end
 
-  def render("assignee.json", %{offer: offer}) do
+  def render("assignee.json", %{order: offer}) do
     %{
       id: offer.user.id,
       full_name: offer.user.full_name,
@@ -155,13 +155,26 @@ defmodule EworksWeb.OrderView do
 
 
 
-  def render("accepted_offer.json", %{accepted_offer: offer}) do
+  def render("accepted_offer.json", %{accepted_offer: offer, order: order, user: user}) do
     %{
       data: %{
-        accepted_offer: render_one(offer, __MODULE__, "offer.json"),
+        id: offer.id,
+        asking_amount: offer.asking_amount,
+        is_accepted: offer.is_accepted,
+        is_rejected: offer.is_rejected,
+        is_cancelled: offer.is_cancelled,
+        has_accepted_order: offer.has_accepted_order,
+        # owner of the offer
+        owner: %{
+          id: user.id,
+          full_name: user.full_name,
+          profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({user.profile_pic, user}))
+        },
+        # the order for the offer
         order: %{
-          id: offer.order.id,
-          description: offer.order.description
+          id: order.id,
+          description: order.description,
+          specialty: order.specialty
         }
       }
     }

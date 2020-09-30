@@ -1,4 +1,4 @@
-defmodule Eworks.Repo.Migrations.CreateOffersForOrders do
+defmodule Eworks.Repo.Migrations.CreateOrderOffers do
   use Ecto.Migration
 
   def change do
@@ -26,5 +26,4 @@ defmodule Eworks.Repo.Migrations.CreateOffersForOrders do
     create index(:order_offers, [:is_cancelled])
     create index(:order_offers, [:has_accepted_order])
   end
-
 end

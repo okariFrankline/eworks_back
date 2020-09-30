@@ -18,6 +18,8 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
       add :username, :string, null: false
       # is_company
       add :is_company, :boolean ,default: false
+      # is suspended
+      add :is_suspended, :boolean, default: false
       # full name
       add :full_name, :string, null: false
       # city
@@ -39,6 +41,7 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
     create index(:users, [:is_active])
     create index(:users, [:full_name])
     create index(:users, [:is_company])
+    create index(:users, [:is_suspended])
     create index(:users, [:user_type])
 
   end

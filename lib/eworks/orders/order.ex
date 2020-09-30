@@ -28,6 +28,8 @@ defmodule Eworks.Orders.Order do
     field :verification_code, :integer
     field :rating, :integer
     field :comment, :string
+    # holds the ids of user's that have tagged this order.
+    field :tags, {:array, :binary_id}
     # virtual fields
     field :max_payment, :string, virtual: true
     field :min_payment, :string, virtual: true
@@ -66,7 +68,8 @@ defmodule Eworks.Orders.Order do
       :payment_schedule,
       :already_assigned,
       :accepted_offers,
-      :assignees
+      :assignees,
+      :tags
     ])
     # cast teh changeset
     |> cast_attachments(attrs, [

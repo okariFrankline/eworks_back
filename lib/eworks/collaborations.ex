@@ -8,12 +8,6 @@ defmodule Eworks.Collaborations do
 
   alias Eworks.Collaborations.Invite
 
-  # function for creating a new Order user from Accounts user
-  def collaboration_user_from_account_user(%Accounts.User{id: id} = _user), do: %__MODULE__.User{id: id}
-
-  # function for returning an account user from the order user
-  def account_user_from_collaboration_user(%__MODULE__.User{id: id}  = _user), do: %Accounts.User{id: id}
-
   @doc """
   Returns the list of invites.
 
@@ -57,7 +51,7 @@ defmodule Eworks.Collaborations do
   """
   def create_invite(attrs \\ %{}) do
     %Invite{}
-    |> Invite.changeset(attrs)
+    |> Invite.creation_changeset(attrs)
     |> Repo.insert()
   end
 
@@ -73,7 +67,7 @@ defmodule Eworks.Collaborations do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_invite(%Invite{} = invite, attrs) do
+  def update_invite_payment(%Invite{} = invite, attrs) do
     invite
     |> Invite.changeset(attrs)
     |> Repo.update()

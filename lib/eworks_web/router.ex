@@ -71,7 +71,7 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/offer/:order_offer_id/reject", OrderController, :reject_order_offer
     post "/order/:order_id/offer/:order_offer_id/accept", OrderController, :accept_order_offer
     post "/order/:order_id/assign/:to_assign_id", OrderController, :assign_order
-    post "/order/:order_id/accept", OrderController, :accept_order
+    post "/order/:order_id/accept/:order_offer_id", OrderController, :accept_order
   end # end of scope for logged in users
 
   # Enables LiveDashboard only for development

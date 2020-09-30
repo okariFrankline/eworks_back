@@ -15,6 +15,7 @@ defmodule Eworks.Accounts.User do
     field :auth_email, :string
     field :is_company, :boolean
     field :is_active, :boolean, default: false
+    field :is_suspended, :boolean, default: false
     field :password_hash, :string
     field :user_type, :string
     field :activation_key, :integer
@@ -36,6 +37,8 @@ defmodule Eworks.Accounts.User do
     has_many :sessions, Eworks.Accounts.Session
     # has many order offers
     has_many :order_offers, Eworks.Orders.OrderOffer
+    # has many order offers
+    has_many :invite_offers, Eworks.Collaborations.InviteOffer
     # has one work profile
     has_one :work_profile, Eworks.Accounts.WorkProfile
     # has many notifications
@@ -60,6 +63,7 @@ defmodule Eworks.Accounts.User do
       :city,
       :emails,
       :phones,
+      :is_suspended
     ])
     # cast the profile_pic attachmetns
     |> cast_attachments(attrs, [
