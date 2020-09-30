@@ -3,7 +3,6 @@ defmodule Eworks.Collaborations.Invite do
   import Ecto.Changeset
 
   alias Ecto.Changeset
-  alias Eworks.Utils.UniqueCode, as: Unique
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -11,11 +10,12 @@ defmodule Eworks.Collaborations.Invite do
     field :category, :string
     field :duration, :string
     field :deadline, :date
-    field :payable_amount, :string,
-    field :payable_schedule, :string,
+    field :payable_amount, :string
+    field :payable_schedule, :string
     field :required_collaborators, :integer
-    field :is_paid_for, :boolean, :string
+    field :is_paid_for, :boolean, default: false
     field :collaborators, {:array, :binary_id} # holds the ids of the people assigned as collaborators
+    field :already_accepted, :integer
     # virtual fields
     field :deadline_string_date, :string, virtual: true
     # order id for the order the invite is for
@@ -23,7 +23,7 @@ defmodule Eworks.Collaborations.Invite do
     # belongs to one user who is a contractor
     belongs_to :work_profile, Eworks.Accounts.WorkProfile, type: :binary_id
     # has many inviation offers
-    has_many :collaboration_offers, Eworks.Collaborations.CollaborationOffer
+    has_many :collaboration_offers, Eworks.Collaborations.InviteOffer
     # created at and updated at
     timestamps()
   end
@@ -40,7 +40,8 @@ defmodule Eworks.Collaborations.Invite do
       :duration,
       :order_id,
       :category,
-      :collaborators
+      :collaborators,
+      :already_accepted
     ])
   end
 
@@ -58,7 +59,7 @@ defmodule Eworks.Collaborations.Invite do
       :order_id
     ])
     # insert the verification code
-    |> set_deadline()
+    |> set_deadline_date()
     # ensure the user id is given
     |> foreign_key_constraint(:user_id)
   end # end of the creation_changeset/2

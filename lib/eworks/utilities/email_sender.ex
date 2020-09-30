@@ -41,6 +41,17 @@ defmodule Eworks.Utils.NewEmail do
     |> text_body("Thank you for creating a new order with us. Here is your order verification code: \n #{code}")
   end # end of the new order verification code email
 
+  # function for sending an invite accepting offer
+  def new_email_notification(%User{auth_email: email} = _user, subject, message) do
+    base_mail()
+    # put the sender of the email
+    |> to(email)
+    # subject of the email
+    |> subject(subject)
+    # subject of the email
+    |> text_body(message)
+  end # end of new_invite_email_notification
+
   # base email
   def base_mail do
     new_email()

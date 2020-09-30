@@ -143,7 +143,7 @@ defmodule Eworks.Orders.API do
   @doc """
     Function that accepts an order
   """
-  def accept_order_offer(%User{} = user, %Order{required_contractors: contractors, accepted_offers: offers}, _offer_id) when contractors *3 == offers + 1, do: {:error, :max_offers_reached}
+  def accept_order_offer(%User{} = _user, %Order{required_contractors: contractors, accepted_offers: offers}, _offer_id) when contractors *3 == offers + 1, do: {:error, :max_offers_reached}
   def accept_order_offer(%User{} = user, %Order{} = order, offer_id) do
     # check if the current user is the owner of the job
     if order.user_id == user.id do
@@ -216,25 +216,28 @@ defmodule Eworks.Orders.API do
         # assign the job
         with _assigned_order <- profile |> Ecto.Changeset.change(%{assigned_orders: [order.id | profile.assigned_orders]}) |> Repo.update!() do
           # start a task for sending the assignee a notification about the assigning
-          # Task.start(fn ->
-          #   # create a notification about being assigned the job
-          #   {:ok, notification} = Notifications.create_notification(%{
-          #     user_id: to_assign_id,
-          #     asset_type: :order,
-          #     asset_id: order.id,
-          #     notification_type: :order_assignment,
-          #     message: "#{user.full_name} has assigned you the order looking for #{order.specialty}."
-          #   })
-          #   # notify the assigned user through the websocket using the notification::new_assigned_order
-          #   Endpoint.broadcast!("notification:#{to_assign_id}", "notification::new_assigned_order", %{notification: notification})
-          # end) # end of task for sending a notification to the user about the job assignment
+          Task.start(fn ->
+            # create a notification about being assigned the job
+            {:ok, notification} = Notifications.create_notification(%{
+              user_id: to_assign_id,
+              asset_type: :order,
+              asset_id: order.id,
+              notification_type: :order_assignment,
+              message: "#{user.full_name} has assigned you the order looking for #{order.specialty}."
+            })
+            # notify the assigned user through the websocket using the notification::new_assigned_order
+            Endpoint.broadcast!("notification:#{to_assign_id}", "notification::new_assigned_order", %{notification: notification})
+          end) # end of task for sending a notification to the user about the job assignment
 
           # check if once the added assignee is added, it brings the number of assigned equal to the required orders
           updated_order = if order.required_contractors == order.already_assigned + 1 do
             # update the order
             order
             # increase the number of assigned by one and set the assigned to true
-            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1, is_assigned: true, assignees: [to_assign_id | order.assignees]})
+            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1,
+              is_assigned: true,
+              assignees: [to_assign_id | order.assignees]
+            })
             # update the offer
             |> Repo.update!()
             # preload the assignees and the order offers
@@ -244,7 +247,9 @@ defmodule Eworks.Orders.API do
             # update the order
             order
             # increase the number of assigned by one
-            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1, assignees: [to_assign_id | order.assignees]})
+            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1,
+              assignees: [to_assign_id | order.assignees]
+            })
             # update the offer
             |> Repo.update!()
             # preload the assignees and the order offers

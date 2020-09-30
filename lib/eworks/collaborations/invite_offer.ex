@@ -10,6 +10,11 @@ defmodule Eworks.Collaborations.InviteOffer do
     field :is_pending, :boolean, default: false
     field :is_rejected, :boolean, default: false
     field :has_accepted_invite, :boolean, default: false
+    # owner information
+    field :owner_name, :string
+    field :rating, :integer
+    field :about, :string
+    field :owner_profile_pic, :string
     # belongs to one user
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
     # belongs to one invite
@@ -26,7 +31,11 @@ defmodule Eworks.Collaborations.InviteOffer do
       :is_accepted,
       :is_rejected,
       :is_cancelled,
-      :has_accepted_invite
+      :has_accepted_invite,
+      :owner_name,
+      :owner_rating,
+      :owner_about,
+      :owner_profile_pic
     ])
     # ensure the user_id is given
     |> foreign_key_constraint(:user_id)

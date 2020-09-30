@@ -49,8 +49,8 @@ defmodule Eworks.Collaborations do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_invite(attrs \\ %{}) do
-    %Invite{}
+  def create_invite(%Invite{} = invite, attrs \\ %{}) do
+    invite
     |> Invite.creation_changeset(attrs)
     |> Repo.insert()
   end
