@@ -15,6 +15,7 @@ defmodule Eworks.Collaborations.InviteOffer do
     field :rating, :integer
     field :about, :string
     field :owner_profile_pic, :string
+    field :owner_job_success, :integer
     # belongs to one user
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
     # belongs to one invite
@@ -35,7 +36,8 @@ defmodule Eworks.Collaborations.InviteOffer do
       :owner_name,
       :owner_rating,
       :owner_about,
-      :owner_profile_pic
+      :owner_profile_pic,
+      :owner_job_success
     ])
     # ensure the user_id is given
     |> foreign_key_constraint(:user_id)

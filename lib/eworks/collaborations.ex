@@ -4,7 +4,7 @@ defmodule Eworks.Collaborations do
   """
 
   import Ecto.Query, warn: false
-  alias Eworks.{Repo, Accounts}
+  alias Eworks.{Repo}
 
   alias Eworks.Collaborations.Invite
 
