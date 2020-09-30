@@ -18,10 +18,10 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :specialty, :string, null: true
       add :attachments, :string, null: true
       add :payment_schedule, :string, null: true
-      add :verification_code, :integer, null: false
+      add :verification_code, :integer, null: true
       add :is_draft, :boolean, default: true
       add :already_assigned, :integer
-      add :accepted_offers, :integer
+      add :accepted_offers, :integer, default: 0
       add :assignees, {:array, :binary_id}, default: []
       # client comment and review
       add :comment, :text, null: true

@@ -118,4 +118,13 @@ defmodule EworksWeb.ErrorView do
     }
   end
 
+  # max_offers
+  def render("max_offers.json", _) do
+    %{
+      errors: %{
+        details: "Faled. Maximum number of offers to accept reached."
+      }
+    }
+  end
+
 end # end of the module

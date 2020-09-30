@@ -67,8 +67,8 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/verify", OrderController, :verify_order
 
     # order offers
-    post "/order/:order_id/new/offer", OrderController, :submit_order_offer
-    post "/order/offer/:order_offer_id/reject", OrderController, :reject_order_offer
+    post "/order/offer/:order_id/new", OrderController, :submit_order_offer
+    post "/order/:order_id/offer/:order_offer_id/reject", OrderController, :reject_order_offer
     post "/order/:order_id/offer/:order_offer_id/accept", OrderController, :accept_order_offer
     post "/order/:order_id/assign/:to_assign_id", OrderController, :assign_order
     post "/order/:order_id/accept", OrderController, :accept_order

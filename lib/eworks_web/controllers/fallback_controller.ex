@@ -127,4 +127,11 @@ defmodule EworksWeb.FallbackController do
     |> render("prof_not_found.json")
   end # end of professional found
 
+  def call(conn, {:error, :max_offers_reached}) do
+    conn
+    |> put_status(:bad_request)
+    |> put_view(EworksWeb.ErrorView)
+    |> render("max_offers.json")
+  end
+
 end

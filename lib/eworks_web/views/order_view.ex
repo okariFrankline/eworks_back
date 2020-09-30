@@ -17,7 +17,7 @@ defmodule EworksWeb.OrderView do
         payment_schedule: order.payment_schedule,
         payable_amount: order.payable_amount,
         is_verified: order.is_verified,
-        deadline: Date.to_iso8601(order.deadline),
+        deadline: show_deadline(order.deadline),
         required_contractors: order.required_contractors
       }
     }
@@ -36,7 +36,7 @@ defmodule EworksWeb.OrderView do
       order_type: order.order_type,
       payment_schedule: order.payment_schedule,
       payable_amount: order.payable_amount,
-      deadline: Date.to_iso8601(order.deadline),
+      deadline: show_deadline(order.deadline),
       required_contractors: order.required_contractors,
       # owner of the order
       owner: %{
@@ -46,11 +46,13 @@ defmodule EworksWeb.OrderView do
       }
     }
   end # end of display_order.json
+
   # order.json displayed only if the person requesting is the owner
   def render("order.json", %{order: order, offers: offers}) do
     %{
       data: %{
         id: order.id,
+        assignees: render_assignees(order.assignees, offers),
         description: order.description,
         is_verified: order.is_verified,
         is_assigned: order.is_assigned,
@@ -59,7 +61,7 @@ defmodule EworksWeb.OrderView do
         accepted_offers: order.accepted_offers,
         specialty: order.specialty,
         category: order.category,
-        offers_made: order.offers_made,
+        offers_made: Enum.count(offers),
         # attachments: upload_url(Eworks.Uploaders.OrderAttachment.url({order.attachments, order})),
         duration: order.duration,
         order_type: order.order_type,
@@ -68,10 +70,31 @@ defmodule EworksWeb.OrderView do
         deadline: Date.to_iso8601(order.deadline),
         required_contractors: order.required_contractors,
         # all the offers made for the order
-        offers: render_many(offers, __MODULE__, "offer.json")
+        offers: render_offers(order.assignees, offers)
       }
     }
   end
+
+  # offer.json
+  def render("offer.json", %{order: offer}) do
+    %{
+      id: offer.id,
+      asking_amount: offer.asking_amount,
+      is_accepted: offer.is_accepted,
+      is_rejected: offer.is_rejected,
+      is_cancelled: offer.is_cancelled,
+      has_accepted_order: offer.has_accepted_order,
+      # owner of the offer
+      owner: %{
+        id: offer.user.id,
+        full_name: offer.user.full_name,
+        rating: offer.user.work_profile.rating,
+        about: offer.user.work_profile.professional_intro,
+        profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({offer.user.profile_pic, offer.user}))
+      }
+    }
+  end
+
   # offer.json
   def render("offer.json", %{offer: offer}) do
     %{
@@ -92,23 +115,23 @@ defmodule EworksWeb.OrderView do
     }
   end
 
-  def render("assigned_order.json", %{order: order, offers: offers}) do
-    %{
-      data: %{
-        assignees: render_assignees(order.assignees, offers),
-        is_assigned: order.is_assigned,
-        description: order.descripiton,
-        payable_amount: order.payable_amount,
-        is_paid_for: order.is_paid_for,
-        payment_schedule: order.payment_schedule,
-        specialty: order.specialty,
-        already_assigned: order.already_assigned,
-        is_complete: order.is_complete,
-        deadline: Date.to_iso8601(order.deadline),
-        offers: render_offers(order.assignees, offers)
-      }
-    }
-  end
+  # def render("assigned_order.json", %{order: order, offers: offers}) do
+  #   %{
+  #     data: %{
+  #       assignees: render_assignees(order.assignees, offers),
+  #       is_assigned: order.is_assigned,
+  #       description: order.descripiton,
+  #       payable_amount: order.payable_amount,
+  #       is_paid_for: order.is_paid_for,
+  #       payment_schedule: order.payment_schedule,
+  #       specialty: order.specialty,
+  #       already_assigned: order.already_assigned,
+  #       is_complete: order.is_complete,
+  #       deadline: Date.to_iso8601(order.deadline),
+  #       offers: render_offers(order.assignees, offers)
+  #     }
+  #   }
+  # end
 
   def render("assignee.json", %{offer: offer}) do
     %{
@@ -176,5 +199,8 @@ defmodule EworksWeb.OrderView do
     # render the offers
     render_many(offers_for_unassigned_users, __MODULE__, "offer.json")
   end # end of render_offers/2
+
+  defp show_deadline(date) when is_nil(date), do: nil
+  defp show_deadline(date), do: Date.to_iso8601(date)
 
 end # end of the module

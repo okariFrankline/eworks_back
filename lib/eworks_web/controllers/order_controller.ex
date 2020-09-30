@@ -1,7 +1,7 @@
 defmodule EworksWeb.OrderController do
   use EworksWeb, :controller
 
-  alias Eworks.Orders
+  alias Eworks.{Orders, Repo}
   alias Eworks.Orders.Order
   alias EworksWeb.Plugs
 
@@ -18,6 +18,20 @@ defmodule EworksWeb.OrderController do
     # call the action
     apply(__MODULE__, action_name(conn), args)
   end # end of action
+
+  @doc """
+    Gets an order as an owner
+  """
+  def get_order(conn, _params, user, order) do
+    with {:ok, result} <- Eworks.Orders.API.get_order(user, order) do
+      # return the order
+      conn
+      # put the status
+      |> put_status(:ok)
+      # render the order
+      |> render("order.json", order: order, offers: result.offers)
+    end # end of with
+  end # end of get order/3
 
   @doc """
     Creates a new order
@@ -134,13 +148,12 @@ defmodule EworksWeb.OrderController do
   """
   def submit_order_offer(conn, %{"new_offer" => %{"asking_amount" => asking_amount}}, user, order) do
     # place the offer
-    with {:ok, %Order{} = _order} <- Eworks.Orders.API.submit_order_offer(user, order, asking_amount) do
-      conn
-      # put the status
-      |> put_status(:created)
-      # send a response to the user
-      |> render("success.json")
-    end # end of with fr submitting an offer
+    :ok = Eworks.Orders.API.submit_order_offer(user, order, asking_amount)
+    conn
+    # put the status
+    |> put_status(:created)
+    # send a response to the user
+    |> render("success.json")
   end # end of submit offer
 
 
@@ -166,7 +179,7 @@ defmodule EworksWeb.OrderController do
       # put a status
       |> put_status(:ok)
       # render the order
-      |> render("order.json", order: result.order, offers: result.offers)
+      |> render("order.json", order: order, offers: result.offers)
     end # end of accepting the offer
   end # end of accept_order_offer
 
@@ -179,7 +192,7 @@ defmodule EworksWeb.OrderController do
       # ok
       |> put_status(:ok)
       # render the order
-      |> render("assigned_order.json", order: result.order, offers: order.offers)
+      |> render("order.json", order: result.order, offers: order.offers)
     end # end of with for assigning of the order to the user
   end # end of assign order
 

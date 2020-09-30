@@ -28,7 +28,6 @@ defmodule Eworks.Orders.Order do
     field :verification_code, :integer
     field :rating, :integer
     field :comment, :string
-    field :assigned_order_id, :binary_id
     # virtual fields
     field :max_payment, :string, virtual: true
     field :min_payment, :string, virtual: true
