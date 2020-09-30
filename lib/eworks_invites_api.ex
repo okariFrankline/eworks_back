@@ -35,7 +35,7 @@ defmodule Eworks.Collaborations.API do
   @doc """
     Adds payment information about an invite
   """
-  def update_invite_information(%User{} = user, %Invite{} = invite, payment_params) do
+  def update_invite_payment(%User{} = user, %Invite{} = invite, payment_params) do
     # ensure the current user is the owner of the invite
     if user.id == invite.user_id do
       # update the order
