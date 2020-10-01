@@ -5,13 +5,15 @@ defmodule Eworks.Repo.Migrations.CreateDirectHires do
     create table(:direct_hires, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :is_accepted, :boolean, default: false, null: false
-      add :is_assigned, :boolean, default: false, null: false
-      add :order_id, :binary_id
+      add :is_pending, :boolean, default: true, null: false
+      add :is_rejected, :boolean,:default: false, null: false
 
-      # id of the contractors given the job
+      # id of the contractors giv en the job
       add :work_profile_id, references(:work_profiles, on_delete: :nothing, type: :binary_id)
       # id of the owner of the request
       add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
+      # id of the order
+      add :order_id, references(:orders, on_delete: :nothing, type: :binary_id)
 
       timestamps()
     end
@@ -20,6 +22,7 @@ defmodule Eworks.Repo.Migrations.CreateDirectHires do
     create index(:direct_hires, [:user_id])
     create index(:direct_hires, [:order_id])
     create index(:direct_hires, [:is_accepted])
-    create index(:direct_hires, [:is_assigned])
+    create index(:direct_hires, [:is_pending])
+    create index(:direct_hires, [:is_rejected])
   end
 end

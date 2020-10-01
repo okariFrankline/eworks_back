@@ -3,7 +3,7 @@ defmodule Eworks.Request.API do
     Defines api functions for handling business logic for requests
   """
   import Ecto.Query, warn: false
-  alias Eworks.{Requests, Repo}
+  alias Eworks.{Requests, Repo, Notifications}
   alias Eworks.Accounts.{User, WorkProfile}
   alias Eworks.Request.{DirectHires}
   alias Eworks.API.Utils
@@ -24,7 +24,7 @@ defmodule Eworks.Request.API do
 
       :contractor ->
         # get the direct hires made to this user
-        hires = user |> Repo.preload([work_profiles: [direct_hires: from(hire in DirectHire, where: hire.is_rejected == false)]]).direct_hires
+        hires = user |> Repo.preload([work_profiles: [direct_hires: from(hire in DirectHire, where: hire.is_pending == false)]]).direct_hires
         # for each of the hires. preload their orders
         hires = Stream.map(hires, fn hire -> Repo.preload([:order])) end) |> Enum.to_list()
         # return the hires
@@ -64,7 +64,7 @@ defmodule Eworks.Request.API do
       end # end of creating a new hire request
 
       # preload the order and return the result
-      hire = Repo.preload(:order)
+      hire = Repo.preload([:order])
       # retun the result
       {:ok, %{hire: hire, recipient: recipient}}
     else # the user is suspended
@@ -82,8 +82,81 @@ defmodule Eworks.Request.API do
     Accepts a direct hire request
   """
   def accept_direct_hire_request(%User{} = user, hire_id) do
+    # get the hire with the given id
+    [hire | _rest] = user |> Repo.preload([work_profile: [direct_hires: from(hire in DirectHire, where: hire.id == ^hire_id)]]).work_profile.direct_hires
+    # accept the direct hires
+    with hire <- hire |> Ecto.Changeset.change(%{is_accepted: true, is_pending: false}) |> Repo.update!() do
+      # send a notification to the owner of the hire about the accepting of the hire
+      Task.start(fn ->
+        # preload the owner of the hire
+        owner = hire |> Repo.preload([:user]).user
+        # message
+        message = "#{user.full_name} has accepted your direct hire request to work on your order."
+        # send email notification to the user
+        NewEmail.new_email_notification(owner, "Direct Hire Acceptance", "#{message} \n Login to your account to assign the order.")
+        # send the email
+        |> Mailer.deleiver_later()
 
+        # create a notificaiton
+        {:ok, notification} = Notifications.create_notification(%{
+          user_id: owner.id,
+          asset_type: :direct_hire,
+          asset_id: hire_id,
+          mesage: "#{message}. Continuer to assign the order to the contractor."
+        })
+        # send the notification
+        Endpoint.broadcast!("user:#{owner.id}", "notification::direct_hire_acceptance", %{notificaiton: Utils.render_notification(notification)})
+      end) # end of task
+
+      # return the hire
+      {:ok, hire}
+    end # end of with
   end # end of accepting a direct hire request
+
+  @doc """
+    Rejects a direct hire request
+  """
+  def reject_direct_hire_request(%User{} = user, hire_id) do
+    # get the hire
+    [hire | _rest] = user |> Repo.preload([work_profile: [direct_hires: from(hire in DirectHire, where: hire.id == ^hire_id)]]).work_profile.direct_hires
+    # reject the direct hires
+    with hire <- hire |> Ecto.Changeset.change(%{is_accepted: false, is_rejected: true, is_pending: false}) |> Repo.update!() do
+      # send a notification to the owner of the hire about the accepting of the hire
+      Task.start(fn ->
+        # preload the owner of the hire
+        owner = hire |> Repo.preload([:user]).user
+        # message
+        message = "#{user.full_name} has rejected your direct hire request to work on your order."
+        # send email notification to the user
+        NewEmail.new_email_notification(owner, "Direct Hire Rejection", "#{message} \n Login to your account to re-assign the order.")
+        # send the email
+        |> Mailer.deleiver_later()
+
+        # create a notificaiton
+        {:ok, notification} = Notifications.create_notification(%{
+          user_id: owner.id,
+          asset_type: :direct_hire,
+          asset_id: hire_id,
+          mesage: "#{message}. Continue to re-assign the order to the contractor."
+        })
+        # send the notification
+        Endpoint.broadcast!("user:#{owner.id}", "notification::direct_hire_rejection", %{notificaiton: Utils.render_notification(notification)})
+      end) # end of task
+
+      # return the hire
+      {:ok, hire}
+  end # end of rejecting direct hire request
+
+  # function for assigning the order made for the hire
+  def assign_order_from_direct_hire(%User{} = user, hire_id) do
+    # get the contractor to whom the direct hire was inteded to
+    [hire | _rest] = user |> Repo.preload([direct_hires: from(hire in DirectHire, where: hire.id == ^hire_id)]).direct_hires
+    # get the work profilt for the hire
+    hire = hire |> Repo.preload([:work_profile, :order])
+
+    # assign the order
+    Eworks.Orders.API.assign_order(user, hire.order, hire.work_profile.user_id)
+  end # end of assign_order_from_direct_hire
 
 
 end # end of Eworks.Request.API

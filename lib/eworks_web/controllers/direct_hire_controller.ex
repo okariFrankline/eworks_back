@@ -1,10 +1,17 @@
 defmodule EworksWeb.DirectHireController do
   use EworksWeb, :controller
 
-  alias Eworks.Requests
-  alias Eworks.Requests.DirectHire
+  alias Eworks.Requests.API
 
   action_fallback EworksWeb.FallbackController
+
+  @doc """
+    set the current user
+  """
+  def action(conn, _) do
+    args = (conn, conn.params, conn.assigns.current_user)
+    apply(__MODULE__, action_name(conn), args)
+  end # end action
 
   @doc """
     Returns a list of requests made the current user
@@ -34,38 +41,59 @@ defmodule EworksWeb.DirectHireController do
     end # end of direct hires
   end # end of list contractors direct_hires
 
-  def index(conn, _params) do
-    direct_hires = Requests.list_direct_hires()
-    render(conn, "index.json", direct_hires: direct_hires)
-  end
-
-  def create(conn, %{"direct_hire" => direct_hire_params}) do
-    with {:ok, %DirectHire{} = direct_hire} <- Requests.create_direct_hire(direct_hire_params) do
+  @doc """
+    creates a new direct hire request
+  """
+  def create_new_direct_hire_request(conn, %{"order_id" => order_id, "contractor_id" => cont_id}, user) do
+    with {:ok, result} <- API.create_new_direct_hire_request(user, order_id, cont_id) do
+      # return the result
       conn
+      # put the stauts
       |> put_status(:created)
-      |> put_resp_header("location", Routes.direct_hire_path(conn, :show, direct_hire))
-      |> render("show.json", direct_hire: direct_hire)
-    end
-  end
+      # render the hire
+      |> render("hire.json", direct_hire: result.hire, recipient: result.recipient)
+    end # end of with
+  end # end of createing a new direct hire request
 
-  def show(conn, %{"id" => id}) do
-    direct_hire = Requests.get_direct_hire!(id)
-    render(conn, "show.json", direct_hire: direct_hire)
-  end
+  @doc """
+    accepts a direct hire request
+  """
+  def accept_direct_hire_request(conn, %{"direct_hire_id" => id}, user) do
+    with {:ok, hire} <- API.accept_direct_hire_request(user, id) do
+      conn
+      # put the stauts
+      |> put_status(:ok)
+      #
+      |> render("hire.json", direct_hire: hire)
+    end # end of with
+  end # end of accept direct hire request
 
-  def update(conn, %{"id" => id, "direct_hire" => direct_hire_params}) do
-    direct_hire = Requests.get_direct_hire!(id)
+  @doc """
+    rejects a direct hire request
+  """
+  def reject_direct_hire_request(conn, %{"direct_hire_id" => id}, user) do
+    with {:ok, hire} <- API.reject_direct_hire_request(user, id) do
+      conn
+      # put the stauts
+      |> put_status(:ok)
+      #
+      |> render("success.json")
+    end # end of with
+  end # end of accept direct hire request
 
-    with {:ok, %DirectHire{} = direct_hire} <- Requests.update_direct_hire(direct_hire, direct_hire_params) do
-      render(conn, "show.json", direct_hire: direct_hire)
-    end
-  end
+  @doc """
+    assigns an order for which a direct hire was for
+  """
+  def assign_order_from_direct_hire(conn, %{"direct_hire_id" => id}, user) do
+    with {:ok, result} <- API.assign_order_from_direct_hire(user, id) do
+      conn
+      # put status
+      |> put_status(:ok)
+      # put view
+      |> put-view(EworksWeb.OrderView)
+      # render
+      |> render("order.json", order: result.order, offers: result.offers)
+    end # end of with
+  end # end of assign_order_from_direct_hire
 
-  def delete(conn, %{"id" => id}) do
-    direct_hire = Requests.get_direct_hire!(id)
-
-    with {:ok, %DirectHire{}} <- Requests.delete_direct_hire(direct_hire) do
-      send_resp(conn, :no_content, "")
-    end
-  end
 end
