@@ -5,7 +5,7 @@ defmodule Eworks.Orders.API do
   import Ecto.Query, warn: false
 
   alias Eworks.Accounts.{WorkProfile, User}
-  alias Eworks.{Orders, Repo, Accounts, Uploaders, Notifications}
+  alias Eworks.{Orders, Repo, Uploaders, Notifications}
   alias Eworks.Orders.{Order, OrderOffer}
   alias Eworks.Utils.{Mailer, NewEmail}
   alias EworksWeb.Endpoint

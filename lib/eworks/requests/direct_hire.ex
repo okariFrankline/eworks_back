@@ -9,7 +9,7 @@ defmodule Eworks.Requests.DirectHire do
     field :is_rejected, :boolean, default: false
     # order for which this direct order if for
     field :order_id, :binary_id
-    fied :is_pending, :boolean, default: true
+    field :is_pending, :boolean, default: true
 
     # the contractors for whom the request is intended for
     belongs_to :work_profile, Eworks.Accounts.WorkProfile, type: :binary_id

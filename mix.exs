@@ -67,7 +67,9 @@ defmodule Eworks.MixProject do
       {:sweet_xml, "~> 0.6.6"},
       # timex
       {:timex, "~> 3.6"},
-      {:dataloader, "~> 1.0"}
+      {:dataloader, "~> 1.0"},
+      # paginator library
+      {:paginator, "~> 1.0"}
     ]
   end
 

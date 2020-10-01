@@ -9,7 +9,7 @@ defmodule EworksWeb.DirectHireController do
     set the current user
   """
   def action(conn, _) do
-    args = (conn, conn.params, conn.assigns.current_user)
+    args = [conn, conn.params, conn.assigns.current_user]
     apply(__MODULE__, action_name(conn), args)
   end # end action
 
@@ -72,7 +72,7 @@ defmodule EworksWeb.DirectHireController do
     rejects a direct hire request
   """
   def reject_direct_hire_request(conn, %{"direct_hire_id" => id}, user) do
-    with {:ok, hire} <- API.reject_direct_hire_request(user, id) do
+    with {:ok, _hire} <- API.reject_direct_hire_request(user, id) do
       conn
       # put the stauts
       |> put_status(:ok)
@@ -90,7 +90,7 @@ defmodule EworksWeb.DirectHireController do
       # put status
       |> put_status(:ok)
       # put view
-      |> put-view(EworksWeb.OrderView)
+      |> put_view(EworksWeb.OrderView)
       # render
       |> render("order.json", order: result.order, offers: result.offers)
     end # end of with

@@ -6,7 +6,7 @@ defmodule Eworks.Accounts do
   import Ecto.Query, warn: false
   alias Eworks.Repo
 
-  alias Eworks.Accounts.{User, Session}
+  alias Eworks.Accounts.{User}
 
   # set up the dataloader
   def data() do

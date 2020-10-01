@@ -127,4 +127,22 @@ defmodule EworksWeb.ErrorView do
     }
   end
 
+  # worker_not found
+  def render("work_not_found.json", _) do
+    %{
+      errors: %{
+        details: "Failed. Independent Contractor Not Found."
+      }
+    }
+  end # end of worker not found
+
+  # failed.json
+  def render("save_failed.json", _) do
+    %{
+      errors: %{
+        details: "Failed. Contractor could not be saved."
+      }
+    }
+  end # end of worker not found
+
 end # end of the module

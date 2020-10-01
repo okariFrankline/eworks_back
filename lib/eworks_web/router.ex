@@ -82,6 +82,15 @@ defmodule EworksWeb.Router do
     post "/invite/:invite_id/offer/:invite_offer_id/accept", InviteController, :accept_invite_offer
     post "/invite/:invite_id/cancel", InviteController, :cancel_invite
     post "/invite/offer/:invite_offer_id/cancel", InviteController, :cancel_invite_offer
+
+    # direct hire
+    get "/direct/hire/client", DirectHireController, :list_client_direct_hires
+    get "/direct/hire/contractor", DirectHireController, :list_contractor_direct_hires
+    post "/direct/hire/:order_id/:contractor_id/new", DirectHireController, :create_new_direct_hire_request
+    post "/direct/hire/:direct_hire_id/accept", DirectHireController, :accept_direct_hire_request
+    post "/direct/hire/:direct_hire_id/reject", DirectHireController, :reject_direct_hire_request
+    post "/direct/hire/:direct_hire_id/assign", DirectHireController, :assign_direct_hire_request
+
   end # end of scope for logged in users
 
   # Enables LiveDashboard only for development
