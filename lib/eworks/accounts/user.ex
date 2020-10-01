@@ -43,6 +43,8 @@ defmodule Eworks.Accounts.User do
     has_one :work_profile, Eworks.Accounts.WorkProfile
     # has many notifications
     has_many :notifications, Eworks.Notifications.Notification
+    # has many direct hire requests created
+    has_many :direct_hires, Eworks.Requests.DirectHire
     # add the timestamp
     timestamps()
   end

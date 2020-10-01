@@ -68,7 +68,7 @@ defmodule EworksWeb.InviteController do
   @doc """
     Cacncels an invitation offer
   """
-  def cancel_invitation_offer(conn, %{"invite_offer_id" => id}, user, _invite) do
+  def cancel_invite_offer(conn, %{"invite_offer_id" => id}, user, _invite) do
     {:ok, _offer} =  API.cancel_invite_offer(user, id)
     # render the page
     conn
@@ -90,5 +90,18 @@ defmodule EworksWeb.InviteController do
       |> render("success.json")
     end # end of with
   end # end of canceling an invite
+
+  @doc """
+    rejct invite offer
+  """
+  def reject_invite_offer(conn, %{"invite_offer_id" => id}, user, order) do
+    with {:ok, _invite} <- API.reject_invite_offer(user, order, id) do
+      conn
+      # put status
+      |> put_status(:ok)
+      # render the success
+      |> render("success.json")
+    end # end of with
+  end # end of reject invite offer
 
 end

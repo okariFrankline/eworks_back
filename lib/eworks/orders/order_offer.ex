@@ -14,6 +14,13 @@ defmodule Eworks.Orders.OrderOffer do
     field :is_accepted, :boolean, default: false
     field :order_id, :binary_id
 
+    # owner of the offer
+    # field :owner_name, :string
+    # field :owner_profile_pic, :string,
+    # field :owner_job_success, :integer,
+    # field :owner_about, :string
+    # field :owner_rating, :string
+
     # belongs to one user
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
 
@@ -30,6 +37,11 @@ defmodule Eworks.Orders.OrderOffer do
       :asking_amount,
       :is_accepted,
       :is_cancelled
+      # :owner_name,
+      # :owner_profile_pic,
+      # :owner_job_success,
+      # :owner_rating,
+      # :owner_about
     ])
     |> validate_required([
       :asking_mount

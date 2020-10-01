@@ -29,6 +29,8 @@ defmodule Eworks.Accounts.WorkProfile do
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
     # has many collaboration invites
     has_many :invites, Eworks.Collaborations.Invite
+    # has many direct hire requests created
+    has_many :direct_hires, Eworks.Requests.DirectHire
     # has many previous hires
     timestamps()
   end

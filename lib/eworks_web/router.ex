@@ -65,6 +65,7 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/attachments", OrderController, :update_order_attachments
     get "/order/:order_id/verification/code", OrderController, :send_order_verification_code
     post "/order/:order_id/verify", OrderController, :verify_order
+    post "/order/:order_id/tag", OrderController, :tag_order
 
     # order offers
     post "/order/offer/:order_id/new", OrderController, :submit_order_offer
@@ -72,6 +73,15 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/offer/:order_offer_id/accept", OrderController, :accept_order_offer
     post "/order/:order_id/assign/:to_assign_id", OrderController, :assign_order
     post "/order/:order_id/accept/:order_offer_id", OrderController, :accept_order
+
+    # invites
+    post "/invite/:order_id/new", InviteController, :create_new_invite
+    post "/invite/:invite_id/payment", InviteController, :update_invite_payment
+    post "/invite/offer/:invite_id/new", InviteController, :submit_invite_offer
+    post "/invite/:invite_id/offer/:invite_offer_id/reject", InviteController, :reject_invite_offer
+    post "/invite/:invite_id/offer/:invite_offer_id/accept", InviteController, :accept_invite_offer
+    post "/invite/:invite_id/cancel", InviteController, :cancel_invite
+    post "/invite/offer/:invite_offer_id/cancel", InviteController, :cancel_invite_offer
   end # end of scope for logged in users
 
   # Enables LiveDashboard only for development

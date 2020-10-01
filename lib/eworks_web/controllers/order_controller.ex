@@ -1,7 +1,7 @@
 defmodule EworksWeb.OrderController do
   use EworksWeb, :controller
 
-  alias Eworks.{Orders, Repo}
+  alias Eworks.{Orders}
   alias Eworks.Orders.Order
   alias EworksWeb.Plugs
 
@@ -208,6 +208,20 @@ defmodule EworksWeb.OrderController do
       |> render("accepted_offer.json", accepted_offer: offer, user: user, order: order)
     end # end of the with
   end
+
+  @doc """
+    Tag order
+  """
+  def tag_order(conn, _params, user, order) do
+    with {:ok, _order} <- Eworks.Orders.API.tag_order(user, order) do
+      # return the success
+      conn
+      # put the status
+      |> put_status(:ok)
+      # render the success
+      |> render("success.json")
+    end
+  end # end of tag order
 
   def delete(conn, %{"id" => id}) do
     order = Orders.get_order!(id)

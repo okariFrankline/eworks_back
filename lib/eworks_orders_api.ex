@@ -387,6 +387,22 @@ defmodule Eworks.Orders.API do
   end # end of sending order verification code
 
   @doc """
+    Tags an order
+  """
+  def tag_order(%User{} = user, %Order{} = order) do
+    # ensure the order has not being assigned
+    if order.is_assigned do
+      # return error
+      {:error, :already_assigned}
+    else
+      # place the tag to the order
+      order = order |> Ecto.Changeset.change(%{tags: [user.id | order.tags]}) |> Repo.insert!()
+      # return the order
+      {:ok, order}
+    end # end of is assigned
+  end # end of tag order
+
+  @doc """
     Vrifies an order
   """
   def verify_order(%User{} = user, %Order{} = order, verification_code) do
