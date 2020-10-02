@@ -29,9 +29,7 @@ defmodule EworksWeb.WorkersController do
       # order by the inserted at and id
       order_by: [asc: user.inserted_at, asc: user.id],
       # preload the work profile
-      preload: [work_profile: work_profile],
-      # select the user
-      select: user
+      preload: [work_profile: work_profile]
     )
 
     # get the page based on whether the metadata is available or not

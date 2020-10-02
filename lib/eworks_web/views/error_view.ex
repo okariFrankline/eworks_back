@@ -136,6 +136,15 @@ defmodule EworksWeb.ErrorView do
     }
   end # end of worker not found
 
+  # ordernot found
+  def render("order_not_found.json", _) do
+    %{
+      errors: %{
+        details: "Failed. Order Not Found."
+      }
+    }
+  end # end of worker not found
+
   # failed.json
   def render("save_failed.json", _) do
     %{
