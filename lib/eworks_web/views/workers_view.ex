@@ -11,9 +11,9 @@ defmodule EworksWeb.WorkersView do
       data: %{
         id: user.id,
         full_name: user.full_name,
-        profile_pic: Utils.upload_url(PictureProfile.url({user.profile_pic, user})),
+        profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
         work_profile: render_one(user.work_profile, __MODULE__, "work_profile.json"),
-        previous_hires: if Enum.empty?(hires), do: [], else: render_many(hires, __MODULE__, "previous_hire.json")
+        previous_hires: render_many(hires, __MODULE__, "previous_hire.json")
       }
     }
   end # end of worker_profile.json
@@ -33,7 +33,7 @@ defmodule EworksWeb.WorkersView do
   @doc """
     Renders the success.json
   """
-  render("success.json", _) do
+  def render("success.json", _) do
     %{
       data: %{
         success: true,
@@ -45,7 +45,7 @@ defmodule EworksWeb.WorkersView do
   @doc """
     Renders the save_failed.json
   """
-  render("save_failed.json", _) do
+  def render("save_failed.json", _) do
     %{
       data: %{
         success: false,
@@ -60,13 +60,13 @@ defmodule EworksWeb.WorkersView do
   def render("worker.json", %{worker: worker}) do
     %{
       id: worker.id,
-      full_name: worker.full_name
-      profile_pic: Utils.upload_url(PictureProfile.url({user.profile_pic, user})),
+      full_name: worker.full_name,
+      profile_pic: Utils.upload_url(ProfilePicture.url({worker.profile_pic, worker}, :thumb)),
       job_success: worker.work_profile.success_rate,
       rating: worker.work_profile.rating,
       about: worker.work_profile.prof_intro,
-      job_hires: Enum.count(worker.work_profile.previous_hires)
-      skilla: worker.work_profile.skills
+      job_hires: Enum.count(worker.work_profile.previous_hires),
+      skills: worker.work_profile.skills
     }
   end # end of worker.json
 

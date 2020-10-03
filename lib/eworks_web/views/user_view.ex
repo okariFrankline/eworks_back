@@ -1,6 +1,9 @@
 defmodule EworksWeb.UserView do
   use EworksWeb, :view
 
+  alias Eworks.Uploaders.ProfilePicture
+  alias Eworks.API.Utils
+
   @doc """
     Renders of new_user.json
   """

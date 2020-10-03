@@ -13,4 +13,9 @@ defmodule Eworks.Accounts.Utils do
   """
   def get_username(email) when is_binary(email), do: Regex.run(~r/(\w+)@([\w.]+)/, email)
 
+  @doc """
+    Validates the current password
+  """
+  def validate_current_password(hash, password), do: Argon2.verify_pass(password, hash)
+
 end # end of module

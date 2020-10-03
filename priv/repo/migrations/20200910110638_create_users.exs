@@ -32,6 +32,8 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
       add :phones, {:array, :string}, default: []
       # profile pic
       add :profile_pic, :string, null: true
+      # saved workers
+      add :saved_workers, {:array, :binary_id}, default: []
 
       timestamps()
     end
@@ -43,6 +45,7 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
     create index(:users, [:is_company])
     create index(:users, [:is_suspended])
     create index(:users, [:user_type])
+    create index(:users, [:inserted_at])
 
   end
 end

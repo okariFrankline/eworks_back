@@ -225,7 +225,7 @@ defmodule Eworks do
     Changes the password of the user
   """
   def change_password(%User{} = user, password_params) do
-    with {:ok, _user} <- Accounts.change_user_password(user, password_params), do: result
+    with {:ok, _user} = result <- Accounts.change_user_password(user, password_params), do: result
   end # end of change_password
 
 end # end of the Eworks module

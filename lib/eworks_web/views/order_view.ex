@@ -1,6 +1,6 @@
 defmodule EworksWeb.OrderView do
   use EworksWeb, :view
-  alias EworksWeb.OrderView
+
   alias Eworks.API.Utils
   alias Eworks.Uploaders.{OrderAttachment, ProfilePicture}
 
@@ -50,7 +50,7 @@ defmodule EworksWeb.OrderView do
         payable_amount: order.payable_amount,
         deadline: Date.to_iso8601(order.deadline),
         required_contractors: order.required_contractors,
-        offers_made: Enum.count(offers),
+        offers_made: Enum.count(order.order_offers),
         attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),
         # assignees and offers
         assignees: render_assignees(order.assignees, order.order_offers),
@@ -92,7 +92,7 @@ defmodule EworksWeb.OrderView do
       about: offer.user.work_profile.professional_intro,
       job_success: offer.user.work_profile.success_rate,
       asking_amount: offer.asking_amount,
-      profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({offer.user.profile_pic, offer.user}))
+      profile_pic: Utils.upload_url(ProfilePicture.url({offer.user.profile_pic, offer.user}))
     }
   end # end of assignee.json
 

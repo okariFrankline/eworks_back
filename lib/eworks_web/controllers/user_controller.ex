@@ -2,7 +2,6 @@ defmodule EworksWeb.UserController do
   use EworksWeb, :controller
 
   alias Eworks
-  alias Eworks.Accounts
   alias Eworks.Accounts.User
   alias Eworks.Utils.{Mailer, NewEmail}
   alias EworksWeb.{Authentication, Plugs}
@@ -199,7 +198,7 @@ defmodule EworksWeb.UserController do
     Allows user to change their password
   """
   def change_user_password(conn, %{"new_password" => password_params}, user) do
-    with {:ok, _user} <- API.change_password(user, password_params) do
+    with {:ok, _user} <- Eworks.change_password(user, password_params) do
       # return the response
       conn
       # put the status

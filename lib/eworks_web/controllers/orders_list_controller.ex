@@ -3,9 +3,9 @@ defmodule EworksWeb.OrderListController do
 
   import Ecto.Query, warn: false
   alias Eworks.{Orders, Repo}
-  alias Eworks.Orders.{Order, OrderOffer}
+  alias Eworks.Orders.{Order}
   alias Eworks.Accounts.WorkProfile
-  alias Eworks.Loaders.Dataloader
+  alias Eworks.Dataloader.Loader
 
   @doc """
     Adds the current user as the the third arguement to all controller actions
@@ -35,7 +35,7 @@ defmodule EworksWeb.OrderListController do
       preload: [user: user]
     )
     # get the page
-    page = if after_cusor do
+    page = if after_cursor do
       # get the next cursor
       next_cursor = after_cursor
       # get the page
@@ -62,7 +62,7 @@ defmodule EworksWeb.OrderListController do
     query = from(
       order in Order,
       # ensure ht ecategory of the order is similar
-      where: order.is_assigned == false and is_cancelled == false and ilike(order.category, ^category),
+      where: order.is_assigned == false and order.is_cancelled == false and ilike(order.category, ^category),
       # join the owner
       join: user in assoc(order, :user),
       # order by the inserted at
@@ -134,12 +134,12 @@ defmodule EworksWeb.OrderListController do
   """
   def list_orders_assigned_to_current_user(conn, _params, user) do
     # preload the work profile of the current user
-    %WorkProfile{assigned_orders: order_ids} = _work_profile = user |> Repo.preload([:work_profile]).work_profile
+    %WorkProfile{assigned_orders: order_ids} = _work_profile = Repo.preload(user, [:work_profile]).work_profile
 
     # check if the assigned orders is empty
      assigned_orders = if not Enum.empty?(order_ids) do
       # get the loader
-      Dataloader.get_data_loader()
+      Loader.get_data_loader()
       # load the orders with the given ids
       |> Dataloader.load_many(Orders, Order, order_ids)
       # run the loader
@@ -162,12 +162,12 @@ defmodule EworksWeb.OrderListController do
   @doc """
     Gets an order specified by a given id that belongs to the current user
   """
-  def get_order(conn, %{"order_id" => id}, user) do
+  def get_order(conn, %{"order_id" => id}, _user) do
     # query for gettingt the order
     query = from(
-      order in order,
+      order in Order,
       # enssure user id is similar
-      where: order.user_id == ^user.id,
+      where: order.user_id == ^id,
       # join the order_offers
       join: offer in assoc(order, :order_offers),
       # only preload offers that have not been cancelled
@@ -205,7 +205,7 @@ defmodule EworksWeb.OrderListController do
     Gets an order that has been assigned to the current user
   """
   def get_assigned_order(conn, %{"order_id" => id}, _user) do
-    order = Repo.get_order!(id)
+    order = Orders.get_order!(id)
     # return the result
     conn
     # put the status

@@ -4,7 +4,7 @@ defmodule EworksWeb.WorkersController do
   import Ecto.Query, warn: false
   alias Eworks.{Repo}
   alias Eworks.Accounts.User
-  alias Eworks.Loaders.Dataloader
+  alias Eworks.Dataloader.Loader
 
   @doc """
     Inserts the current user as the third arguement to all the actions
@@ -18,9 +18,9 @@ defmodule EworksWeb.WorkersController do
 
   defp load_previous_hires(previous_hires_ids) do
     # check to ensure the ids are not emlty
-    if not Enum.empty?(previous_hires_id) do
-      # get the loader, load the orders and return the orders
-      Dataloader.get_data_loader()
+    if not Enum.empty?(previous_hires_ids) do
+      # get the dataloader
+      Loader.get_data_loader()
       # load the order orders with the ids
       |> Dataloader.load_many(Orders, Order, previous_hires_ids)
       # run the loader
@@ -51,7 +51,7 @@ defmodule EworksWeb.WorkersController do
     |> Repo.one!()
 
     # get the previous hires
-    previous_hires = get_previous_hires(user.work_profile.previous_hires)
+    previous_hires = load_previous_hires(user.work_profile.previous_hires)
 
     # return the results
     conn
@@ -91,7 +91,7 @@ defmodule EworksWeb.WorkersController do
     )
 
     # get the page based on whether the metadata is available or not
-    page = if metadata do
+    page = if after_cursor do
       # get the cursor_after
       cursor_after = after_cursor
       # load the results
@@ -131,7 +131,7 @@ defmodule EworksWeb.WorkersController do
     )
 
     # get the page based on whether the metabase is given
-    page = if metadata do
+    page = if after_cursor do
       # get the cursor_after
       cursor_after = after_cursor
       # load the results

@@ -1,8 +1,7 @@
 defmodule EworksWeb.OrderController do
   use EworksWeb, :controller
 
-  alias Eworks.{Orders}
-  alias Eworks.Orders.{Order, API}
+  alias Eworks.Orders.{API}
   alias EworksWeb.Plugs
 
   plug Plugs.OrderById when  action not in [:create_new_order]

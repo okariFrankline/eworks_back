@@ -1,7 +1,7 @@
 defmodule EworksWeb.OrderListView do
   use EworksWeb, :view
   alias Eworks.API.Utils
-  alias Eworks.Uploader.OrderAttachment
+  alias Eworks.Uploaders.OrderAttachment
   alias EworksWeb.OrderView
 
   @doc """
@@ -79,7 +79,7 @@ defmodule EworksWeb.OrderListView do
       order_type: order.order_type,
       payment_schedule: order.payment_schedule,
       payable_amount: order.payable_amount,
-      attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order}))
+      attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),
       owner: order.owner_name
     }
   end # end of assigned_order.json

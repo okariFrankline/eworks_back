@@ -1,4 +1,4 @@
-defmodule Eworks.Loaders.Dataloader do
+defmodule Eworks.Dataloader.Loader do
   @moduledoc """
     Defines the loaders for getting the data
   """

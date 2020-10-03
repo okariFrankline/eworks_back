@@ -27,6 +27,7 @@ defmodule Eworks.Accounts.User do
     field :emails, {:array, :string}
     field :phone, :string, virtual: true
     field :phones, {:array, :string}
+    field :saved_workers, {:array, :binary_id}
     field :profile_pic, Eworks.Uploaders.ProfilePicture.Type
     # virtual fields
     field :current_password, :string, virtual: true
@@ -46,6 +47,8 @@ defmodule Eworks.Accounts.User do
     has_many :notifications, Eworks.Notifications.Notification
     # has many direct hire requests created
     has_many :direct_hires, Eworks.Requests.DirectHire
+    # has many orders
+    has_many :orders, Eworks.Orders.Order
     # add the timestamp
     timestamps()
   end
@@ -66,7 +69,8 @@ defmodule Eworks.Accounts.User do
       :city,
       :emails,
       :phones,
-      :is_suspended
+      :is_suspended,
+      :saved_workers
     ])
     # cast the profile_pic attachmetns
     |> cast_attachments(attrs, [
@@ -272,18 +276,17 @@ defmodule Eworks.Accounts.User do
   defp validate_email_and_add_to_emails(changeset), do: changeset
 
   # function that updates the password
-  defp update_password(%Changeset{vaild?: true, changes: %{password: new_pass, current_password: current_pass}, data: %__MODULE__{password_hash: hash}} = changeset) do
-    if Utils.valid_current_password(hash, current_pass) do
+  defp update_password(%Changeset{valid?: true, changes: %{password: new_pass, current_password: current_pass}, data: %__MODULE__{password_hash: hash}} = changeset) do
+    if Utils.validate_current_password(hash, current_pass) do
       # check if new password and current passwords are similer
       if new_pass == current_pass do
         # put the change
         changeset
-        |> put_change(:password_hash, Argon2.hash_pwd_salt(pass))
+        |> put_change(:password_hash, Argon2.hash_pwd_salt(new_pass))
         # set the current pass to nil
         |> put_change(:current_password, nil)
         # set the password to nil
         |> put_change(:password, nil)
-
       else
         # return the changeset
         changeset

@@ -37,7 +37,7 @@ defmodule Eworks.Orders.Order do
     field :deadline_string_date, :string, virtual: true
     field :owner_name, :string
     # belongs to one user
-    belongs_to :user, Eworks.Orders.User, type: :binary_id
+    belongs_to :user, Eworks.Accounts.User, type: :binary_id
     # has many assignees
     field :assignees, {:array, :binary_id}
     # has many order_offers

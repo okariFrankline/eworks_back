@@ -12,7 +12,7 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
       add :payment_schedule, :string, null: true
       add :category, :string, null: false
       add :already_accepted, :integer, defualt: 0, null: false
-      add :collaborators, {:array, :binary_id}, default []
+      add :collaborators, {:array, :binary_id}, default: []
 
       # order for which the offer is for
       add :order_id, references(:orders, on_delete: :nothing, type: :binary_id)
@@ -26,5 +26,6 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
     create index(:invites, [:order_id])
     create index(:invites, [:category])
     create index(:invites, [:is_paid_for])
+    create index(:invites, [:inserted_at])
   end
 end

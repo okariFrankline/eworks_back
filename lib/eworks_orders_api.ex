@@ -4,6 +4,7 @@ defmodule Eworks.Orders.API do
   """
   import Ecto.Query, warn: false
 
+  alias Eworks.Accounts
   alias Eworks.Accounts.{WorkProfile, User}
   alias Eworks.{Orders, Repo, Uploaders, Notifications}
   alias Eworks.Orders.{Order, OrderOffer}
@@ -138,12 +139,12 @@ defmodule Eworks.Orders.API do
         {:ok, notification} = Notifications.create_notification(%{
           user_id: owner.id,
           asset_type: :offer,
-          asset_id: order.id
+          asset_id: order.id,
           notification_type: :order_offer_submission,
           message: message
         })
         # send the notification to the user using websocket
-        Endpoint.broadcast!("notification:#{order.user_id}", "notification::offer_submission", %{notification: Utils.render_notification(notificaiton)})
+        Endpoint.broadcast!("notification:#{order.user_id}", "notification::offer_submission", %{notification: Utils.render_notification(notification)})
       end) # end of the task
       # return ok
       {:ok, offer}
@@ -183,7 +184,7 @@ defmodule Eworks.Orders.API do
                    # get the owner of the offer
                    join: owner in assoc(offer, :user),
                    # preload the work profile of the user
-                   join: profile in assoc(owner, :work_profile)
+                   join: profile in assoc(owner, :work_profile),
                    # preload the user
                    preload: [user: {owner, work_profile: profile}]
                   )
@@ -206,7 +207,7 @@ defmodule Eworks.Orders.API do
                    # get the owner of the offer
                    join: owner in assoc(offer, :user),
                    # preload the work profile of the user
-                   join: profile in assoc(owner, :work_profile)
+                   join: profile in assoc(owner, :work_profile),
                    # preload the user
                    preload: [user: {owner, work_profile: profile}]
                   )
@@ -256,7 +257,7 @@ defmodule Eworks.Orders.API do
             # message
             message = "#{user.full_name} has assigned you to work on the order **ORDER::#{order.specialty}."
             # send an email notification to the owner of the order
-            NewEmail.new_email_notification(owner, "Order Assignment for **Order::#{order.specialty}", "#{message} \n Login to your account for more details.")
+            NewEmail.new_email_notification(profile.user, "Order Assignment for **Order::#{order.specialty}", "#{message} \n Login to your account for more details.")
             # send the email
             |> Mailer.deliver_later()
 
@@ -269,7 +270,7 @@ defmodule Eworks.Orders.API do
               message: message
             })
             # notify the assigned user through the websocket using the notification::new_assigned_order
-            Endpoint.broadcast!("notification:#{to_assign_id}", "notification::new_assigned_order", %{notification: Utils.render_notification(notifications)})
+            Endpoint.broadcast!("notification:#{to_assign_id}", "notification::new_assigned_order", %{notification: Utils.render_notification(notification)})
           end) # end of task for sending a notification to the user about the job assignment
 
           # check if once the added assignee is added, it brings the number of assigned equal to the required orders
@@ -292,7 +293,7 @@ defmodule Eworks.Orders.API do
                 # get the owner of the offer
                 join: owner in assoc(offer, :user),
                 # preload the work profile of the user
-                join: profile in assoc(owner, :work_profile)
+                join: profile in assoc(owner, :work_profile),
                 # preload the user
                 preload: [user: {owner, work_profile: profile}]
               )
@@ -317,7 +318,7 @@ defmodule Eworks.Orders.API do
                 # get the owner of the offer
                 join: owner in assoc(offer, :user),
                 # preload the work profile of the user
-                join: profile in assoc(owner, :work_profile)
+                join: profile in assoc(owner, :work_profile),
                 # preload the user
                 preload: [user: {owner, work_profile: profile}]
               )

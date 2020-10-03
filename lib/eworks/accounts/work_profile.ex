@@ -24,7 +24,7 @@ defmodule Eworks.Accounts.WorkProfile do
     # has many assigned orders
     field :assigned_orders, {:array, :binary_id}
     # embeds many previous hires
-    has_many :previous_hires, __MODULE__.PreviousHires
+    field :previous_hires, {:array, :binary_id}
     # belongs to one user
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
     # has many collaboration invites

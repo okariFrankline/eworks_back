@@ -9,7 +9,7 @@ defmodule Eworks.Repo.Migrations.CreateNotification do
       add :is_viewed, :boolean, default: false, null: false
       add :asset_type, :string
       add :asset_id, :binary_id
-      add :user_id, references(:users, on_delete: :delete_all, type: :binary_id)
+      add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
 
       timestamps()
     end
