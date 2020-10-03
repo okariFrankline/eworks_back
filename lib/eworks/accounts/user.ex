@@ -274,7 +274,20 @@ defmodule Eworks.Accounts.User do
   # function that updates the password
   defp update_password(%Changeset{vaild?: true, changes: %{password: new_pass, current_password: current_pass}, data: %__MODULE__{password_hash: hash}} = changeset) do
     if Utils.valid_current_password(hash, current_pass) do
-      
+      # check if new password and current passwords are similer
+      if new_pass == current_pass do
+        # put the change
+        changeset
+        |> put_change(:password_hash, Argon2.hash_pwd_salt(pass))
+        # set the current pass to nil
+        |> put_change(:current_password, nil)
+        # set the password to nil
+        |> put_change(:password, nil)
+
+      else
+        # return the changeset
+        changeset
+      end # end of checking if new and current passwords are similar
     else
       # ass error
       changeset |> add_error(:current_password, "Failed. Current password entered is wrong.")

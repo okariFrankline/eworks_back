@@ -208,8 +208,11 @@ defmodule Eworks.Accounts do
   def change_user_password(%User{} = user, attrs) do
     user
     |> User.password_changeset(attrs)
-    |> Repo.update()
+    |> change_password(user)
   end
+
+  defp change_password(%Ecto.Changeset{valid?: true, changes: nil} = _changeset, user), do: {:ok, user}
+  defp change_password(changeset, _user), do: Repo.update(changeset)
 
   @doc """
   Updates a profile by adding city and country to the profile.
