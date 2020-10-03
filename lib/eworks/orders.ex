@@ -24,7 +24,7 @@ defmodule Eworks.Orders do
 
   def query(queryable, _), do: queryable
 
-  # dataloader for the 
+  # dataloader for the
 
   @doc """
   Returns the list of orders.
@@ -67,8 +67,8 @@ defmodule Eworks.Orders do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_order(order_changeset, attrs \\ %{}) do
-    order_changeset
+  def create_order(%Order{} = order, attrs \\ %{}) do
+    order
     |> Order.creation_changeset(attrs)
     |> Repo.insert()
   end

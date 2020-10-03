@@ -1,9 +1,11 @@
-defmodule EworksWeb.OrdersListController do
+defmodule EworksWeb.OrderListController do
   use EworksWeb, :controller
 
   import Ecto.Query, warn: false
   alias Eworks.{Orders, Repo}
-  alias Eworks.Orders.Order
+  alias Eworks.Orders.{Order, OrderOffer}
+  alias Eworks.Accounts.WorkProfile
+  alias Eworks.Loaders.Dataloader
 
   @doc """
     Adds the current user as the the third arguement to all controller actions
@@ -15,10 +17,11 @@ defmodule EworksWeb.OrdersListController do
     apply(__MODULE__, action_name(conn), args)
   end # end of action
 
+
   @doc """
     Lists all orders that have not being assinged to every user
   """
-  def list_unassigned_orders(conn, %{"metadata" => metadata}, _user) do
+  def list_unassigned_orders(conn, %{"metadata" => after_cursor}, _user) do
     # query for getting the orders
     query = from(
       order in Order,
@@ -27,15 +30,14 @@ defmodule EworksWeb.OrdersListController do
       # preload the user
       join: user in assoc(order, :user),
       # order by
-      order_by: [asc: order.inserted_at, id: order.id],
+      order_by: [asc: order.inserted_at, asc: order.id],
       # preload the user
-      preload([user: user])
+      preload: [user: user]
     )
-
     # get the page
-    page = if metadata do
+    page = if after_cusor do
       # get the next cursor
-      next_cursor = metadata.after
+      next_cursor = after_cursor
       # get the page
       Repo.paginate(query, cursor: next_cursor, cursor_fields: [:inserted_at, :id], limit: 10)
 
@@ -55,7 +57,7 @@ defmodule EworksWeb.OrdersListController do
   @doc """
     Searches for an order based on the category
   """
-  def find_orders(conn, %{"category" => category, "metadata" => metadata}, _user) do
+  def find_orders(conn, %{"category" => category, "metadata" => after_cursor}, _user) do
     # query
     query = from(
       order in Order,
@@ -70,9 +72,9 @@ defmodule EworksWeb.OrdersListController do
     )
 
     # get the page
-    page = if metadata do
+    page = if after_cursor do
       # get the next cursor
-      next_cursor = metadata.after
+      next_cursor = after_cursor
       # get the page
       Repo.paginate(query, cursor: next_cursor, cursor_fields: [:inserted_at, :id], limit: 10)
 
@@ -92,35 +94,31 @@ defmodule EworksWeb.OrdersListController do
   @doc """
     Lists the orders made by the current user
   """
-  def list_current_user_created_orders(conn, _params, user) do
+  def list_current_user_created_orders(conn, %{"metadata" => after_cursor}, user) do
     # query for getting the orders created by hte current user
     query = from(
       order in Order,
       # ensure user id matches the id of the current user
-      where: order.user_id == ^user.id
+      where: order.user_id == ^user.id and order.is_paid_for == false,
       # join the order_offers
       join: offer in assoc(order, :order_offers),
       # only preload offers that have not been cancelled
       where: offer.is_cancelled == false and offer.is_rejected == false,
-      # join the users of the offers
-      join: offer_owner in assoc(offer, :user),
       # order by inserted at
       order_by: [desc: order.inserted_at],
       # preload the order
-      preload: [order_offers: {offer, user: offer_owner}]
+      preload: [order_offers: offer]
     )
 
     # get the page
-    # get the page
-    page = if metadata do
+    page = if after_cursor do
       # get the next cursor
-      next_cursor = metadata.after
+      next_cursor = after_cursor
       # get the page
-      Repo.paginate(query, cursor: next_cursor, cursor_fields: [:inserted_at, :id], limit: 10)
-
+      Repo.paginate(query, cursor: next_cursor, cursor_fields: [:inserted_at], limit: 10)
     else
       # get the first page
-      Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 10)
+      Repo.paginate(query, cursor_fields: [:inserted_at], limit: 10)
     end # end of if for checking for the metadata
 
     # return the results
@@ -128,21 +126,37 @@ defmodule EworksWeb.OrdersListController do
     # put the status
     |> put_status(:ok)
     # render the results
-    |> render("orders.json", orders: page.entries, metadata: page.metadata)
+    |> render("created_orders.json", orders: page.entries, metadata: page.metadata)
   end # end of getting the orders created by the current users.
 
   @doc """
     Lists the contracts that have being assigned to the current user
   """
-  def list_order_assigned_to_current_user(conn, _params, user) do
+  def list_orders_assigned_to_current_user(conn, _params, user) do
     # preload the work profile of the current user
-    orders = user |> Repo.preload([work_profile: [assigned_orders: from(order in Order, where: order.is_paid == false)]]).work_profile.orders
+    %WorkProfile{assigned_orders: order_ids} = _work_profile = user |> Repo.preload([:work_profile]).work_profile
+
+    # check if the assigned orders is empty
+     assigned_orders = if not Enum.empty?(order_ids) do
+      # get the loader
+      Dataloader.get_data_loader()
+      # load the orders with the given ids
+      |> Dataloader.load_many(Orders, Order, order_ids)
+      # run the loader
+      |> Dataloader.run()
+      # get the orders
+      |> Dataloader.get_many(Ordes, Order, order_ids)
+    else
+      # return an empty list
+      []
+    end # end of assigned orders
+
     # return the resuls
     conn
     # put the status
     |> put_status(:ok)
     # render the order
-    |> render("orders.json", orders: orders)
+    |> render("assigned_orders.json", orders: assigned_orders)
   end # end of list_order_assigned_to_current_user/3
 
   @doc """
@@ -164,7 +178,6 @@ defmodule EworksWeb.OrdersListController do
       preload: [order_offers: {offer, user: offer_owner}]
     )
 
-    # get the order
     # get the result
     case Repo.one(query) do
       # the user not found
@@ -178,14 +191,38 @@ defmodule EworksWeb.OrdersListController do
         # return the result
         |> render("order_not_found.json")
 
-      # user found
-      %User{} = user ->
+      # order found
+      %Order{} = order ->
         conn
         # put the status
         |> put_status(:ok)
         # render the worker
-        |> render("order.json", order: order)
+        |> render("my_order.json", order: order)
     end # end of case for getting worker
   end # end of get order
+
+  @doc """
+    Gets an order that has been assigned to the current user
+  """
+  def get_assigned_order(conn, %{"order_id" => id}, _user) do
+    order = Repo.get_order!(id)
+    # return the result
+    conn
+    # put the status
+    |> put_status(:ok)
+    # render the worker
+    |> render("my_assigned_order.json", order: order)
+
+  rescue
+    Ecto.NoResultsError ->
+      # return the result
+      conn
+      # put the status
+      |> put_status(:not_found)
+      # put the view
+      |> put_view(EworksWeb.ErrorView)
+      # return the result
+      |> render("order_not_found.json")
+  end # end of get_assigned_order
 
 end # end of module

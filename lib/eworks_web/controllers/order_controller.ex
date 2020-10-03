@@ -174,12 +174,12 @@ defmodule EworksWeb.OrderController do
     Accepts a given offer for a particular order
   """
   def accept_order_offer(conn, %{"order_offer_id" => order_offer_id}, user, order) do
-    with {:ok, result} <- Eworks.Orders.API.accept_order_offer(user, order, order_offer_id) do
+    with {:ok, order} <- Eworks.Orders.API.accept_order_offer(user, order, order_offer_id) do
       conn
       # put a status
       |> put_status(:ok)
       # render the order
-      |> render("order.json", order: result.order, offers: result.offers)
+      |> render("order.json", order: order)
     end # end of accepting the offer
   end # end of accept_order_offer
 
@@ -187,12 +187,12 @@ defmodule EworksWeb.OrderController do
     Assign a job to a given user
   """
   def assign_order(conn, %{"to_assign_id" => to_assign_id}, user, order) do
-    with {:ok, result } <- Eworks.Orders.API.assign_order(user, order, to_assign_id) do
+    with {:ok, order} <- Eworks.Orders.API.assign_order(user, order, to_assign_id) do
       conn
       # ok
       |> put_status(:ok)
       # render the order
-      |> render("order.json", order: result.order, offers: result.offers)
+      |> render("order.json", order: order)
     end # end of with for assigning of the order to the user
   end # end of assign order
 

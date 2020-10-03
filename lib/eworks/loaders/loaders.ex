@@ -6,7 +6,10 @@ defmodule Eworks.Loaders.Dataloader do
 
   def source, do: Dataloader.Ecto.new(Repo)
 
-  def data_loader() do
+  @doc """
+    Returns a dataloader instance
+  """
+  def get_data_loader() do
     # create a new dataloader
     Dataloader.new
     # add the Orders context

@@ -28,12 +28,14 @@ defmodule Eworks.Orders.Order do
     field :verification_code, :integer
     field :rating, :integer
     field :comment, :string
+    field :show_more, :boolean, default: false
     # holds the ids of user's that have tagged this order.
     field :tags, {:array, :binary_id}
     # virtual fields
     field :max_payment, :string, virtual: true
     field :min_payment, :string, virtual: true
     field :deadline_string_date, :string, virtual: true
+    field :owner_name, :string
     # belongs to one user
     belongs_to :user, Eworks.Orders.User, type: :binary_id
     # has many assignees
@@ -69,7 +71,9 @@ defmodule Eworks.Orders.Order do
       :already_assigned,
       :accepted_offers,
       :assignees,
-      :tags
+      :tags,
+      :show_more,
+      :owner_name
     ])
     # cast teh changeset
     |> cast_attachments(attrs, [

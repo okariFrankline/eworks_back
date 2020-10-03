@@ -9,6 +9,7 @@ defmodule Eworks.Orders.API do
   alias Eworks.Orders.{Order, OrderOffer}
   alias Eworks.Utils.{Mailer, NewEmail}
   alias EworksWeb.Endpoint
+  alias Eworks.API.Utils
 
   @doc """
     Gets an order
@@ -35,7 +36,7 @@ defmodule Eworks.Orders.API do
     # create a new order
     order = order_owner
     # add the user id to the order
-    |> Ecto.build_assoc(:orders)
+    |> Ecto.build_assoc(:orders, %{owner_name: user.full_name})
     # create the order
     |> Orders.create_order(order_params)
 
@@ -121,21 +122,31 @@ defmodule Eworks.Orders.API do
   """
   def submit_order_offer(%User{} = user, %Order{} = order, asking_amount) do
     # create a new order offer
-    with _offer <- user |> Ecto.build_assoc(:order_offers, %{order_id: order.id, asking_amount: asking_amount}) |> Repo.insert!() do
-      # update the order to add the
+    with offer <- user |> Ecto.build_assoc(:order_offers, %{order_id: order.id, asking_amount: asking_amount}) |> Repo.insert!() do
       # create a notification about the submitting of the offer
       Task.start(fn ->
+        # preload the owner of the order
+        owner = Accounts.get_user!(order.user_id)
+        # message
+        message = "#{user.full_name} has submitted an offer for **Order::#{order.specialty}."
+        # send an email notification to the owner of the order
+        NewEmail.new_email_notification(owner, "Offer submission for **Order::#{order.specialty}", "#{message} \n Login to your account for more details.")
+        # send the email
+        |> Mailer.deliver_later()
+
+        # create a new notification
         {:ok, notification} = Notifications.create_notification(%{
-          user_id: order.user_id,
+          user_id: owner.id,
           asset_type: :offer,
+          asset_id: order.id
           notification_type: :order_offer_submission,
-          message: "#{user.full_name} has submitted an offer for your order looking for #{order.specialty}."
+          message: message
         })
         # send the notification to the user using websocket
-        Endpoint.broadcast!("notification:#{order.user_id}", "notification::offer_submission", %{notification: notification})
+        Endpoint.broadcast!("notification:#{order.user_id}", "notification::offer_submission", %{notification: Utils.render_notification(notificaiton)})
       end) # end of the task
       # return ok
-      :ok
+      {:ok, offer}
     end # end of with creating an offer
   end # end of submitting an order offer
 
@@ -154,9 +165,9 @@ defmodule Eworks.Orders.API do
         # offer successfully accepted
         :ok ->
           # check if the order has already allowed number of offers allowed to accept
-          if (order.accepted_offers + 1) == (order.required_contractors * 3) do
+          updated_order = if (order.accepted_offers + 1) == (order.required_contractors * 3) do
             # update the order
-            updated_order = order
+                order
                 # add the number of accepted offers by one
                 |> Ecto.Changeset.change(%{
                   accepted_offers: order.accepted_offers + 1
@@ -164,16 +175,22 @@ defmodule Eworks.Orders.API do
                 # update the order
                 |> Repo.update!()
                 # get the bid for which the user has accepted
-                |> Repo.preload([order_offers: from(offer in OrderOffer, where: offer.is_accepted == true)])
-
-            # preload the owner of each of the offers
-            offers = Enum.map(updated_order.order_offers, fn offer -> Repo.preload(offer, [user: [:work_profile]]) end)
-
-            # return the updated offer, the owner of the offer and the offers
-            {:ok, %{order: updated_order, offers: offers}}
+                |> Repo.preload([
+                  order_offers: from(
+                    offer in OrderOffer,
+                    # make sure the offer is is not cancelled and not rejected
+                    where: offer.is_accepted == true,
+                   # get the owner of the offer
+                   join: owner in assoc(offer, :user),
+                   # preload the work profile of the user
+                   join: profile in assoc(owner, :work_profile)
+                   # preload the user
+                   preload: [user: {owner, work_profile: profile}]
+                  )
+                ])
           else
             # the user still can accept other offers
-            updated_order = order
+                order
                 # reduce the number of required contractors
                 |> Ecto.Changeset.change(%{
                   accepted_offers: order.accepted_offers + 1
@@ -181,14 +198,23 @@ defmodule Eworks.Orders.API do
                 # update the order
                 |> Repo.update!()
                 # preload all the offers
-                |> Repo.preload([order_offers: from(offer in OrderOffer, where: offer.is_rejected == false and offer.is_cancelled == false)])
-
-            # preload the owner of the offers for each of the offers
-            offers = Stream.map(updated_order.order_offers, fn offer -> Repo.preload(offer, [user: [:work_profile]]) end) |> Enum.to_list()
-
-            # return the updated offer, the owner of the offer and the offers
-            {:ok, %{order: updated_order, offers: offers}}
+                |> Repo.preload([
+                  order_offers: from(
+                    offer in OrderOffer,
+                    # make sure the offer is is not cancelled and not rejected
+                    where: offer.is_cancelled == false and offer.is_rejected == false,
+                   # get the owner of the offer
+                   join: owner in assoc(offer, :user),
+                   # preload the work profile of the user
+                   join: profile in assoc(owner, :work_profile)
+                   # preload the user
+                   preload: [user: {owner, work_profile: profile}]
+                  )
+                ])
           end # end of if for checking if the user can make more offers
+
+          # return the order
+          {:ok, updated_order}
 
         # offer not accepted
         _ ->
@@ -202,13 +228,23 @@ defmodule Eworks.Orders.API do
   end # end of accept_order_offer
 
 
-
   @doc """
     Function for assigning an order
   """
   def assign_order(%User{} = user, %Order{} = order, to_assign_id) do
     # get the work profile of the person being assigned the job
-    profile = from(profile in WorkProfile, where: profile.user_id == ^to_assign_id) |> Repo.one!() |> Repo.preload(:user)
+    profile = from(
+      profile in WorkProfile,
+      # ensure the id matches that user to be assigned
+      where: profile.user_id == ^to_assign_id,
+      # join the user
+      join: user in assoc(profile, :user),
+      # preload the user
+      preload: [user: user]
+    )
+    # get the user
+    |> Repo.one!()
+
     # check if the job has already been assigned or the number of already assigned orders matches the number of required contractors
     if not order.is_assigned and order.already_assigned != order.required_contractors do
       # chek if the one be assigned is not suspeded
@@ -217,16 +253,23 @@ defmodule Eworks.Orders.API do
         with _assigned_order <- profile |> Ecto.Changeset.change(%{assigned_orders: [order.id | profile.assigned_orders]}) |> Repo.update!() do
           # start a task for sending the assignee a notification about the assigning
           Task.start(fn ->
+            # message
+            message = "#{user.full_name} has assigned you to work on the order **ORDER::#{order.specialty}."
+            # send an email notification to the owner of the order
+            NewEmail.new_email_notification(owner, "Order Assignment for **Order::#{order.specialty}", "#{message} \n Login to your account for more details.")
+            # send the email
+            |> Mailer.deliver_later()
+
             # create a notification about being assigned the job
             {:ok, notification} = Notifications.create_notification(%{
               user_id: to_assign_id,
               asset_type: :order,
               asset_id: order.id,
               notification_type: :order_assignment,
-              message: "#{user.full_name} has assigned you the order looking for #{order.specialty}."
+              message: message
             })
             # notify the assigned user through the websocket using the notification::new_assigned_order
-            Endpoint.broadcast!("notification:#{to_assign_id}", "notification::new_assigned_order", %{notification: notification})
+            Endpoint.broadcast!("notification:#{to_assign_id}", "notification::new_assigned_order", %{notification: Utils.render_notification(notifications)})
           end) # end of task for sending a notification to the user about the job assignment
 
           # check if once the added assignee is added, it brings the number of assigned equal to the required orders
@@ -241,7 +284,19 @@ defmodule Eworks.Orders.API do
             # update the offer
             |> Repo.update!()
             # preload the assignees and the order offers
-            |> Repo.preload(order_offers: from(offer in OrderOffer, where: offer.is_accepted == true))
+            |> Repo.preload([
+              order_offers: from(
+                offer in OrderOffer,
+                # make sure the offer is is not cancelled and not rejected
+                where: offer.is_accepted == true,
+                # get the owner of the offer
+                join: owner in assoc(offer, :user),
+                # preload the work profile of the user
+                join: profile in assoc(owner, :work_profile)
+                # preload the user
+                preload: [user: {owner, work_profile: profile}]
+              )
+            ])
 
           else # the number of already assigned is not yet equals to the number of required contractractors
             # update the order
@@ -253,14 +308,24 @@ defmodule Eworks.Orders.API do
             # update the offer
             |> Repo.update!()
             # preload the assignees and the order offers
-            |> Repo.preload(order_offers: from(offer in OrderOffer, where: offer.is_accepted == true))
+            |> Repo.preload([
+              # preload offers
+              order_offers: from(
+                offer in OrderOffer,
+                # make sure the offer is is not cancelled and not rejected
+                where: offer.is_accepted == true,
+                # get the owner of the offer
+                join: owner in assoc(offer, :user),
+                # preload the work profile of the user
+                join: profile in assoc(owner, :work_profile)
+                # preload the user
+                preload: [user: {owner, work_profile: profile}]
+              )
+            ])
           end # end of checking if the number of already assigned equals that of the required contractors
 
-          # for each of the offers prload their owners
-          offers = Enum.map(updated_order.order_offers, fn offer -> offer |> Repo.preload([user: [:work_profile]]) end)
-
           # return the result
-          {:ok, %{order: updated_order, offers: offers}}
+          {:ok, updated_order}
 
         end # end of the assigning the work
 
@@ -299,7 +364,7 @@ defmodule Eworks.Orders.API do
             asset: :offer,
             asset_id: offer_id,
             notification_type: :order_offer_rejection,
-            message: "#{user.full_name} has rejected your offer for order lookign for #{order.specialty}."
+            message: "#{user.full_name} has rejected your offer for order **ORDER::#{order.specialty}."
           })
           # send notification to the owner of the offer through the websocket
           Endpoint.broadcast!("notification:#{updated_offer.user_id}", "notification::offer_rejected", %{notification: notification})
@@ -348,16 +413,25 @@ defmodule Eworks.Orders.API do
       with offer <- Ecto.Changeset.change(order_offer, %{has_accepted_order: true}) |> Repo.update!() do
         # # create a notification for the owner of the order about the accepting of the order
         Task.start(fn ->
+          # preload the owner of the order
+          owner = Accounts.get_user!(order.user_id)
+          # message
+          message = "#{user.full_name} has acepted to work on your order **ORDER::#{order.specialty}."
+          # send an email notification to the owner of the order
+          NewEmail.new_email_notification(owner, "Order Acceptance for **Order::#{order.specialty}", "#{message} \n Login to your account for more details.")
+          # send the email
+          |> Mailer.deliver_later()
+
           # create the notification
           {:ok, notification} = Notifications.create_notification(%{
             user_id: order.user_id,
             asset_type: :offer,
-            asset_id: order_offer_id,
+            asset_id: order.id,
             notification_type: :order_acceptance,
-            message: "#{user.full_name} has accepted to be to work on your order looking for #{order.specialty}."
+            message: message
           })
           # send the notification to the user through a websocket.
-          Endpoint.broadcast!("notification:#{order.user_id}", "notification::order_acceptance", %{notification: notification})
+          Endpoint.broadcast!("notification:#{order.user_id}", "notification::order_acceptance", %{notification: Utils.render_notification(notification)})
         end) # end of task
         # return the order
         {:ok, offer}

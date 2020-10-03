@@ -24,13 +24,13 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :accepted_offers, :integer, default: 0, null: false
       add :assignees, {:array, :binary_id}, default: []
       add :tags, {:array, :binary_id}, default: []
+      add :show_more, :boolean, default: false
+      add :owner_name, :string
       # client comment and review
       add :comment, :text, null: true
       add :rating, :integer, null: true
       # owner of the job
       add :user_id, references(:users, on_delete: :nothing, type: :binary_id)
-      # invite for which this order has been used to create a new invite
-      add :invite_id, references(:invites, on_delete: :nothing, type: :binary_id)
 
       timestamps()
     end

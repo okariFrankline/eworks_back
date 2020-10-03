@@ -23,36 +23,12 @@ defmodule EworksWeb.OrderView do
     }
   end
 
-  # display_order.json sent only in the available offers page
-  def render("display_order.json", %{order: order, owner: owner}) do
-    %{
-      id: order.id,
-      description: order.description,
-      is_verified: order.is_verified,
-      specialty: order.specialty,
-      category: order.category,
-      attachments: upload_url(Eworks.Uploaders.OrderAttachment.url({order.attachments, order})),
-      duration: order.duration,
-      order_type: order.order_type,
-      payment_schedule: order.payment_schedule,
-      payable_amount: order.payable_amount,
-      deadline: show_deadline(order.deadline),
-      required_contractors: order.required_contractors,
-      # owner of the order
-      owner: %{
-        id: owner.id,
-        profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({owner.profile_pic, owner})),
-        full_name: owner.full_name
-      }
-    }
-  end # end of display_order.json
-
   # order.json displayed only if the person requesting is the owner
-  def render("order.json", %{order: order, offers: offers}) do
+  def render("order.json", %{order: order}) do
     %{
       data: %{
         id: order.id,
-        assignees: render_assignees(order.assignees, offers),
+        assignees: render_assignees(order.assignees, order.order_offers),
         description: order.description,
         is_verified: order.is_verified,
         is_assigned: order.is_assigned,
@@ -62,15 +38,14 @@ defmodule EworksWeb.OrderView do
         specialty: order.specialty,
         category: order.category,
         offers_made: Enum.count(offers),
-        # attachments: upload_url(Eworks.Uploaders.OrderAttachment.url({order.attachments, order})),
+        attachments: upload_url(Eworks.Uploaders.OrderAttachment.url({order.attachments, order})),
         duration: order.duration,
         order_type: order.order_type,
         payment_schedule: order.payment_schedule,
         payable_amount: order.payable_amount,
         deadline: Date.to_iso8601(order.deadline),
         required_contractors: order.required_contractors,
-        # all the offers made for the order
-        offers: render_offers(order.assignees, offers)
+        offers: render_offers(order.assignees, order.order_offers)
       }
     }
   end

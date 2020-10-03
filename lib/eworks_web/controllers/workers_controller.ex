@@ -4,6 +4,7 @@ defmodule EworksWeb.WorkersController do
   import Ecto.Query, warn: false
   alias Eworks.{Repo}
   alias Eworks.Accounts.User
+  alias Eworks.Loaders.Dataloader
 
   @doc """
     Inserts the current user as the third arguement to all the actions
@@ -15,10 +16,67 @@ defmodule EworksWeb.WorkersController do
     apply(__MODULE__, action_name(conn), args)
   end # end of action
 
+  defp load_previous_hires(previous_hires_ids) do
+    # check to ensure the ids are not emlty
+    if not Enum.empty?(previous_hires_id) do
+      # get the loader, load the orders and return the orders
+      Dataloader.get_data_loader()
+      # load the order orders with the ids
+      |> Dataloader.load_many(Orders, Order, previous_hires_ids)
+      # run the loader
+      |> Dataloader.run()
+      # get the results
+      |> Dataloader.get_many(Orders, Order, previous_hires_ids)
+    else
+      # return an empty list
+      []
+    end # end of previous hires ids
+  end
+
+  @doc """
+    Returns the profile of a given user
+  """
+  def get_worker_profile(conn, %{"user_id" => id}, _user) do
+    # query for returning the user and his/her work profile
+    user = from(
+      user in User,
+      # ensure the ids match
+      where: user.id == ^id,
+      # join work profile
+      join: profile in assoc(user, :work_profile),
+      # preload the work profile
+      preload: [work_profile: profile]
+    )
+    # get the user
+    |> Repo.one!()
+
+    # get the previous hires
+    previous_hires = get_previous_hires(user.work_profile.previous_hires)
+
+    # return the results
+    conn
+    # put the status to ok
+    |> put_status(:ok)
+    # render the results
+    |> render("worker_profile.json", user: user, previous_hires: previous_hires)
+
+  rescue
+    # the user with result does not exist
+    Ecto.NoResultsError ->
+      # return the results
+      conn
+      # put the status
+      |> put_status(:not_found)
+      # put the view
+      |> put_view(EworksWeb.ErrorView)
+      # render prof not nounf
+      |> render("prof_not_found")
+  end # end of worker profile
+
   @doc """
     Lists current workers
   """
-  def list_workers(conn, %{"metadata" => metadata}, _user) do
+  def list_workers(conn, %{"metadata" => after_cursor}, _user) do
     # query for getting the workers
     query = from(
       user in User,
@@ -35,7 +93,7 @@ defmodule EworksWeb.WorkersController do
     # get the page based on whether the metadata is available or not
     page = if metadata do
       # get the cursor_after
-      cursor_after = metadata.after
+      cursor_after = after_cursor
       # load the results
       Repo.paginate(query, after: cursor_after, cursor_fields: [:inserted_at, :id], limit: 10)
 
@@ -54,7 +112,7 @@ defmodule EworksWeb.WorkersController do
   @doc """
     searches for workers based on the skills
   """
-  def search_based_on_skills(conn,  %{"skill" => skill, "metadata" => metadata}, _user) do
+  def search_based_on_skills(conn,  %{"skill" => skill, "metadata" => after_cursor}, _user) do
     # query for getting the results
     query = from(
       user in User,
@@ -75,7 +133,7 @@ defmodule EworksWeb.WorkersController do
     # get the page based on whether the metabase is given
     page = if metadata do
       # get the cursor_after
-      cursor_after = metadata.after
+      cursor_after = after_cursor
       # load the results
       Repo.paginate(query, after: cursor_after, cursor_fields: [:inserted_at, :id], limit: 10)
     else
@@ -90,46 +148,6 @@ defmodule EworksWeb.WorkersController do
     # render the results
     |> render("workers.json", workers: page.entries, metadata: page.metadata)
   end # end of the search by skill
-
-  @doc """
-    gets worker profile
-  """
-  def get_worker(conn, %{"user_id" => id}, _user) do
-    # query for getting a user
-    query = from(
-      user in User,
-      # ensure the id is a match
-      where: user.id == ^id,
-      # add the work profile
-      join: work_profile in assoc(user, :work_profile),
-      # load the previous hires
-      join: previous_hire in assoc(work_profile, :previous_hires),
-      # prelod the work profile and the previous hires
-      preload: [work_profile: {work_profile, previous_hires: previous_hire}]
-    )
-
-    # get the result
-    case Repo.one(query) do
-      # the user not found
-      nil ->
-        # return the result
-        conn
-        # put the status
-        |> put_status(:not_found)
-        # put the view
-        |> put_view(EworksWeb.ErrorView)
-        # return the result
-        |> render("worker_not_found.json")
-
-      # user found
-      %User{} = user ->
-        conn
-        # put the status
-        |> put_status(:ok)
-        # render the worker
-        |> render("worker.json", user: user)
-    end # end of case for getting worker
-  end # end of get worker
 
   @doc """
     Saves a given worker
