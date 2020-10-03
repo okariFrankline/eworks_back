@@ -27,10 +27,6 @@ defmodule EworksWeb.UserController do
     apply(__MODULE__, action_name(conn), args)
   end # end of action
 
-  def index(conn, _params) do
-    users = Accounts.list_users()
-    render(conn, "index.json", users: users)
-  end
 
   @doc """
   Creates a new account using the details given by the user
@@ -199,24 +195,17 @@ defmodule EworksWeb.UserController do
     end # end of with for upgrading the client to a practise
   end # end of upgrade_client_to_practise
 
-  def show(conn, %{"id" => id}) do
-    user = Accounts.get_user!(id)
-    render(conn, "show.json", user: user)
-  end
-
-  def update(conn, %{"id" => id, "user" => user_params}) do
-    user = Accounts.get_user!(id)
-
-    with {:ok, %User{} = user} <- Accounts.update_user(user, user_params) do
-      render(conn, "show.json", user: user)
-    end
-  end
-
-  def delete(conn, %{"id" => id}) do
-    user = Accounts.get_user!(id)
-
-    with {:ok, %User{}} <- Accounts.delete_user(user) do
-      send_resp(conn, :no_content, "")
-    end
-  end
+  @doc """
+    Allows user to change their password
+  """
+  def change_user_password(conn, %{"new_password" => password_params}, user) do
+    with {:ok, _user} <- API.change_password(user, password_params) do
+      # return the response
+      conn
+      # put the status
+      |> put_status(:ok)
+      # render the success
+      |> render("success.json", message: "Your password has been successfully changed.")
+    end # end of password params
+  end # end of change user password
 end

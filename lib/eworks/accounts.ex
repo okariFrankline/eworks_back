@@ -194,6 +194,24 @@ defmodule Eworks.Accounts do
   end
 
   @doc """
+  Updates a profile by adding a phone number.
+
+  ## Examples
+
+      iex> add_phone_to_profile(profile, %{phone: new_value})
+      {:ok, %Profile{}}
+
+      iex> add_phone_to_profile(profile, %{phone: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def change_user_password(%User{} = user, attrs) do
+    user
+    |> User.password_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Updates a profile by adding city and country to the profile.
 
   ## Examples

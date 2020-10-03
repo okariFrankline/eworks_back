@@ -1,9 +1,13 @@
 defmodule EworksWeb.OrderView do
   use EworksWeb, :view
   alias EworksWeb.OrderView
+  alias Eworks.API.Utils
+  alias Eworks.Uploaders.{OrderAttachment, ProfilePicture}
 
 
-  # function of rendering a new order
+  @doc """
+    Renders new_order.json
+  """
   def render("new_order.json", %{new_order: order}) do
     %{
       data: %{
@@ -11,7 +15,7 @@ defmodule EworksWeb.OrderView do
         description: order.description,
         specialty: order.specialty,
         category: order.category,
-        attachments: upload_url(Eworks.Uploaders.OrderAttachment.url({order.attachments, order})),
+        attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),
         duration: order.duration,
         order_type: order.order_type,
         payment_schedule: order.payment_schedule,
@@ -23,12 +27,14 @@ defmodule EworksWeb.OrderView do
     }
   end
 
-  # order.json displayed only if the person requesting is the owner
+  @doc """
+    Renders order.json
+  """
   def render("order.json", %{order: order}) do
     %{
       data: %{
+        # order information
         id: order.id,
-        assignees: render_assignees(order.assignees, order.order_offers),
         description: order.description,
         is_verified: order.is_verified,
         is_assigned: order.is_assigned,
@@ -37,20 +43,25 @@ defmodule EworksWeb.OrderView do
         accepted_offers: order.accepted_offers,
         specialty: order.specialty,
         category: order.category,
-        offers_made: Enum.count(offers),
-        attachments: upload_url(Eworks.Uploaders.OrderAttachment.url({order.attachments, order})),
-        duration: order.duration,
         order_type: order.order_type,
+        duration: order.duration,
+        # payment info
         payment_schedule: order.payment_schedule,
         payable_amount: order.payable_amount,
         deadline: Date.to_iso8601(order.deadline),
         required_contractors: order.required_contractors,
+        offers_made: Enum.count(offers),
+        attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),
+        # assignees and offers
+        assignees: render_assignees(order.assignees, order.order_offers),
         offers: render_offers(order.assignees, order.order_offers)
       }
     }
-  end
+  end # end of order.json
 
-  # offer.json
+  @doc """
+    Renders offer.json
+  """
   def render("offer.json", %{order: offer}) do
     %{
       id: offer.id,
@@ -64,72 +75,30 @@ defmodule EworksWeb.OrderView do
         id: offer.user.id,
         full_name: offer.user.full_name,
         rating: offer.user.work_profile.rating,
-        about: offer.user.work_profile.professional_intro,
-        profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({offer.user.profile_pic, offer.user}))
+        cover_letter: offer.user.work_profile.cover_letter,
+        profile_pic: Utils.upload_url(ProfilePicture.url({offer.user.profile_pic, offer.user}))
       }
     }
-  end
+  end # end of offers.json
 
-  # offer.json
-  # def render("offer.json", %{offer: offer}) do
-  #   %{
-  #     id: offer.id,
-  #     asking_amount: offer.asking_amount,
-  #     is_accepted: offer.is_acepted,
-  #     is_rejected: offer.is_rejected,
-  #     is_cancelled: offer.is_cancelled,
-  #     has_accepted_order: offer.has_accepted_order,
-  #     # owner of the offer
-  #     owner: %{
-  #       id: offer.user.id,
-  #       full_name: offer.user.full_name,
-  #       rating: offer.user.work_profile.rating,
-  #       about: offer.user.work_profile.professional_intro,
-  #       profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({offer.user.profile_pic, offer.user}))
-  #     }
-  #   }
-  # end
-
-  # def render("assigned_order.json", %{order: order, offers: offers}) do
-  #   %{
-  #     data: %{
-  #       assignees: render_assignees(order.assignees, offers),
-  #       is_assigned: order.is_assigned,
-  #       description: order.descripiton,
-  #       payable_amount: order.payable_amount,
-  #       is_paid_for: order.is_paid_for,
-  #       payment_schedule: order.payment_schedule,
-  #       specialty: order.specialty,
-  #       already_assigned: order.already_assigned,
-  #       is_complete: order.is_complete,
-  #       deadline: Date.to_iso8601(order.deadline),
-  #       offers: render_offers(order.assignees, offers)
-  #     }
-  #   }
-  # end
-
+  @doc """
+    Renders assignee.json
+  """
   def render("assignee.json", %{order: offer}) do
     %{
       id: offer.user.id,
       full_name: offer.user.full_name,
       rating: offer.user.work_profile.rating,
       about: offer.user.work_profile.professional_intro,
+      job_success: offer.user.work_profile.success_rate,
       asking_amount: offer.asking_amount,
       profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({offer.user.profile_pic, offer.user}))
     }
-  end
+  end # end of assignee.json
 
-  # def render("offers.json", %{accepted_offers: offers}) do
-  #   %{
-  #     data: %{
-  #       order: render_one()
-  #       accepted_offers: render_many(offers, __MODULE__, "offer.json")
-  #     }
-  #   }
-  # end
-
-
-
+  @doc """
+    Renders accepted_offer.json
+  """
   def render("accepted_offer.json", %{accepted_offer: offer, order: order, user: user}) do
     %{
       data: %{
@@ -143,7 +112,7 @@ defmodule EworksWeb.OrderView do
         owner: %{
           id: user.id,
           full_name: user.full_name,
-          profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({user.profile_pic, user}))
+          profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}))
         },
         # the order for the offer
         order: %{
@@ -153,7 +122,7 @@ defmodule EworksWeb.OrderView do
         }
       }
     }
-  end
+  end # end of accepted_offer.json
 
   # succes render
   def render("success.json", _assigns) do
@@ -165,10 +134,6 @@ defmodule EworksWeb.OrderView do
   end
 
 ############################### PRIVATE FUNCTION ######################################################
-
-  defp upload_url(url) do
-    if url, do: url |> String.split("?") |> List.first(), else: nil
-  end # end of attachment_url
 
   defp render_assignees(order_assignees, offers) do
     # filter the offers to ownly those whose owner's ids are in the list of assignees of the order

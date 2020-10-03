@@ -1,14 +1,16 @@
 defmodule EworksWeb.UserView do
   use EworksWeb, :view
 
-  # new user.json
+  @doc """
+    Renders of new_user.json
+  """
   def render("new_user.json", %{user: user, token: token}) do
     # retrun the result
     %{
       data: %{
         # user with only the full name, is active and the username
         user: %{
-          name: user.full_name,
+          full_name: user.full_name,
           is_active: user.is_active,
           username: user.username,
         },
@@ -17,7 +19,9 @@ defmodule EworksWeb.UserView do
     }
   end # end of the new_user.json
 
-  # profile.json
+  @doc """
+    Renders the profile.json
+  """
   def render("profile.json", %{user: user} = result) do
     if user.user_type == "Client" do
       %{
@@ -29,9 +33,11 @@ defmodule EworksWeb.UserView do
       # the user is a practise
       render("practise_profile.json", result)
     end
-  end
+  end # end of profile.json
 
-  # new practise profile
+  @doc """
+    Renders the practise_profile.json
+  """
   def render("practise_profile.json", %{user: user}) do
     %{
       data: %{
@@ -41,9 +47,11 @@ defmodule EworksWeb.UserView do
         }
       }
     }
-  end
+  end # end of practise_profile.json
 
-  # logged_in.json
+  @doc """
+    Render of logged_in.json
+  """
   def render("logged_in.json", %{user: user, token: token}) do
     # return the data
     %{
@@ -54,7 +62,9 @@ defmodule EworksWeb.UserView do
     }
   end # end of logged_in.json
 
-  # work_profile.json
+  @doc """
+    Renders the work_profile.json
+  """
   def render("work_profile.json", %{work_profile: profile, user: user}) do
     %{
       data: %{
@@ -80,7 +90,7 @@ defmodule EworksWeb.UserView do
         rating: profile.rating
       }
     }
-  end
+  end # end of work_profile.json
 
   # user.json
   def render("user.json", %{user: user}) do
@@ -94,13 +104,15 @@ defmodule EworksWeb.UserView do
       city: user.city,
       is_company: user.is_company,
       user_type: user.user_type,
-      profile_pic: profile_pic_url(Eworks.Uploaders.ProfilePicture.url({user.profile_pic, user}, :thumb)),
+      profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
       emails: user.emails,
       phones: user.phones
     }
   end
 
-  # upgraded-user.json
+  @doc """
+    Renders the upgraded_profile.json
+  """
   def render("upgraded_work_profile.json", %{work_profile: profile}) do
     %{
       data: %{
@@ -120,7 +132,7 @@ defmodule EworksWeb.UserView do
         }
       }
     }
-  end
+  end # end of upgraded_profile.json
 
   # order.json
   def render("order.json", %{previous_hire: order}) do
@@ -136,16 +148,12 @@ defmodule EworksWeb.UserView do
   # success.json
   def render("success.json", %{message: message}) do
     %{
-      success: %{
+      data: %{
+        success: true,
         details: message
       }
     }
   end
-
-  # function for returning the profile_pic url of the user
-  defp profile_pic_url(url) do
-    if url, do: url |> String.split("?") |> List.first(), else: nil
-  end # end of function for getting the profile pic url
 
   # render the orders
   defp render_previous_hires(previous_hires) when is_list(previous_hires), do: render_many(previous_hires, __MODULE__, "order.json")

@@ -221,4 +221,11 @@ defmodule Eworks do
     end # end of if for checking if the user had previouslu upgraded their account
   end # end of upgrade_client_to_practise
 
+  @doc """
+    Changes the password of the user
+  """
+  def change_password(%User{} = user, password_params) do
+    with {:ok, _user} <- Accounts.change_user_password(user, password_params), do: result
+  end # end of change_password
+
 end # end of the Eworks module

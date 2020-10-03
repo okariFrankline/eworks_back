@@ -2,7 +2,7 @@ defmodule EworksWeb.OrderController do
   use EworksWeb, :controller
 
   alias Eworks.{Orders}
-  alias Eworks.Orders.Order
+  alias Eworks.Orders.{Order, API}
   alias EworksWeb.Plugs
 
   plug Plugs.OrderById when  action not in [:create_new_order]
@@ -20,25 +20,11 @@ defmodule EworksWeb.OrderController do
   end # end of action
 
   @doc """
-    Gets an order as an owner
-  """
-  def get_order(conn, _params, user, order) do
-    with {:ok, result} <- Eworks.Orders.API.get_order(user, order) do
-      # return the order
-      conn
-      # put the status
-      |> put_status(:ok)
-      # render the order
-      |> render("order.json", order: order, offers: result.offers)
-    end # end of with
-  end # end of get order/3
-
-  @doc """
     Creates a new order
     Order params includes: order category, order specialty
   """
   def create_new_order(conn, %{"order" => order_params}, user, _order) do
-    with {:ok, order} <- Eworks.Orders.API.create_new_order(user, order_params) do
+    with {:ok, order} <- API.create_new_order(user, order_params) do
       conn
       # put the status
       |> put_status(:created)
@@ -53,7 +39,7 @@ defmodule EworksWeb.OrderController do
   """
 
   def update_order_payment(conn, %{"new_order" => %{"order_payment" => payment_params}}, user, order) do
-    with {:ok, order} <- Eworks.Orders.API.update_order_payment(user, order, payment_params) do
+    with {:ok, order} <- API.update_order_payment(user, order, payment_params) do
       conn
       # put the status
       |> put_status(:ok)
@@ -68,7 +54,7 @@ defmodule EworksWeb.OrderController do
   """
 
   def update_order_duration(conn, %{"new_order" => %{"order_duration" => duration_params}}, user, order) do
-    with {:ok, order} <- Eworks.Orders.API.update_order_duration(user, order, duration_params) do
+    with {:ok, order} <- API.update_order_duration(user, order, duration_params) do
       conn
       # put the status
       |> put_status(:ok)
@@ -82,7 +68,7 @@ defmodule EworksWeb.OrderController do
   """
 
   def update_order_type_and_contractors(conn, %{"new_order" => %{"order_type" => type_params}}, user, order) do
-    with {:ok, order} <- Eworks.Orders.API.update_order_type_and_contractors(user, order, type_params) do
+    with {:ok, order} <- API.update_order_type_and_contractors(user, order, type_params) do
       conn
       # put the status
       |> put_status(:ok)
@@ -96,7 +82,7 @@ defmodule EworksWeb.OrderController do
   """
   def update_order_description(conn, %{"new_order" => %{"order_description" => description}}, user, order) do
     # update the description of the order
-    with {:ok, order} <- Eworks.Orders.API.update_order_description(user, order, description) do
+    with {:ok, order} <- API.update_order_description(user, order, description) do
       conn
       |> put_status(:ok)
       |> render("new_order.json", new_order: order)
@@ -107,7 +93,7 @@ defmodule EworksWeb.OrderController do
     Updates the order's attachments
   """
   def update_order_attachments(conn, %{"attachments" => attachment_params}, user, order) do
-    with {:ok, order} <- Eworks.Orders.API.update_order_attachments(user, order, attachment_params) do
+    with {:ok, order} <- API.update_order_attachments(user, order, attachment_params) do
       conn
       # put status to ok
       |> put_status(:ok)
@@ -121,7 +107,7 @@ defmodule EworksWeb.OrderController do
   """
   def send_order_verification_code(conn, _params, user, order) do
     # get the order with the given order
-    with :ok <- Eworks.Orders.API.send_order_verification_code(user, order) do
+    with :ok <- API.send_order_verification_code(user, order) do
       conn
       # put status
       |> put_status(:ok)
@@ -134,7 +120,7 @@ defmodule EworksWeb.OrderController do
     Verifies an order
   """
   def verify_order(conn, %{"new_order" => %{"verification_code" => verification_code}}, user, order) do
-    with {:ok, order} <- Eworks.Orders.API.verify_order(user, order, verification_code) do
+    with {:ok, order} <- API.verify_order(user, order, verification_code) do
       conn
       # put status to ok
       |> put_status(:ok)
@@ -148,7 +134,7 @@ defmodule EworksWeb.OrderController do
   """
   def submit_order_offer(conn, %{"new_offer" => %{"asking_amount" => asking_amount}}, user, order) do
     # place the offer
-    :ok = Eworks.Orders.API.submit_order_offer(user, order, asking_amount)
+    :ok = API.submit_order_offer(user, order, asking_amount)
     conn
     # put the status
     |> put_status(:created)
@@ -161,7 +147,7 @@ defmodule EworksWeb.OrderController do
     Rejects an offer
   """
   def reject_order_offer(conn,  %{"order_offer_id" => id}, user, order) do
-    Eworks.Orders.API.reject_order_offer(user, order, id)
+    API.reject_order_offer(user, order, id)
     # return a response
     conn
     # send a response
@@ -174,7 +160,7 @@ defmodule EworksWeb.OrderController do
     Accepts a given offer for a particular order
   """
   def accept_order_offer(conn, %{"order_offer_id" => order_offer_id}, user, order) do
-    with {:ok, order} <- Eworks.Orders.API.accept_order_offer(user, order, order_offer_id) do
+    with {:ok, order} <- API.accept_order_offer(user, order, order_offer_id) do
       conn
       # put a status
       |> put_status(:ok)
@@ -187,7 +173,7 @@ defmodule EworksWeb.OrderController do
     Assign a job to a given user
   """
   def assign_order(conn, %{"to_assign_id" => to_assign_id}, user, order) do
-    with {:ok, order} <- Eworks.Orders.API.assign_order(user, order, to_assign_id) do
+    with {:ok, order} <- API.assign_order(user, order, to_assign_id) do
       conn
       # ok
       |> put_status(:ok)
@@ -200,7 +186,7 @@ defmodule EworksWeb.OrderController do
     Accepts to work on a given order
   """
   def accept_order(conn, %{"order_offer_id" => offer_id}, user, order) do
-    with {:ok, offer} <- Eworks.Orders.API.accept_order(user, order, offer_id) do
+    with {:ok, offer} <- API.accept_order(user, order, offer_id) do
       conn
       # put status
       |> put_status(:ok)
@@ -213,7 +199,7 @@ defmodule EworksWeb.OrderController do
     Tag order
   """
   def tag_order(conn, _params, user, order) do
-    with {:ok, _order} <- Eworks.Orders.API.tag_order(user, order) do
+    with {:ok, _order} <- API.tag_order(user, order) do
       # return the success
       conn
       # put the status
@@ -222,13 +208,5 @@ defmodule EworksWeb.OrderController do
       |> render("success.json")
     end
   end # end of tag order
-
-  def delete(conn, %{"id" => id}) do
-    order = Orders.get_order!(id)
-
-    with {:ok, %Order{}} <- Orders.delete_order(order) do
-      send_resp(conn, :no_content, "")
-    end
-  end
 
 end # end of the module

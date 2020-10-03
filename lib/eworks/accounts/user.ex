@@ -29,6 +29,7 @@ defmodule Eworks.Accounts.User do
     field :phones, {:array, :string}
     field :profile_pic, Eworks.Uploaders.ProfilePicture.Type
     # virtual fields
+    field :current_password, :string, virtual: true
     field :password, :string, virtual: true
     field :first_name, :string, virtual: true
     field :last_name, :string, virtual: true
@@ -85,6 +86,23 @@ defmodule Eworks.Accounts.User do
       :profile_pic
     ])
   end
+
+  @doc false
+  def password_changeset(user, attrs) do
+    changeset(user, attrs)
+    # cast the password and current password
+    |> cast(attrs, [
+      :password,
+      :current_password
+    ])
+    # ensure they are given
+    |> validate_required([
+      :password,
+      :current_password
+    ])
+    # update hte passwrd
+    |> update_password()
+  end # end of password_changeset
 
   @doc false
   def creation_changeset(user, attrs) do
@@ -252,5 +270,16 @@ defmodule Eworks.Accounts.User do
     end # end of if
   end # end of validate_email_format/1
   defp validate_email_and_add_to_emails(changeset), do: changeset
+
+  # function that updates the password
+  defp update_password(%Changeset{vaild?: true, changes: %{password: new_pass, current_password: current_pass}, data: %__MODULE__{password_hash: hash}} = changeset) do
+    if Utils.valid_current_password(hash, current_pass) do
+      
+    else
+      # ass error
+      changeset |> add_error(:current_password, "Failed. Current password entered is wrong.")
+    end # end of if
+  end # end of update_password/1
+  defp update_password(changeset), do: changeset
 
 end # end of the Eworks.Accounts.User module
