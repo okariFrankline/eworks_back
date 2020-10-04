@@ -33,4 +33,12 @@ defmodule EworksWeb.NotificationChannel do
     {:noreply, socket}
   end # end of handling after join function.
 
+  @doc """
+    Handle out
+  """
+  def handle_out("notificcation::" <> type, payload, socket) do
+    IO.inspect(payload)
+    {:noreply, socket}
+  end # end of handle_out
+
 end # end of the module for user channels

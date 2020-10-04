@@ -37,7 +37,8 @@ defmodule EworksWeb.UserController do
     # create a new user and store a token for them
     with {:ok, %User{} = user} <- Eworks.register_user(user_type, user_params), {:ok, jwt} <- Authentication.create_token(user) do
       # Generate a new email
-      NewEmail.new_activation_email(user)
+      # create a new activation code email
+      NewEmail.new_activation_key_email(user, "Eworks Registration Confirmation", "Thank you for registering with Eworks. Here is your activation key. \n #{user.activation_key}")
       # send the email
       |> Mailer.deliver_later()
 
@@ -157,7 +158,7 @@ defmodule EworksWeb.UserController do
     Requests a new activation key
   """
   def new_activation_key_request(conn, _params, user) do
-    with :ok <- Eworks.send_new_activation_key(user) do
+    with {:ok, _user} <- Eworks.resend_activation_key(user) do
       conn
       # send the response
       |> put_status(:ok)

@@ -87,21 +87,6 @@ defmodule Eworks do
   end # end of the verify accounts
 
   @doc """
-    Sends a new activation request to the user
-  """
-  def send_new_activation_key(%User{} = user) do
-    # generate a new activation key requst
-    with user <- user |> Ecto.Changeset.change(%{activation_key: Enum.random(100_000..999_999)}) |> Repo.update!() do
-      # create a new activation code email
-      NewEmail.resend_activation_email(user)
-      # send the email
-      |> Mailer.deliver_later()
-      # return :ok
-      :ok
-    end # end of inserting a new activation code
-  end # end of sending a new activation key
-
-  @doc """
     Updates the location of a user profile
   """
   def update_user_profile_location(%User{} = user, location_params) do
@@ -160,7 +145,18 @@ defmodule Eworks do
   """
   def update_user_profile_picture(%User{} = user, %Plug.Upload{} = profile_pic) do
     # update the current user
-    with {:ok, _user} = result <- Accounts.update_user_profile_pic(user, %{profile_pic: profile_pic}), do: result
+
+    with {:ok, user} <- Accounts.update_user_profile_pic(user, %{profile_pic: profile_pic}) do
+      if user.user_type == "Client" do
+        # retun the result
+        {:ok, user}
+      else
+        # preload the work profile
+        user = Repo.preload(user, [:work_profile])
+        # reurn the result
+        {:ok, user}
+      end # end of with
+    end # end of with
   end # end of update_user_profile/2
 
 
@@ -227,5 +223,22 @@ defmodule Eworks do
   def change_password(%User{} = user, password_params) do
     with {:ok, _user} = result <- Accounts.change_user_password(user, password_params), do: result
   end # end of change_password
+
+   @doc """
+    Resends a new activation key
+  """
+  def resend_activation_key(%User{} = user) do
+    # generate key
+    key = Enum.random(10000..999999)
+    # update the activation key
+    user = user |> Ecto.Changeset.change(%{activation_key: key}) |> Repo.update!()
+    # send an email notification with the new key
+    NewEmail.new_activation_key_email(user, "Eworks Activation Key Resend", "Thank you for registering with Eworks. Here is your new activation key: \n #{key}")
+    # send the email
+    |> Mailer.deliver_later()
+
+    # return a response
+    {:ok, user}
+  end # end of resending activation key
 
 end # end of the Eworks module

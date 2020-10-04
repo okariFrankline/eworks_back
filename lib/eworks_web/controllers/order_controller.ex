@@ -4,7 +4,7 @@ defmodule EworksWeb.OrderController do
   alias Eworks.Orders.{API}
   alias EworksWeb.Plugs
 
-  plug Plugs.OrderById when  action not in [:create_new_order]
+  plug Plugs.OrderById when  action not in [:create_new_order, :cancel_order_offer]
   plug Plugs.CanSubmitOrderOffer when action in [:submit_order_offer]
 
   @doc """
@@ -111,7 +111,7 @@ defmodule EworksWeb.OrderController do
       # put status
       |> put_status(:ok)
       # send the response
-      |> render("success.json")
+      |> render("success.json", message: "Order verification code has been sent to the email #{user.auth_email}.")
     end
   end # end of save order and sending a verification code
 
@@ -133,12 +133,12 @@ defmodule EworksWeb.OrderController do
   """
   def submit_order_offer(conn, %{"new_offer" => %{"asking_amount" => asking_amount}}, user, order) do
     # place the offer
-    :ok = API.submit_order_offer(user, order, asking_amount)
+    {:ok, _order} = API.submit_order_offer(user, order, asking_amount)
     conn
     # put the status
     |> put_status(:created)
     # send a response to the user
-    |> render("success.json")
+    |> render("success.json", message: "Offer successfully submitted")
   end # end of submit offer
 
 
@@ -152,7 +152,7 @@ defmodule EworksWeb.OrderController do
     # send a response
     |> put_status(:ok)
     # render success
-    |> render("success.json")
+    |> render("success.json", message: "Offer successfully rejected.")
   end # end of reject_order_offer
 
   @doc """
@@ -207,5 +207,18 @@ defmodule EworksWeb.OrderController do
       |> render("success.json")
     end
   end # end of tag order
+
+  @doc """
+    Cancel order offer
+  """
+  def cancel_order_offer(conn, %{"order_offer_id" => id}, _user, _order) do
+    API.cancel_order_offer(id)
+    # return a response
+    conn
+    # send a response
+    |> put_status(:ok)
+    # render success
+    |> render("success.json", message: "Offer successfully cancelled.")
+  end
 
 end # end of the module

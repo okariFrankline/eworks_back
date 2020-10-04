@@ -53,5 +53,12 @@ defmodule EworksWeb.Authentication do
       # return result
       {:ok, %{user: user, token: jwt}}
     end # end of with
-  end
+  end # end of login_with_email_and pass
+
+  @doc """
+    Logouts the user
+  """
+  def logout(%Plug.Conn{} = conn) do
+    
+  end # end of log out
 end # end of the authentication module

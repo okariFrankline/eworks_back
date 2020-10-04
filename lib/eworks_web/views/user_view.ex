@@ -81,7 +81,7 @@ defmodule EworksWeb.UserView do
           username: user.username,
           country: user.country,
           city: user.city,
-          profile_pic: user.profile_pic
+          profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
         },
         # profile information
         id: profile.id,

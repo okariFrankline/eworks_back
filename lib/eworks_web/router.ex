@@ -50,13 +50,15 @@ defmodule EworksWeb.Router do
     post "/user/profile/emails", UserController, :update_user_profile_emails
     post "/user/profile/phones", UserController, :update_user_profile_phones
     post "/user/profile/picture", UserController, :update_user_profile_picture
+    post "/user/change/password", UserController, :change_user_password
+    get "/user/new/activation", UserController, :new_activation_key_request
 
     post "/work/profile/:work_profile_id/skills", UserController, :update_work_profile_skills
     post "/work/profile/:work_profile_id/intro", UserController, :update_work_profile_prof_intro
     post "/work/profile/:work_profile_id/letter", UserController, :update_work_profile_cover_letter
 
     # order routes
-    get "/order/:order_id", OrderController, :get_order
+    get "/order/:order_id", OrderListController, :get_order
     post "/order/new", OrderController, :create_new_order
     post "/order/:order_id/type", OrderController, :update_order_type_and_contractors
     post "/order/:order_id/payment", OrderController, :update_order_payment
@@ -73,6 +75,7 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/offer/:order_offer_id/accept", OrderController, :accept_order_offer
     post "/order/:order_id/assign/:to_assign_id", OrderController, :assign_order
     post "/order/:order_id/accept/:order_offer_id", OrderController, :accept_order
+    post "/order/offer/:order_offer_id/cancel", OrderController, :cancel_order_offer
 
     # invites
     post "/invite/:order_id/new", InviteController, :create_new_invite
@@ -90,6 +93,9 @@ defmodule EworksWeb.Router do
     post "/direct/hire/:direct_hire_id/accept", DirectHireController, :accept_direct_hire_request
     post "/direct/hire/:direct_hire_id/reject", DirectHireController, :reject_direct_hire_request
     post "/direct/hire/:direct_hire_id/assign", DirectHireController, :assign_direct_hire_request
+
+    # get
+    get "/orders/unassigned", OrderListController, :list_unassigned_orders
 
   end # end of scope for logged in users
 

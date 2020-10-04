@@ -22,7 +22,8 @@ defmodule EworksWeb.OrderView do
         payable_amount: order.payable_amount,
         is_verified: order.is_verified,
         deadline: show_deadline(order.deadline),
-        required_contractors: order.required_contractors
+        required_contractors: order.required_contractors,
+        posted_on: Date.to_iso8601(order.inserted_at)
       }
     }
   end
@@ -49,6 +50,7 @@ defmodule EworksWeb.OrderView do
         payment_schedule: order.payment_schedule,
         payable_amount: order.payable_amount,
         deadline: Date.to_iso8601(order.deadline),
+        posted_on: Date.to_iso8601(order.inserted_at),
         required_contractors: order.required_contractors,
         offers_made: Enum.count(order.order_offers),
         attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),
@@ -125,10 +127,11 @@ defmodule EworksWeb.OrderView do
   end # end of accepted_offer.json
 
   # succes render
-  def render("success.json", _assigns) do
+  def render("success.json", %{message: message}) do
     %{
       data: %{
-        success: true
+        success: true,
+        message: message
       }
     }
   end

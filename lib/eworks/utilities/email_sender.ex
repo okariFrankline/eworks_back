@@ -7,27 +7,15 @@ defmodule Eworks.Utils.NewEmail do
   alias Eworks.Orders.Order
 
   # function for generating an email after signing in a user
-  def new_activation_email(%User{activation_key: key, auth_email: email } = _user) do
+  def new_activation_key_email(%User{auth_email: email} = _user, subject, message) do
     # create the email to send to the user
     base_mail()
     # add where the email is to be sent to
     |> to(email)
     # subject
-    |> subject("Eworks Registration Confirmation")
+    |> subject(subject)
     # text body
-    |> text_body("Thank you for registering for an account. Here is your account activation code: \n #{key}")
-  end
-
-  # function for generating an email after signing in a user
-  def resend_activation_email(%User{activation_key: key, auth_email: email } = _user) do
-    # create the email to send to the user
-    base_mail()
-    # add where the email is to be sent to
-    |> to(email)
-    # subject
-    |> subject("New Eworks Registration Confirmation Code")
-    # text body
-    |> text_body("Thank you for registering for an account. Here is your new account activation code: \n #{key}")
+    |> text_body(message)
   end
 
   # function for sending the order verification code
@@ -36,7 +24,7 @@ defmodule Eworks.Utils.NewEmail do
     # put the sender of the email
     |> to(email)
     # subject of the email
-    |> subject("New Order Verification Code: #{specialty}")
+    |> subject("New Order Verification Code. **ORDER::#{specialty}**")
     # subject of the email
     |> text_body("Thank you for creating a new order with us. Here is your order verification code: \n #{code}")
   end # end of the new order verification code email

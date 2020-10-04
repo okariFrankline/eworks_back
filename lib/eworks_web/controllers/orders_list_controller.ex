@@ -3,7 +3,7 @@ defmodule EworksWeb.OrderListController do
 
   import Ecto.Query, warn: false
   alias Eworks.{Orders, Repo}
-  alias Eworks.Orders.{Order}
+  alias Eworks.Orders.{Order, OrderOffer}
   alias Eworks.Accounts.WorkProfile
   alias Eworks.Dataloader.Loader
 
@@ -35,7 +35,7 @@ defmodule EworksWeb.OrderListController do
       preload: [user: user]
     )
     # get the page
-    page = if after_cursor do
+    page = if after_cursor == "false" do
       # get the next cursor
       next_cursor = after_cursor
       # get the page
@@ -163,42 +163,38 @@ defmodule EworksWeb.OrderListController do
     Gets an order specified by a given id that belongs to the current user
   """
   def get_order(conn, %{"order_id" => id}, _user) do
-    # query for gettingt the order
-    query = from(
-      order in Order,
-      # enssure user id is similar
-      where: order.user_id == ^id,
-      # join the order_offers
-      join: offer in assoc(order, :order_offers),
-      # only preload offers that have not been cancelled
-      where: offer.is_cancelled == false and offer.is_rejected == false,
-      # join the users of the offers
-      join: offer_owner in assoc(offer, :user),
-      # preload the order_offer
-      preload: [order_offers: {offer, user: offer_owner}]
-    )
+    # get the order
+    order = Orders.get_order!(id) |> Repo.preload([
+      # preload offers
+      order_offers: from(
+        offer in OrderOffer,
+        # only preload offers that have not been cancelled
+        where: offer.is_cancelled == false and offer.is_rejected == false,
+        # join the users of the offers
+        join: offer_owner in assoc(offer, :user),
+        # get the work-profile
+        join: profile in assoc(offer_owner, :work_profile),
+        # preload the order_offer
+        preload: [user: {offer_owner, work_profile: profile}]
+      )
+    ])
 
-    # get the result
-    case Repo.one(query) do
-      # the user not found
-      nil ->
-        # return the result
-        conn
-        # put the status
-        |> put_status(:not_found)
-        # put the view
-        |> put_view(EworksWeb.ErrorView)
-        # return the result
-        |> render("order_not_found.json")
+    conn
+    # put the status
+    |> put_status(:ok)
+    # render the worker
+    |> render("my_order.json", order: order)
 
-      # order found
-      %Order{} = order ->
-        conn
-        # put the status
-        |> put_status(:ok)
-        # render the worker
-        |> render("my_order.json", order: order)
-    end # end of case for getting worker
+  rescue
+    Ecto.NoResultsError ->
+      # return the result
+      conn
+      # put the status
+      |> put_status(:not_found)
+      # put the view
+      |> put_view(EworksWeb.ErrorView)
+      # return the result
+      |> render("order_not_found.json")
   end # end of get order
 
   @doc """

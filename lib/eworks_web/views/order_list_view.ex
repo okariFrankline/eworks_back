@@ -44,11 +44,7 @@ defmodule EworksWeb.OrderListView do
     Renders my_order.json
   """
   def render("my_order.json", %{order: order}) do
-    %{
-      data: %{
-        order: render_one(order, OrderView, "order.json")
-      }
-    }
+    render_one(order, OrderView, "order.json")
   end # end of my_order.json
 
   @doc """
@@ -113,7 +109,7 @@ defmodule EworksWeb.OrderListView do
   @doc """
     Renders order.json
   """
-  def render("order.json", %{order: order}) do
+  def render("order.json", %{order_list: order}) do
     %{
       # order info
       id: order.id,

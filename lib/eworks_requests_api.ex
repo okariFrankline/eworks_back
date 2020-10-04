@@ -158,5 +158,4 @@ defmodule Eworks.Requests.API do
     Eworks.Orders.API.assign_order(user, hire.order, hire.work_profile.user_id)
   end # end of assign_order_from_direct_hire
 
-
 end # end of Eworks.Request.API

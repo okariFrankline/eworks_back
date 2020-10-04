@@ -59,7 +59,8 @@ defmodule EworksWeb.ErrorView do
   def render("unauthenticated.json", _assigns) do
     %{
       errors: %{
-        details: "Failed. Login to continue."
+        success: false,
+        details: "Failed. You are not logged in. Please login to continue."
       }
     }
   end
