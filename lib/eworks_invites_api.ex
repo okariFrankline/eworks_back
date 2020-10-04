@@ -29,17 +29,29 @@ defmodule Eworks.Collaborations.API do
     # preload the user work profile
     profile = Repo.preload(user, [:work_profile]).work_profile
     # create the invite
-    with {:ok, _invite} = result <- profile |> Ecto.build_assoc(:invites, %{order_id: order_id}) |> Collaborations.create_invite(invite_params), do: result
+    with {:ok, invite} <- profile |> Ecto.build_assoc(:invites, %{order_id: order_id}) |> Collaborations.create_invite(invite_params) do
+      # preload the offers
+      invite = Repo.preload(invite, [:collaboration_offers])
+      # return resutl
+      {:ok, invite}
+    end # end of with
   end # end of create invite
 
   @doc """
     Adds payment information about an invite
   """
   def update_invite_payment(%User{} = user, %Invite{} = invite, payment_params) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
     # ensure the current user is the owner of the invite
-    if user.id == invite.user_id do
+    if profile.id == invite.work_profile_id do
       # update the order
-      with {:ok, _invite} = result <- Collaborations.update_invite_payment(invite, payment_params), do: result
+      with {:ok, invite} = result <- Collaborations.update_invite_payment(invite, payment_params) do
+        # preload the offers
+        invite = Repo.preload(invite, [:collaboration_offers])
+        # return resutl
+        {:ok, invite}
+      end # end of with
     else
       {:error, :not_owner}
     end # end of checking if the current user is the owner of the invite

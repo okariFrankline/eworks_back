@@ -11,7 +11,7 @@ defmodule Eworks.Collaborations.Invite do
     field :duration, :string
     field :deadline, :date
     field :payable_amount, :string
-    field :payable_schedule, :string
+    field :payment_schedule, :string
     field :required_collaborators, :integer
     field :is_paid_for, :boolean, default: false
     field :collaborators, {:array, :binary_id} # holds the ids of the people assigned as collaborators
@@ -61,7 +61,7 @@ defmodule Eworks.Collaborations.Invite do
     # insert the verification code
     |> set_deadline_date()
     # ensure the user id is given
-    |> foreign_key_constraint(:user_id)
+    |> foreign_key_constraint(:work_profile)
   end # end of the creation_changeset/2
 
   @doc false

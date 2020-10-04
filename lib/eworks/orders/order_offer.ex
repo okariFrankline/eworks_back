@@ -12,7 +12,6 @@ defmodule Eworks.Orders.OrderOffer do
     field :is_cancelled, :boolean, default: false
     field :is_rejected, :boolean, default: false
     field :is_accepted, :boolean, default: false
-    field :order_id, :binary_id
 
     # owner of the offer
     # field :owner_name, :string
@@ -23,6 +22,8 @@ defmodule Eworks.Orders.OrderOffer do
 
     # belongs to one user
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
+    # belongs to the order
+    belongs_to :order, Eworks.Orders.Order, type: :binary_id
 
     timestamps()
   end

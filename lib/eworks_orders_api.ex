@@ -32,17 +32,11 @@ defmodule Eworks.Orders.API do
     Creates a new order
   """
   def create_new_order(%User{} = user, order_params) do
-    # create a new order user from the current user
-    order_owner = Orders.order_user_from_account_user(user)
-    # create a new order
-    order = order_owner
+    user
     # add the user id to the order
     |> Ecto.build_assoc(:orders, %{owner_name: user.full_name})
     # create the order
     |> Orders.create_order(order_params)
-
-    IO.inspect(order)
-    order
   end # creates an new order
 
   @doc """
@@ -407,8 +401,8 @@ defmodule Eworks.Orders.API do
   """
   def accept_order(%User{} = user, %Order{} = order, order_offer_id) do
     # get the order_offer
-    # order_offer = Orders.get_order_offer!(order_offer_id)
-    [order_offer | _rest] = Repo.preload(user, [order_offers: from(offer in OrderOffer, where: offer.id == ^order_offer_id)]).order_offers
+    #order_offer = Orders.get_order_offer!(order_offer_id)
+    [order_offer | _rest] = Repo.preload(order, [order_offers: from(offer in OrderOffer, where: offer.id == ^order_offer_id)]).order_offers
     # ensure that the current user if the owner of the offer
     if order_offer.user_id == user.id do
       # update the offer to set the accepted_order to true
@@ -416,7 +410,7 @@ defmodule Eworks.Orders.API do
         # # create a notification for the owner of the order about the accepting of the order
         Task.start(fn ->
           # preload the owner of the order
-          owner = Accounts.get_user!(order.user_id)
+          owner = Repo.preload(order, [:user]).user
           # message
           message = "#{user.full_name} has acepted to work on your order **ORDER::#{order.specialty}**"
           # send an email notification to the owner of the order

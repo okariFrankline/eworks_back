@@ -178,6 +178,16 @@ defmodule EworksWeb.OrderController do
       |> put_status(:ok)
       # render the order
       |> render("order.json", order: order)
+
+    else
+      {:error, :already_assigned} ->
+        conn
+        # put the status
+        |> put_status(:bad_request)
+        # rput a view
+        |> put_view(EworksWeb.ErrorView)
+        # render the already assigned
+        |> render("already_assigned.json")
     end # end of with for assigning of the order to the user
   end # end of assign order
 

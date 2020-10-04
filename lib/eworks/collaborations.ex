@@ -50,6 +50,7 @@ defmodule Eworks.Collaborations do
 
   """
   def create_invite(%Invite{} = invite, attrs \\ %{}) do
+    IO.inspect(invite)
     invite
     |> Invite.creation_changeset(attrs)
     |> Repo.insert()

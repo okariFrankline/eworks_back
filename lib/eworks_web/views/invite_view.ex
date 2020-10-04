@@ -20,8 +20,8 @@ defmodule EworksWeb.InviteView do
           id: user.id,
           full_name: user.full_name
         },
-        collaborators: render_collaborators(invite.offers, invite.collaborators),
-        offers: render_invite_offers(invite.offers, invite.collaborators)
+        collaborators: render_collaborators(invite.collaboration_offers, invite.collaborators),
+        offers: render_invite_offers(invite.collaboration_offers, invite.collaborators)
       }
     }
   end # end of invite.json

@@ -38,7 +38,7 @@ defmodule EworksWeb.ErrorView do
   end
 
   # function for rendering already assigned
-  def render("already_assigned.json", _) do
+  def render("already_assigned.json", _assigned) do
     %{
       errors: %{
         details: "Failed. Order already assigned"

@@ -11,18 +11,18 @@ defmodule EworksWeb.InviteController do
   # action
   def action(conn, _) do
     # insert the current user and the invite into the arhs
-    args = [conn, conn.args, conn.assigns.current_user, Map.get(conn.assigns, :invite)]
+    args = [conn, conn.params, conn.assigns.current_user, Map.get(conn.assigns, :invite)]
     # return the functon
     apply(__MODULE__, action_name(conn), args)
   end # end of action
 
-  def create_new_invite(conn, %{"new_invite" => invite_params, "invite_id" => invite_id}, user, _invite) do
-    with {:ok, %Invite{} = invite} = API.create_invite(user, invite_id, invite_params) do
+  def create_new_invite(conn, %{"new_invite" => invite_params, "order_id" => order_id}, user, _invite) do
+    with {:ok, %Invite{} = invite} = API.create_invite(user, order_id, invite_params) do
       conn
       # put status
       |> put_status(:created)
       # render the  invite
-      |> render("invite.json", invite: invite)
+      |> render("invite.json", invite: invite, user: user)
     end # end of with
   end # end of create new invite
 
@@ -35,7 +35,7 @@ defmodule EworksWeb.InviteController do
       # put the status
       |> put_status(:ok)
       # render the invite
-      |> render("invite.json", invite: invite)
+      |> render("invite.json", invite: invite, user: user)
     end # end of with
   end # end of update_invite_payment
 
