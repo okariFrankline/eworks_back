@@ -28,9 +28,12 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 # configuration for bamboo
+# config :eworks, Eworks.Utils.Mailer,
+#   adapter: Bamboo.SendGridAdapter,
+#   api_key: {:system, "SENDGRID_API_KEY"}
+
 config :eworks, Eworks.Utils.Mailer,
-  adapter: Bamboo.SendGridAdapter,
-  api_key: {:system, "SENDGRID_API_KEY"}
+  adapter: Bamboo.LocalAdapter
 
 # configure guardian
 config :eworks, EworksWeb.Authentication.Guardian,
@@ -55,6 +58,11 @@ config :ex_aws,
   access_key_id: "AKIARBSRUSOWTCDALPES",
   secret_access_key: "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",
   region: "ap-south-1"
+
+  config :cors_plug,
+    origin: ["http://localhost:3000"],
+    max_age: 86400,
+    methods: ["GET", "POST"]
 
 # configure guardian
 # config :guardian, Guardian.DB,

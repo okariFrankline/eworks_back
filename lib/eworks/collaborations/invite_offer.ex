@@ -12,8 +12,8 @@ defmodule Eworks.Collaborations.InviteOffer do
     field :has_accepted_invite, :boolean, default: false
     # owner information
     field :owner_name, :string
-    field :rating, :integer
-    field :about, :string
+    field :owner_rating, :integer
+    field :owner_about, :string
     field :owner_profile_pic, :string
     field :owner_job_success, :integer
     # belongs to one user

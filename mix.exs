@@ -69,7 +69,9 @@ defmodule Eworks.MixProject do
       {:timex, "~> 3.6"},
       {:dataloader, "~> 1.0"},
       # paginator library
-      {:paginator, "~> 1.0"}
+      {:paginator, "~> 1.0"},
+      # cores
+      {:cors_plug, "~> 2.0"}
     ]
   end
 

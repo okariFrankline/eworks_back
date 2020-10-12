@@ -21,9 +21,13 @@ defmodule EworksWeb.Plugs.SessionPlug do
     # get the token from guardian
     token = current_token(conn)
     # get the user with the given session
-    with {:ok, user} <- authorize(token) do
+    with {:ok, result} <- authorize(token) do
       # assign the current user to the conn
-      assign(conn, :current_user, user)
+      conn
+      # put the current user
+      |> assign(:current_user, result.user)
+      # put the current session
+      |> assign(:current_session, result.session)
     else
       {:error, _} ->
         # return the plug
@@ -53,7 +57,7 @@ defmodule EworksWeb.Plugs.SessionPlug do
         # get the account
         session_with_user = session |> Repo.preload([:user])
         # return the account
-        {:ok, session_with_user.user}
+        {:ok, %{session: session_with_user, user: session_with_user.user}}
     end # end of cond
   end # end of the authorize function
 

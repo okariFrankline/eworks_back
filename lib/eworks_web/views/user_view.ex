@@ -7,17 +7,19 @@ defmodule EworksWeb.UserView do
   @doc """
     Renders of new_user.json
   """
-  def render("new_user.json", %{user: user, token: token}) do
+  def render("new_user.json", %{user: user}) do
     # retrun the result
     %{
       data: %{
         # user with only the full name, is active and the username
         user: %{
+          id: user.id,
           full_name: user.full_name,
           is_active: user.is_active,
           username: user.username,
+          auth_email: user.auth_email
         },
-        token: token
+        message: "Thank you, #{user.full_name}, for creating an account. Your activation key has been sent to #{user.auth_email}"
       }
     }
   end # end of the new_user.json
@@ -55,12 +57,11 @@ defmodule EworksWeb.UserView do
   @doc """
     Render of logged_in.json
   """
-  def render("logged_in.json", %{user: user, token: token}) do
+  def render("logged_in.json", %{user: user}) do
     # return the data
     %{
       data: %{
-        user: render_one(user, __MODULE__, "user.json"),
-        token: token
+        user: render_one(user, __MODULE__, "user.json")
       }
     }
   end # end of logged_in.json
@@ -105,8 +106,9 @@ defmodule EworksWeb.UserView do
       username: user.username,
       country: user.country,
       city: user.city,
-      is_company: user.is_company,
+      is_suspended: user.is_suspended,
       user_type: user.user_type,
+      is_company: user.is_company,
       profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
       emails: user.emails,
       phones: user.phones

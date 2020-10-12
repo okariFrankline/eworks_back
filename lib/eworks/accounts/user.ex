@@ -113,17 +113,15 @@ defmodule Eworks.Accounts.User do
     changeset(user, attrs)
     # cast the password
     |> cast(attrs, [
-      :password,
-      :first_name,
-      :last_name,
-      :company_name
+      :password
     ])
     # ensure the email, password and accont type are given
     |> validate_required([
       :auth_email,
       :password,
       :user_type,
-      :is_company
+      :is_company,
+      :full_name
     ])
     # ensure the email format is correct
     |> validate_auth_email_format()
@@ -138,7 +136,7 @@ defmodule Eworks.Accounts.User do
     # generate the activation key
     |> add_activation_key()
     # add name
-    |> add_name()
+    #|> add_name()
     # ensure the email is unique
     |> unique_constraint(:auth_email)
   end # end of the creation changeset

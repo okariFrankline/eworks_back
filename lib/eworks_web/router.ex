@@ -20,6 +20,13 @@ defmodule EworksWeb.Router do
     plug Plugs.IsActive
   end
 
+  # define an auth pipeline
+  pipeline :authenticated do
+    plug Guardian.AuthPipeline
+    # plug for adding the current user in the connection
+    plug Plugs.SessionPlug
+  end
+
   pipeline :authenticated_and_not_active do
     plug Guardian.AuthPipeline
     # plug for adding the current user in the connection
@@ -29,8 +36,15 @@ defmodule EworksWeb.Router do
   scope "/api", EworksWeb do
     pipe_through :api
 
-    post "/register", UserController, :register
-    post "/login", SessionController, :login
+    post "/account/register", UserController, :register
+    post "/account/login", SessionController, :login
+  end
+
+  scope "/api", EworksWeb do
+    pipe_through [:api, :authenticated]
+
+    get "/account/user", UserController, :get_user
+    post "/account/logout", SessionController, :logout
   end
 
   scope "/api", EworksWeb do
@@ -39,7 +53,6 @@ defmodule EworksWeb.Router do
     post "/account/activate", UserController, :activate_account
     get "/account/activation/key/resend", UserController, :new_activation_key_request
   end
-
 
 
   # scope for the logged in user
@@ -89,10 +102,10 @@ defmodule EworksWeb.Router do
     # direct hire
     get "/direct/hire/client", DirectHireController, :list_client_direct_hires
     get "/direct/hire/contractor", DirectHireController, :list_contractor_direct_hires
-    post "/direct/hire/:order_id/:contractor_id/new", DirectHireController, :create_new_direct_hire_request
+    post "/direct/hire/:order_id/contractor/:contractor_id/new", DirectHireController, :create_new_direct_hire_request
     post "/direct/hire/:direct_hire_id/accept", DirectHireController, :accept_direct_hire_request
     post "/direct/hire/:direct_hire_id/reject", DirectHireController, :reject_direct_hire_request
-    post "/direct/hire/:direct_hire_id/assign", DirectHireController, :assign_direct_hire_request
+    post "/direct/hire/:direct_hire_id/assign", DirectHireController, :assign_order_from_direct_hire
 
     # get
     get "/orders/unassigned", OrderListController, :list_unassigned_orders
@@ -100,7 +113,7 @@ defmodule EworksWeb.Router do
   end # end of scope for logged in users
 
   # Enables LiveDashboard only for development
-  #
+  #assign_order_from_direct_hire
   # If you want to use the LiveDashboard in production, you should put
   # it behind authentication and allow only admins to access it.
   # If your application does not have an admins-only section yet,

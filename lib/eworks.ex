@@ -64,9 +64,9 @@ defmodule Eworks do
   @doc """
     Verifies an account and returns the details with the account
   """
-  def verify_account(%User{} = user, activation_key) when is_integer(activation_key) do
+  def verify_account(%User{} = user, activation_key) do
     # check if the verification key entered by the user and the one stored in the system are equal
-    if user.activation_key !== activation_key do
+    if user.activation_key !== String.to_integer(activation_key) do
       # return an error
       {:error, :invalid_activation_key}
     else

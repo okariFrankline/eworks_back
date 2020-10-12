@@ -35,7 +35,7 @@ defmodule EworksWeb.UserController do
     # get the user type to determine which registration function to call
     user_type = if user_params["user_type"] == "Client", do: :client, else: :practise
     # create a new user and store a token for them
-    with {:ok, %User{} = user} <- Eworks.register_user(user_type, user_params), {:ok, jwt} <- Authentication.create_token(user) do
+    with {:ok, %User{} = user} <- Eworks.register_user(user_type, user_params) do
       # Generate a new email
       # create a new activation code email
       NewEmail.new_activation_key_email(user, "Eworks Registration Confirmation", "Thank you for registering with Eworks. Here is your activation key. \n #{user.activation_key}")
@@ -47,7 +47,7 @@ defmodule EworksWeb.UserController do
       #  put the status of created
       |> put_status(:created)
       # return the user details and the token
-      |> render("new_user.json", user: user, token: jwt)
+      |> render("new_user.json", user: user)
     end # end of with for creating a new user
   end # end of creation changeset
 
@@ -75,6 +75,17 @@ defmodule EworksWeb.UserController do
       end
     end # end of with for verifying account
   end # end of the activate_account/2
+
+  @doc """
+  Returns the given user
+  """
+  def get_user(conn, _, user) do
+    # return the results
+    conn
+    |> put_status(:ok)
+    # render the results
+    |> render("logged_in.json", user: user)
+  end
 
   @doc """
     Updates the current user's location details
@@ -163,7 +174,7 @@ defmodule EworksWeb.UserController do
       # send the response
       |> put_status(:ok)
       # render success
-      |> render("success.json", message: "New Activation code successfully sent to #{user.auth_email}.")
+      |> render("success.json", message: "Hello, #{user.full_name}, your new Activation key successfully sent to #{user.auth_email}.")
     end # end of send new activation request
   end # end of new activation key request
 

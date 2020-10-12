@@ -51,7 +51,7 @@ defmodule EworksWeb.DirectHireController do
       # put the stauts
       |> put_status(:created)
       # render the hire
-      |> render("hire.json", direct_hire: result.hire, recipient: result.recipient)
+      |> render("hire.json", direct_hire: result.hire, recipient: result.recipient, order: result.order)
     end # end of with
   end # end of createing a new direct hire request
 
@@ -59,12 +59,12 @@ defmodule EworksWeb.DirectHireController do
     accepts a direct hire request
   """
   def accept_direct_hire_request(conn, %{"direct_hire_id" => id}, user) do
-    with {:ok, hire} <- API.accept_direct_hire_request(user, id) do
+    with {:ok, result} <- API.accept_direct_hire_request(user, id) do
       conn
       # put the stauts
       |> put_status(:ok)
       #
-      |> render("hire.json", direct_hire: hire)
+      |> render("hire.json", direct_hire: result.hire, recipient: result.recipient, order: result.order)
     end # end of with
   end # end of accept direct hire request
 
@@ -77,7 +77,7 @@ defmodule EworksWeb.DirectHireController do
       # put the stauts
       |> put_status(:ok)
       #
-      |> render("success.json")
+      |> render("success.json", message: "Direct Hire Request successfully rejected.")
     end # end of with
   end # end of accept direct hire request
 

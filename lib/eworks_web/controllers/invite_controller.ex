@@ -4,7 +4,7 @@ defmodule EworksWeb.InviteController do
   alias EworksWeb.Plugs
   alias Eworks.Collaborations.{Invite, API}
 
-  plug Plugs.InviteById when action not in [:create_new_invite]
+  plug Plugs.InviteById when action not in [:create_new_invite, :cancel_invite_offer]
   plug Plugs.CanSubmitOrderOffer when action in [:submit_invite_offer]
   action_fallback EworksWeb.FallbackController
 
@@ -61,7 +61,7 @@ defmodule EworksWeb.InviteController do
       # put status
       |> put_status(:ok)
       # render the invite
-      |> render("invite.json", invite: invite)
+      |> render("invite.json", invite: invite, user: user)
     end # end of with
   end # end of accepting offer invite
 
@@ -75,7 +75,7 @@ defmodule EworksWeb.InviteController do
     # put the status
     |> put_status(:ok)
     # render succes
-    |> render("success.json")
+    |> render("success.json", message: "Collaboratioin invite successfully cancelled.")
   end # end of cancel_invitaion_offeer
 
   @doc """
@@ -100,7 +100,7 @@ defmodule EworksWeb.InviteController do
       # put status
       |> put_status(:ok)
       # render the success
-      |> render("success.json")
+      |> render("success.json", message: "Offer successfully rejected.")
     end # end of with
   end # end of reject invite offer
 

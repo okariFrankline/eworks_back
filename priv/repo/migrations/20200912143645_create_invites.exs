@@ -13,11 +13,10 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
       add :category, :string, null: false
       add :already_accepted, :integer, default: 0, null: false
       add :collaborators, {:array, :binary_id}, default: []
+      add :order_id, :binary_id
 
-      # order for which the offer is for
-      add :order_id, references(:orders, on_delete: :nothing, type: :binary_id)
       # owner of the collaboration invite
-      add :work_profile_id, references(:work_profile, on_delete: :nothing, type: :binary_id)
+      add :work_profile_id, references(:work_profiles, on_delete: :nothing, type: :binary_id)
 
       timestamps()
     end

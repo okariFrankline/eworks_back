@@ -2,7 +2,7 @@ defmodule EworksWeb.Authentication do
   @moduledoc """
     Provides functions for authenticating a user
   """
-  alias Eworks.Accounts
+  alias Eworks.{Accounts, Repo}
   alias Eworks.Accounts.{User, Session}
   alias __MODULE__.Guardian
 
@@ -58,7 +58,15 @@ defmodule EworksWeb.Authentication do
   @doc """
     Logouts the user
   """
-  def logout(%Plug.Conn{} = conn) do
-    
+  def logout(%{assigns: %{current_session: session}} = conn) do
+    # delete the current token
+    with _session <- Repo.delete!(session) do
+      # log out the user from guardian
+      conn
+      # sign out user
+      |> Guardian.Plug.sign_out()
+    end # end of with for deleting the session
+
+
   end # end of log out
 end # end of the authentication module

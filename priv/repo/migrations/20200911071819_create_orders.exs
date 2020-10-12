@@ -26,6 +26,7 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :tags, {:array, :binary_id}, default: []
       add :show_more, :boolean, default: false
       add :owner_name, :string
+      add :is_public, :boolean, default: true, null: false
       # client comment and review
       add :comment, :text, null: true
       add :rating, :integer, null: true
@@ -43,6 +44,7 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
     create index(:orders, [:is_paid_for])
     create index(:orders, [:category])
     create index(:orders, [:order_type])
+    create index(:orders, [:is_public])
 
   end
 end

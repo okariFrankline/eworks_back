@@ -29,7 +29,7 @@ defmodule EworksWeb.InviteView do
   @doc """
     Render the collaborators
   """
-  def render("collaborator.json", %{offer: offer}) do
+  def render("collaborator.json", %{invite: offer}) do
     %{
       full_name: offer.owner_name,
       rating: offer.owner_rating,
@@ -43,7 +43,7 @@ defmodule EworksWeb.InviteView do
   @doc """
     Render the offer
   """
-  def render("offer.json", %{offer: offer}) do
+  def render("offer.json", %{invite: offer}) do
     %{
       id: offer.id,
       is_cancelled: offer.is_cancelled,
@@ -65,7 +65,7 @@ defmodule EworksWeb.InviteView do
   @doc """
     Renders invite_offer.josn
   """
-  def render("invite_offer.josn", %{offer: offer}) do
+  def render("invite_offer.json", %{offer: offer}) do
     %{
       data: %{
         offer: render_one(offer, __MODULE__, "offer.json")
@@ -76,10 +76,11 @@ defmodule EworksWeb.InviteView do
   @doc """
     Renders success
   """
-  def render("success.json", _) do
+  def render("success.json", %{message: message}) do
     %{
       data: %{
-        success: true
+        success: true,
+        details: message
       }
     }
   end # end of succes.json

@@ -29,6 +29,7 @@ defmodule Eworks.Orders.Order do
     field :rating, :integer
     field :comment, :string
     field :show_more, :boolean, default: false
+    field :is_public, :boolean, default: false
     # holds the ids of user's that have tagged this order.
     field :tags, {:array, :binary_id}
     # virtual fields
@@ -73,7 +74,8 @@ defmodule Eworks.Orders.Order do
       :assignees,
       :tags,
       :show_more,
-      :owner_name
+      :owner_name,
+      :is_pubic
     ])
     # cast teh changeset
     |> cast_attachments(attrs, [

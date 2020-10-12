@@ -11,9 +11,9 @@ defmodule Eworks.Repo.Migrations.CreateInviteOffers do
       add :is_cancelled, :boolean, default: false, null: false
 
       add :owner_name, :string, null: false
-      add :rating, :integer, null: false
+      add :owner_rating, :integer, null: false
       add :about, :text, null: false
-      add :owner_profile_pic, :string, null: false,
+      add :owner_profile_pic, :string, null: false
       add :owner_job_success, :integer, default: 0, null: false
       # invite for which the offer is for
       add :invite_id, references(:invites, on_delete: :nothing, type: :binary_id)

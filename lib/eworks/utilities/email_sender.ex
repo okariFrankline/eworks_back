@@ -43,6 +43,6 @@ defmodule Eworks.Utils.NewEmail do
   # base email
   def base_mail do
     new_email()
-    |> from("frankline@otbafrica.com")
+    |> from("okarifrankline5678@gmail.com")
   end # end of base email
 end # end of the module

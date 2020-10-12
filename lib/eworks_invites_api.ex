@@ -71,7 +71,7 @@ defmodule Eworks.Collaborations.API do
       invite_id: invite.id,
       owner_name: user.full_name,
       rating: user.work_profile.rating,
-      about: user.work_profile.professional_intro,
+      owner_about: user.work_profile.cover_letter,
       owner_profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({user.profile_pic, user}))
     })
     # create the offer
@@ -84,23 +84,27 @@ defmodule Eworks.Collaborations.API do
     Reject an invite offer
   """
   def reject_invite_offer(%User{} = user, %Invite{} = invite, offer_id) do
-    # check to ensure the current user is the owner of the invite
-    if user.id == invite.user_id do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
+    # ensure the current user is the owner of the invite
+    if profile.id == invite.work_profile_id do
       # start task to reject the offe
       Task.start(fn ->
         # get the offer
-        [offer | _rest] = Repo.preload(invite, [invite_offer: from(offer in InviteOffer, where: offer.id == ^offer_id)])
+        [offer | _rest] = Repo.preload(invite, [collaboration_offers: from(offer in InviteOffer, where: offer.id == ^offer_id)]).collaboration_offers
         # reject the offer
-        offer = offer |> Ecto.Changeset.change(%{is_rejected: true, is_pending: false}) |> Repo.update!()
-        # create a notificaiton
-        {:ok, notification} = Notifications.create_notification(%{
-          user_id: offer.user_id,
-          asset_type: :offer,
-          asset_id: offer.id,
-          message: "#{user.full_name} has rejected your collaboration offer request for **Invite::#{invite.category}**"
-        })
-        # send the notification
-        Endpoint.broadcast!("user:#{offer.user_id}", "notification::invite_offer_rejection", %{notification: render_notification(notification)})
+        with offer <- offer |> Ecto.Changeset.change(%{is_rejected: true, is_pending: false}) |> Repo.update!() do
+          # create a notificaiton
+          {:ok, notification} = Notifications.create_notification(%{
+            user_id: offer.user_id,
+            asset_type: "Offer",
+            asset_id: offer.id,
+            notification_type: "Collaboration Invite Offer Rjection",
+            message: "#{user.full_name} has rejected your collaboration offer request for **INVITE::#{invite.category}**"
+          })
+          # send the notification
+          Endpoint.broadcast!("user:#{offer.user_id}", "notification::invite_offer_rejection", %{notification: render_notification(notification)})
+        end # end of with
       end) # end of task
 
       # return :ok
@@ -114,10 +118,12 @@ defmodule Eworks.Collaborations.API do
     Function for accepting an invite offer and also adds the user to the assigned orders
   """
   def accept_invite_offer(%User{} = user, %Invite{} = invite, offer_id) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
     # get the offer and its user
-    [offer | _rest] = Repo.preload(invite, [:invite_offer, from(offer in InviteOffer, where: offer.id == ^offer_id)]).invite_offers
+    [offer | _rest] = Repo.preload(invite, [collaboration_offers: from(offer in InviteOffer, where: offer.id == ^offer_id)]).collaboration_offers
     # ensure the current user is the owner of the invite
-    if user.id == invite.user_id do
+    if profile.id == invite.work_profile_id do
       # gett eh owner of the offer
       offer_owner = Repo.preload(offer, [:user]).user
       # check if the user has been suspended
@@ -127,7 +133,7 @@ defmodule Eworks.Collaborations.API do
           # send a notification to the owner of the invite offer using websocket
           Task.start(fn ->
             # creare message for notification
-            message = "#{user.full_name} has accepted your collaboration offer. **Invite::#{invite.category}**"
+            message = "#{user.full_name} has accepted your collaboration offer. **INVITE::#{invite.category}**"
             # send an email notification about the accepting of the invite offer accepting
             NewEmail.new_email_notification(offer_owner, "Collaboration Offer Acceptance", "#{message} \n Login to your account to view more details.")
             # send the email
@@ -136,8 +142,9 @@ defmodule Eworks.Collaborations.API do
             # create a notification about the accepting of the oofer
             {:ok, notification} = Notifications.create_notification(%{
               user_id: offer_owner.id,
-              asset: :invite_offer,
-              notification_type: :invite_offer_acceptance,
+              asset: "Invite Offer",
+              asset_type: "Collaboration Invite Offer",
+              notification_type: "Collaboration Offer Accepance",
               asset_id: invite.id,
               message: message
             })
@@ -150,25 +157,25 @@ defmodule Eworks.Collaborations.API do
             invite
             # update the invite by adding the already assigned by one
             |> Ecto.Changeset.change(%{
-              already_accepted: invite.already_assigned + 1,
+              already_accepted: invite.already_accepted + 1,
               is_assigned: true,
               collaborators: [offer_owner.id | invite.collaborators]
             })
             # update the order
             |> Repo.update!()
             # preload the offers
-            |> Repo.preload([invite_offers: from(offer in InviteOffer, where: offer.is_accepted == true)])
+            |> Repo.preload([collaboration_offers: from(offer in InviteOffer, where: offer.is_accepted == true)])
           else # the invite is not yet fully assigned
             invite
             # update the invite by adding the already assigned by one
             |> Ecto.Changeset.change(%{
-              already_accepted: invite.already_assigned + 1,
+              already_accepted: invite.already_accepted + 1,
               collaborators: [offer_owner.id | invite.collaborators]
             })
             # update the order
             |> Repo.update!()
             # preload the offers
-            |> Repo.preload([invite_offers: from(offer in InviteOffer, where: offer.is_cancelled == false and offer.is_rejected == false)])
+            |> Repo.preload([collaboration_offers: from(offer in InviteOffer, where: offer.is_cancelled == false and offer.is_rejected == false)])
           end # end of checking if the invite is completely assigned
 
           # return the invite
@@ -231,7 +238,7 @@ defmodule Eworks.Collaborations.API do
   """
   def cancel_invite_offer(%User{} = user, offer_id) do
     # get the offer
-    [offer | _rest] = Repo.preload(user, [invite_offers: from(offer in InviteOffer, where: offer.id == ^offer_id)])
+    [offer | _rest] = Repo.preload(user, [invite_offers: from(offer in InviteOffer, where: offer.id == ^offer_id)]).invite_offers
     # cancel the order
     offer = offer |> Ecto.Changeset.change(%{is_cancelled: true, is_pending: false}) |> Repo.update!()
     # return the offer
