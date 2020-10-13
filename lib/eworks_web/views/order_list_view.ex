@@ -126,6 +126,7 @@ defmodule EworksWeb.OrderListView do
       deadline: Date.to_iso8601(order.deadline),
       required_contractors: order.required_contractors,
       posted_on: Date.to_iso8601(order.inserted_at),
+      show_more: order.show_more,
       owner: order.owner_name
     }
   end # end of order.json

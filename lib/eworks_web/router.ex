@@ -89,6 +89,7 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/assign/:to_assign_id", OrderController, :assign_order
     post "/order/:order_id/accept/:order_offer_id", OrderController, :accept_order
     post "/order/offer/:order_offer_id/cancel", OrderController, :cancel_order_offer
+    get "/orders/unassigned/:matadata", OrderListController, :list_unassigned_orders
 
     # invites
     post "/invite/:order_id/new", InviteController, :create_new_invite

@@ -34,7 +34,7 @@ defmodule Eworks do
 
     else
       # the user does exist
-      {:error, :email_exists, %{message: "Failed. The email address #{params["auth_email"]} is already in use."}}
+      {:error, :email_exists, %{message: "Failed. The email address #{params["auth_email"]} is already in use. Please check your email address and try again."}}
     end # end of checking if the email exists
   end # end of register user
 

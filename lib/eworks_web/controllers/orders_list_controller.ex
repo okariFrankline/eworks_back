@@ -21,12 +21,12 @@ defmodule EworksWeb.OrderListController do
   @doc """
     Lists all orders that have not being assinged to every user
   """
-  def list_unassigned_orders(conn, %{"metadata" => after_cursor}, _user) do
+  def list_unassigned_orders(conn, %{"metadata" => after_cursor}, user) do
     # query for getting the orders
     query = from(
       order in Order,
-      # ensure the order is unassigned
-      where: order.is_assigned == false,
+      # ensure the order is unassigned and they do not belong to current user
+      where: order.is_assigned == false and order.user_id != ^user.id,
       # preload the user
       join: user in assoc(order, :user),
       # order by
@@ -36,14 +36,13 @@ defmodule EworksWeb.OrderListController do
     )
     # get the page
     page = if after_cursor == "false" do
+      # get the page
+      Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 5)
+    else
       # get the next cursor
       next_cursor = after_cursor
-      # get the page
-      Repo.paginate(query, cursor: next_cursor, cursor_fields: [:inserted_at, :id], limit: 10)
-
-    else
       # get the first page
-      Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 10)
+      Repo.paginate(query, after: next_cursor, cursor_fields: [:inserted_at, :id], limit: 5)
     end # end of if for checking for the metadata
 
     # return the results

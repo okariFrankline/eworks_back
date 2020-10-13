@@ -78,7 +78,7 @@ defmodule EworksWeb.ErrorView do
   def render("invalid_activation_key.json", _assigns) do
     %{
       errors: %{
-        details: "Failed. Invalid activation key."
+        details: "Failed. The activation key entered is invalid. Check your email and try again"
       }
     }
   end
