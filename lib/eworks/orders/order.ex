@@ -75,7 +75,7 @@ defmodule Eworks.Orders.Order do
       :tags,
       :show_more,
       :owner_name,
-      :is_pubic
+      :is_public
     ])
     # cast teh changeset
     |> cast_attachments(attrs, [
