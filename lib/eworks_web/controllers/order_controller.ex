@@ -7,6 +7,8 @@ defmodule EworksWeb.OrderController do
   plug Plugs.OrderById when  action not in [:create_new_order, :cancel_order_offer]
   plug Plugs.CanSubmitOrderOffer when action in [:submit_order_offer]
 
+  action_fallback EworksWeb.FallbackController
+
   @doc """
     provide the current user as the thirs arguement of each action
   """

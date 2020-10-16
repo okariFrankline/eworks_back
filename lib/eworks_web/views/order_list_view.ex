@@ -69,6 +69,7 @@ defmodule EworksWeb.OrderListView do
       is_assigned: order.is_assigned,
       is_complete: order.is_complete,
       is_paid_for: order.is_paid_for,
+      is_cancelled: order.is_cancelled,
       specialty: order.specialty,
       category: order.category,
       duration: order.duration,
@@ -76,7 +77,7 @@ defmodule EworksWeb.OrderListView do
       payment_schedule: order.payment_schedule,
       payable_amount: order.payable_amount,
       attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),
-      owner: order.owner_name
+      owner_name: order.owner_name
     }
   end # end of assigned_order.json
 
@@ -127,7 +128,7 @@ defmodule EworksWeb.OrderListView do
       required_contractors: order.required_contractors,
       posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
       show_more: order.show_more,
-      owner: order.owner_name
+      owner_name: order.owner_name
     }
   end # end of order.json
 

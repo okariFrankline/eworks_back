@@ -17,7 +17,7 @@ defmodule EworksWeb.ErrorView do
   # function for rendering the not_owner function
   def render("not_owner.json", _message) do
     %{errors: %{
-      details: "Failed. You cannot edit another user's profile"
+      details: "Failed. Action not allowed because you're not the owner."
     }}
   end # end of the not owner
 
@@ -87,7 +87,7 @@ defmodule EworksWeb.ErrorView do
   def render("invalid_verification_code.json", _assigns) do
     %{
       errors: %{
-        details: "Failed. Invalid Order Verification Code."
+        details: "Failed. Verification code entered is invalid."
       }
     }
   end
@@ -141,7 +141,7 @@ defmodule EworksWeb.ErrorView do
   def render("order_not_found.json", _) do
     %{
       errors: %{
-        details: "Failed. Order Not Found."
+        details: "Failed. The Requested Order Not Found."
       }
     }
   end # end of worker not found

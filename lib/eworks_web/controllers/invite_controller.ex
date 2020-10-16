@@ -6,6 +6,7 @@ defmodule EworksWeb.InviteController do
 
   plug Plugs.InviteById when action not in [:create_new_invite, :cancel_invite_offer]
   plug Plugs.CanSubmitOrderOffer when action in [:submit_invite_offer]
+  
   action_fallback EworksWeb.FallbackController
 
   # action

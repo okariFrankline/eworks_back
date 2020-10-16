@@ -7,6 +7,8 @@ defmodule EworksWeb.OrderListController do
   alias Eworks.Accounts.WorkProfile
   alias Eworks.Dataloader.Loader
 
+  action_fallback EworksWeb.FallbackController
+
   @doc """
     Adds the current user as the the third arguement to all controller actions
   """
@@ -26,7 +28,7 @@ defmodule EworksWeb.OrderListController do
     query = from(
       order in Order,
       # ensure the order is unassigned and they do not belong to current user
-      where: order.is_assigned == false and order.user_id != ^user.id,
+      where: order.is_assigned == false and order.is_cancelled == false and order.user_id != ^user.id,
       # preload the user
       join: user in assoc(order, :user),
       # order by

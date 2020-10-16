@@ -9,6 +9,7 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :is_assigned, :boolean, default: false, null: false
       add :is_complete, :boolean, default: false, null: false
       add :is_paid_for, :boolean, default: false, null: false
+      add :is_cancelled, :booleand, default: false, null: false
       add :duration, :string, null: true
       add :deadline, :date, null: true
       add :order_type, :string, null: true
@@ -42,6 +43,7 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
     create index(:orders, [:is_assigned])
     create index(:orders, [:is_complete])
     create index(:orders, [:is_paid_for])
+    create index(:orders, [:is_cancelled])
     create index(:orders, [:category])
     create index(:orders, [:order_type])
     create index(:orders, [:is_public])

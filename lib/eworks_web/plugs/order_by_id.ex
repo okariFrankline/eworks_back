@@ -21,7 +21,7 @@ defmodule EworksWeb.Plugs.OrderById do
       # put the 404 error
       conn
       # send a 404 error code
-      |> send_resp(:not_found, "Order Not Found!")
+      |> send_resp(:not_found, "Failed. Requested Order Not Found!")
       # halt the process
       |> halt()
   end # end of call/2

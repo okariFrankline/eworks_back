@@ -6,6 +6,8 @@ defmodule EworksWeb.WorkersController do
   alias Eworks.Accounts.User
   alias Eworks.Dataloader.Loader
 
+  action_fallback EworksWeb.FallbackController
+
   @doc """
     Inserts the current user as the third arguement to all the actions
   """

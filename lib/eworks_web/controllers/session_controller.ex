@@ -5,6 +5,8 @@ defmodule EworksWeb.SessionController do
   use EworksWeb, :controller
   alias EworksWeb.Authentication
 
+  action_fallback EworksWeb.FallbackController
+
   @doc """
     Logins in a user
   """

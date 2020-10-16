@@ -47,6 +47,7 @@ defmodule EworksWeb.OrderView do
         order_type: order.order_type,
         duration: order.duration,
         show_more: order.show_more,
+        owner_name: order.owner_name,
         # payment info
         payment_schedule: order.payment_schedule,
         payable_amount: order.payable_amount,

@@ -20,6 +20,7 @@ defmodule Eworks.Orders.Order do
     field :is_complete, :boolean, default: false
     field :is_paid_for, :boolean, default: false
     field :is_verified, :boolean, default: false
+    field :is_cancelled, :boolean, default: false
     field :payable_amount, :string
     field :payment_schedule, :string
     field :required_contractors, :integer
@@ -75,7 +76,8 @@ defmodule Eworks.Orders.Order do
       :tags,
       :show_more,
       :owner_name,
-      :is_public
+      :is_public,
+      :is_cancelled
     ])
     # cast teh changeset
     |> cast_attachments(attrs, [
