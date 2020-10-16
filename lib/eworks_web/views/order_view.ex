@@ -23,7 +23,7 @@ defmodule EworksWeb.OrderView do
         is_verified: order.is_verified,
         deadline: show_deadline(order.deadline),
         required_contractors: order.required_contractors,
-        posted_on: Date.to_iso8601(order.inserted_at)
+        posted_on: NaiveDateTime.to_iso8601(order.inserted_at)
       }
     }
   end
@@ -46,11 +46,12 @@ defmodule EworksWeb.OrderView do
         category: order.category,
         order_type: order.order_type,
         duration: order.duration,
+        show_more: order.show_more,
         # payment info
         payment_schedule: order.payment_schedule,
         payable_amount: order.payable_amount,
-        deadline: Date.to_iso8601(order.deadline),
-        posted_on: Date.to_iso8601(order.inserted_at),
+        deadline: show_deadline(order.deadline),
+        posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
         required_contractors: order.required_contractors,
         offers_made: Enum.count(order.order_offers),
         attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),

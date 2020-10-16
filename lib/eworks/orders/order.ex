@@ -107,6 +107,16 @@ defmodule Eworks.Orders.Order do
   end # end of the creation_changeset
 
   @doc false
+  def category_changeset(order, attrs) do
+    changeset(order, attrs)
+    # ensure the category and the specialty are given
+    |> validate_required([
+      :category,
+      :specialty
+    ])
+  end # end of the creation_changeset
+
+  @doc false
   def rating_comment_changeset(order, attrs) do
     changeset(order, attrs)
     |> validate_required([

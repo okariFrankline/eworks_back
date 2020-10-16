@@ -164,6 +164,24 @@ defmodule Eworks.Orders do
   end
 
   @doc """
+  Updates a order's type and the required numbr of contractors.
+
+  ## Examples
+
+      iex> update_order_type_and_contractors(order, %{field: new_value})
+      {:ok, %Order{}}
+
+      iex> update_order_type_and_contractors(order, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_order_category(%Order{} = order, attrs) do
+    order
+    |> Order.category_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Updates a order's desription.
 
   ## Examples

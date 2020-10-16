@@ -28,12 +28,12 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 # configuration for bamboo
-config :eworks, Eworks.Utils.Mailer,
-  adapter: Bamboo.SendGridAdapter,
-  api_key: {:system, "SENDGRID_API_KEY"}
-
 # config :eworks, Eworks.Utils.Mailer,
-#   adapter: Bamboo.LocalAdapter
+#   adapter: Bamboo.SendGridAdapter,
+#   api_key: {:system, "SENDGRID_API_KEY"}
+
+config :eworks, Eworks.Utils.Mailer,
+  adapter: Bamboo.LocalAdapter
 
 # configure guardian
 config :eworks, EworksWeb.Authentication.Guardian,

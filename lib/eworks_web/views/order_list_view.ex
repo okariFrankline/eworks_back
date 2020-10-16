@@ -99,7 +99,7 @@ defmodule EworksWeb.OrderListView do
       order_type: order.order_type,
       payment_schedule: order.payment_schedule,
       payable_amount: order.payable_amount,
-      deadline: Date.to_iso8601(order.deadline),
+      deadline: show_deadline(order.deadline),
       required_contractors: order.required_contractors,
       owner: order.owner_name,
       attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order}))
@@ -123,12 +123,15 @@ defmodule EworksWeb.OrderListView do
       # payment info
       payment_schedule: order.payment_schedule,
       payable_amount: order.payable_amount,
-      deadline: Date.to_iso8601(order.deadline),
+      deadline: show_deadline(order.deadline),
       required_contractors: order.required_contractors,
-      posted_on: Date.to_iso8601(order.inserted_at),
+      posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
       show_more: order.show_more,
       owner: order.owner_name
     }
   end # end of order.json
+
+  defp show_deadline(date) when is_nil(date), do: nil
+  defp show_deadline(date), do: Date.to_iso8601(date)
 
 end # end of module

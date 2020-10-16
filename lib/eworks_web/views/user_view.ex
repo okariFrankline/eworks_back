@@ -104,6 +104,7 @@ defmodule EworksWeb.UserView do
       name: user.full_name,
       is_active: user.is_active,
       username: user.username,
+      auth_email: user.auth_email,
       country: user.country,
       city: user.city,
       is_suspended: user.is_suspended,

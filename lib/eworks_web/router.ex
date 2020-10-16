@@ -72,13 +72,15 @@ defmodule EworksWeb.Router do
 
     # order routes
     get "/order/:order_id", OrderListController, :get_order
+    get "/order/:order_id/verification/code", OrderController, :send_order_verification_code
+    get "/order/:order_id/resend/verification/code", OrderController, :resend_order_verification_code
     post "/order/new", OrderController, :create_new_order
+    post "/order/:order_id/category", OrderController, :update_order_category
     post "/order/:order_id/type", OrderController, :update_order_type_and_contractors
     post "/order/:order_id/payment", OrderController, :update_order_payment
     post "/order/:order_id/description", OrderController, :update_order_description
     post "/order/:order_id/duration", OrderController, :update_order_duration
     post "/order/:order_id/attachments", OrderController, :update_order_attachments
-    get "/order/:order_id/verification/code", OrderController, :send_order_verification_code
     post "/order/:order_id/verify", OrderController, :verify_order
     post "/order/:order_id/tag", OrderController, :tag_order
 

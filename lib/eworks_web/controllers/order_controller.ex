@@ -32,6 +32,20 @@ defmodule EworksWeb.OrderController do
     end # end of the with
   end # end of the create order function
 
+  @doc """
+    Updates the order category
+    Order params includes: order category, order specialty
+  """
+  def update_order_category(conn, %{"new_order" => %{"order_category" => order_params}}, user, order) do
+    with {:ok, order} <- API.update_order_category(user, order,  order_params) do
+      conn
+      # put the status
+      |> put_status(:created)
+      # render the new order
+      |> render("new_order.json", new_order: order)
+    end # end of the with
+  end # end of the create order function
+
 
   @doc """
     Adds the payment information
@@ -107,6 +121,20 @@ defmodule EworksWeb.OrderController do
   def send_order_verification_code(conn, _params, user, order) do
     # get the order with the given order
     with :ok <- API.send_order_verification_code(user, order) do
+      conn
+      # put status
+      |> put_status(:ok)
+      # send the response
+      |> render("success.json", message: "Order verification code has been sent to the email #{user.auth_email}.")
+    end
+  end # end of save order and sending a verification code
+
+  @doc """
+    Posts a new order
+  """
+  def resend_order_verification_code(conn, _params, user, order) do
+    # get the order with the given order
+    with :ok <- API.resend_order_verification_code(user, order) do
       conn
       # put status
       |> put_status(:ok)

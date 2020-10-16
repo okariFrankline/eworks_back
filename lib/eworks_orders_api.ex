@@ -84,6 +84,21 @@ defmodule Eworks.Orders.API do
   end # end of the update_order_type and the number of required contractors
 
   @doc """
+    Updates the order's type and required contractors
+  """
+  def update_order_category(%User{} = user, %Order{} = order, order_params) do
+    # ensure the current user is the owner of the order
+    if order.user_id == user.id do
+      # update the order
+      with {:ok, _order} = result <- Orders.update_order_category(order, order_params), do: result
+    else
+      # now owner
+      {:error, :not_owner}
+    end # end of checking if the current user is the owner of the id
+  end # end of the update_order_type and the number of required contractors
+
+
+  @doc """
     Updates the order's description
   """
   def update_order_description(%User{} = user, %Order{} = order, description) do
@@ -457,6 +472,33 @@ defmodule Eworks.Orders.API do
   end # end of sending order verification code
 
   @doc """
+    Sends a verification code for a given order
+  """
+  def resend_order_verification_code(%User{} = user, %Order{} = order) do
+    # ensure the user is the owner of the order
+    if user.id == order.user_id do
+      # update the order to enter this as the new verification key
+      order = order
+      # put the new verification code
+      |> Ecto.Changeset.change(%{
+        verification_code: Enum.random(100000..999999)
+      })
+      # update order
+      |> Repo.update!()
+
+      # send an email to the user with the verification order
+      NewEmail.new_order_verification_code_email(user, order)
+      # send the email
+      |> Mailer.deliver_later()
+      # return :ok
+      :ok
+    else
+      # not owner
+      {:error, :not_owner}
+    end # end of checking whether the current user is the owner order
+  end # end of sending order verification code
+
+  @doc """
     Tags an order
   """
   def tag_order(%User{} = user, %Order{} = order) do
@@ -479,7 +521,7 @@ defmodule Eworks.Orders.API do
     # ensure the user is the owner of the job
     if order.user_id == user.id do
       # check if the verification code is similar
-      if order.verification_code == verification_code do
+      if order.verification_code == String.to_integer(verification_code) do
         # update the order
         with {:ok, _order} = result <- order |> Ecto.Changeset.change(%{is_verified: true, is_draft: false, verification_code: nil}) |> Repo.update(), do: result
       else
