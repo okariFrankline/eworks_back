@@ -112,6 +112,11 @@ defmodule EworksWeb.Router do
 
     # get
     get "/orders/unassigned", OrderListController, :list_unassigned_orders
+    get "/contractors", WorkersController, :list_workers
+    get "/contractors/search", WorkersController, :search_based_on_skill
+    get "/contractors/saved", WorkersController, :list_saved_workers
+    post "/contractors/:contractor_id/save", WorkersController, :save_worker
+    post "/contractors/:contractor_id/unsave", WorkersController, :unsave_worker
 
   end # end of scope for logged in users
 

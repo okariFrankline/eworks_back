@@ -83,7 +83,7 @@ defmodule EworksWeb.WorkersController do
     query = from(
       user in User,
       # ensure the user is active, not suspended and is an independent contractor
-      where: user.user_type == "Independent Contractor" and user.is_suspended == true and user.is_active == true,
+      where: user.user_type == "Independent Contractor" and user.is_suspended == false and user.is_active == true,
       # get the work profile as well
       join: work_profile in assoc(user, :work_profile),
       # order by the inserted at and id
@@ -93,15 +93,15 @@ defmodule EworksWeb.WorkersController do
     )
 
     # get the page based on whether the metadata is available or not
-    page = if after_cursor do
+    page = if after_cursor != "false" do
       # get the cursor_after
       cursor_after = after_cursor
       # load the results
-      Repo.paginate(query, after: cursor_after, cursor_fields: [:inserted_at, :id], limit: 10)
+      Repo.paginate(query, after: cursor_after, cursor_fields: [:inserted_at, :id], limit: 5)
 
     else
       # get the first 10 users
-      Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 10)
+      Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 5)
     end # end of metadata
     # return the results
     conn
@@ -154,7 +154,7 @@ defmodule EworksWeb.WorkersController do
   @doc """
     Saves a given worker
   """
-  def save_worker(conn, %{"user_id" => id}, user) do
+  def save_worker(conn, %{"contractor_id" => id}, user) do
     # add the user's id to the list of saved worked
     case Ecto.Changeset.change(user, %{saved_workers: [id | user.saved_workers]}) |> Repo.update() do
       # success saving
@@ -163,7 +163,7 @@ defmodule EworksWeb.WorkersController do
         # put the status
         |> put_status(:ok)
         # render success
-        |> render("success.json")
+        |> render("success.json", message: "Independent contractor successfully added to your saved list.")
 
       {:error, _} ->
         conn
@@ -172,9 +172,39 @@ defmodule EworksWeb.WorkersController do
         # put view
         |> put_view(EworksWeb.ErrorView)
         # render the failed
-        |> render("saved_failed.json")
+        |> render("failed.json", message: "Failed. Contractor could not be saved. Please try again later.")
     end # end of case
   end # end of save worker
+
+  @doc """
+    Unsaves a worker
+  """
+  def unsave_worker(conn, %{"contractor_id" => id}, user) do
+    # remove the given id from the list of saved workers
+    saved_workers = List.delete(user.saved_workers, id)
+    # update the iser to save the new list
+    case Ecto.Changeset.change(user, %{saved_workers: saved_workers}) |> Repo.update() do
+      # saving was successful
+      {:ok, _user} ->
+        # return the result
+        conn
+        # put the status
+        |> put_status(:ok)
+        # return success
+        |> render("success.json", message: "Independent contractor successfully removed from your saved list.")
+
+      # saving was unsuccessful
+      {:error, _changeset} ->
+        # return the result
+        conn
+        # put the status
+        |> put_status(400)
+        # put the error view
+        |> put_view(EworksWeb.ErrorView)
+        # render result
+        |> render("failed.json", message: "Failed. Independent Contractor could not be removed. Please try again later.")
+    end
+  end # end of unsave contractors
 
   @doc """
     Gets the list of all the saved contractors
@@ -193,7 +223,8 @@ defmodule EworksWeb.WorkersController do
       )
       # get the user
       |> Repo.one!()
-    end) |> Enum.to_list()
+    end)
+    |> Enum.to_list()
 
     # retun the result
     conn

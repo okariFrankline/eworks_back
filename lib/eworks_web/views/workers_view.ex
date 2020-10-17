@@ -33,11 +33,11 @@ defmodule EworksWeb.WorkersView do
   @doc """
     Renders the success.json
   """
-  def render("success.json", _) do
+  def render("success.json", %{message: message}) do
     %{
       data: %{
         success: true,
-        details: "Independent Contractor successfully saved."
+        details: "message"
       }
     }
   end # end of success.json
@@ -57,16 +57,17 @@ defmodule EworksWeb.WorkersView do
   @doc """
     Renders the worker.json
   """
-  def render("worker.json", %{worker: worker}) do
+  def render("worker.json", %{workers: worker}) do
     %{
       id: worker.id,
       full_name: worker.full_name,
       profile_pic: Utils.upload_url(ProfilePicture.url({worker.profile_pic, worker}, :thumb)),
       job_success: worker.work_profile.success_rate,
       rating: worker.work_profile.rating,
-      about: worker.work_profile.prof_intro,
+      about: worker.work_profile.professional_intro,
       job_hires: Enum.count(worker.work_profile.previous_hires),
-      skills: worker.work_profile.skills
+      skills: worker.work_profile.skills,
+      show_more: worker.work_profile.show_more
     }
   end # end of worker.json
 

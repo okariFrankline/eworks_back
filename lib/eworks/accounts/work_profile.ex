@@ -21,6 +21,7 @@ defmodule Eworks.Accounts.WorkProfile do
     field :rating, :integer
     field :skills, {:array, :string}
     field :success_rate, :integer
+    field :show_more, :boolean, default: false
     # has many assigned orders
     field :assigned_orders, {:array, :binary_id}
     # embeds many previous hires
@@ -50,7 +51,8 @@ defmodule Eworks.Accounts.WorkProfile do
       :last_upgraded_on,
       :upgrade_expiry_date,
       :has_upgrade_expired,
-      :assigned_orders
+      :assigned_orders,
+      :show_more
     ])
   end
 

@@ -4,8 +4,8 @@ defmodule Eworks.Repo.Migrations.CreateWorkProfiles do
   def change do
     create table(:work_profiles, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :rating, :integer, default: 0
-      add :success_rate, :integer, default: 0
+      add :rating, :float, default: 2.5
+      add :success_rate, :integer, default: 50
       add :skills, {:array, :string}, default: []
       add :professional_intro, :text, null: true
       add :cover_letter, :text, null: true
@@ -13,6 +13,7 @@ defmodule Eworks.Repo.Migrations.CreateWorkProfiles do
       add :is_upgraded, :boolean, default: false
       add :assigned_orders, {:array, :binary_id}, default: []
       add :previous_hires, {:array, :binary_id}, default: []
+      add :show_more, :boolean, default: false, null: false
       # date for indicating how long the upgraded status should last
       add :has_upgrade_expired, :boolean, default: false
       # add for indicating the date for which the upgrade was made

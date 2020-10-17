@@ -155,4 +155,13 @@ defmodule EworksWeb.ErrorView do
     }
   end # end of worker not found
 
+  # failed.json
+  def render("failed.json", %{message: message}) do
+    %{
+      errors: %{
+        details: message
+      }
+    }
+  end
+
 end # end of the module
