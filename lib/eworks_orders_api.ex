@@ -454,6 +454,48 @@ defmodule Eworks.Orders.API do
   end
 
   @doc """
+    Reject order
+  """
+  def reject_order(%User{} = user, %Order{} = order, offer_id) do
+    # get the order_offer
+    #order_offer = Orders.get_order_offer!(order_offer_id)
+    [order_offer | _rest] = Repo.preload(order, [order_offers: from(offer in OrderOffer, where: offer.id == ^offer_id)]).order_offers
+    # ensure that the current user if the owner of the offer
+    if order_offer.user_id == user.id do
+      # update the offer to set the rejected_order to true
+      with offer <- Ecto.Changeset.change(order_offer, %{has_rejected_order: true}) |> Repo.update!() do
+        # # create a notification for the owner of the order about the accepting of the order
+        Task.start(fn ->
+          # preload the owner of the order
+          owner = Repo.preload(order, [:user]).user
+          # message
+          message = "#{user.full_name} has declined to work on your order **ORDER::#{order.specialty}**"
+          # send an email notification to the owner of the order
+          NewEmail.new_email_notification(owner, "Order Decline for **ORDER::#{order.specialty}**", "#{message} \n Login to your account for more details.")
+          # send the email
+          |> Mailer.deliver_later()
+
+          # create the notification
+          {:ok, notification} = Notifications.create_notification(%{
+            user_id: order.user_id,
+            asset_type: "Offer",
+            asset_id: order.id,
+            notification_type: "Order Rejection",
+            message: message
+          })
+          # send the notification to the user through a websocket.
+          Endpoint.broadcast!("notification:#{order.user_id}", "notification::order_rejection", %{notification: Utils.render_notification(notification)})
+        end) # end of task
+        # return the order
+        {:ok, offer}
+      end # end of with updating the update
+    else
+      # user not owner
+      {:error, :not_owner}
+    end # end of checking whether the current user is teh owner of the offer
+  end
+
+  @doc """
     Sends a verification code for a given order
   """
   def send_order_verification_code(%User{} = user, %Order{} = order) do

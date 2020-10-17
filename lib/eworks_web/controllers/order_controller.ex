@@ -225,14 +225,27 @@ defmodule EworksWeb.OrderController do
     Accepts to work on a given order
   """
   def accept_order(conn, %{"order_offer_id" => offer_id}, user, order) do
-    with {:ok, offer} <- API.accept_order(user, order, offer_id) do
+    with {:ok, _offer} <- API.accept_order(user, order, offer_id) do
       conn
       # put status
       |> put_status(:ok)
       # render the offer
-      |> render("accepted_offer.json", accepted_offer: offer, user: user, order: order)
+      |> render("success.json", message: "Success. Order successfully accepted.")
     end # end of the with
   end
+
+  @doc """
+    Rejects order/ to work on an offer
+  """
+  def reject_order(conn, %{"order_offer_id" => offer_id}, user, order) do
+    with {:ok, _offer} <- API.reject_order(user, order, offer_id) do
+      conn
+      # put status
+      |> put_status(:ok)
+      # render the offer
+      |> render("success.json", message: "Success. Order successfully rejected.")
+    end # end of with
+  end # end of reject order
 
   @doc """
     Tag order

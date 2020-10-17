@@ -91,7 +91,7 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/assign/:to_assign_id", OrderController, :assign_order
     post "/order/:order_id/accept/:order_offer_id", OrderController, :accept_order
     post "/order/offer/:order_offer_id/cancel", OrderController, :cancel_order_offer
-    get "/orders/unassigned/:matadata", OrderListController, :list_unassigned_orders
+    post "/order/:order_id/reject/:order_offer_id", OrderController, :reject_order
 
     # invites
     post "/invite/:order_id/new", InviteController, :create_new_invite
@@ -120,6 +120,8 @@ defmodule EworksWeb.Router do
 
     # contractors
     get "/contractors/:contractor_id", WorkersController, :get_contractor
+    # get user offers
+    get "/user/offers", UserController, :get_user_offers
 
   end # end of scope for logged in users
 

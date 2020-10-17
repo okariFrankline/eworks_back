@@ -3,6 +3,7 @@ defmodule EworksWeb.UserView do
 
   alias Eworks.Uploaders.ProfilePicture
   alias Eworks.API.Utils
+  alias EworksWeb.OrderListView
 
   @doc """
     Renders of new_user.json
@@ -95,6 +96,33 @@ defmodule EworksWeb.UserView do
       }
     }
   end # end of work_profile.json
+
+  @doc """
+    offers.json
+  """
+  def render("offers.json", %{offers: offers, metadata: metadata}) do
+    %{
+      data: %{
+        offers: render_many(offers, __MODULE__, "offer.json"),
+        next_cursor: metadata.after
+      }
+    }
+  end
+
+  @doc """
+    offer.json
+  """
+  def render("offer.json", %{user: offer}) do
+    %{
+      id: offer.id,
+      asking_amount: offer.asking_amount,
+      is_accepted: offer.is_accepted,
+      is_rejected: offer.is_rejected,
+      is_cancelled: offer.is_cancelled,
+      has_accepted_order: offer.has_accepted_order,
+      order: render_one(offer, OrderListView, "order.json")
+    }
+  end
 
   # user.json
   def render("user.json", %{user: user}) do

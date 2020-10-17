@@ -1,10 +1,12 @@
 defmodule EworksWeb.UserController do
   use EworksWeb, :controller
 
+  import Ecto.Query, warn: false
   alias Eworks
   alias Eworks.Accounts.User
   alias Eworks.Utils.{Mailer, NewEmail}
-  alias EworksWeb.{Authentication, Plugs}
+  alias EworksWeb.{Plugs}
+  alias Eworks.Repo
 
   @work_profile_actions ~w(update_work_profile_skills update_work_profile_cover_letter update_work_profile_prof_intro)a
 
@@ -219,4 +221,39 @@ defmodule EworksWeb.UserController do
       |> render("success.json", message: "Your password has been successfully changed.")
     end # end of password params
   end # end of change user password
-end
+
+  @doc """
+    Gets the user's offers
+  """
+  def get_user_offers(conn, %{"metadata" => after_cursor}, user) do
+    # query for getting the offers
+    query = from(
+      offer in Eworks.Orders.OrderOffer,
+      # ensure user id is is similar
+      where: offer.user_id == ^user.id and offer.is_cancelled != true and offer.has_rejected_order == false,
+      # order by the date of inserted
+      order_by: [desc: offer.inserted, asc: offer.id],
+      # join the user order
+      join: order in assoc(offer, :order),
+      # preload the order
+      preload: [order: order]
+    )
+
+    # check if the after_cursor is given
+    page = if after_cursor == "false" do
+      # get the offers
+      Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 10)
+    else
+      # get the next page
+      Repo.paginate(query, after: after_cursor, cursor_fields: [:inserted_at, :id], limit: 10)
+    end # end of if
+
+    # return the result
+    conn
+    # put the status
+    |> put_status(:ok)
+    # render he results
+    |> render("offers.json", offers: page.entries, next_cursor: page.metadata.after)
+  end
+
+end # end of the module

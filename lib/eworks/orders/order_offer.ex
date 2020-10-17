@@ -8,6 +8,7 @@ defmodule Eworks.Orders.OrderOffer do
     field :asking_amount, :string
     # has indicated whether the owner of the offer has accepted to take the offer.
     field :has_accepted_order, :boolean, default: false
+    field :has_rejected_order, :boolean, default: false
     field :is_pending, :boolean, default: true
     field :is_cancelled, :boolean, default: false
     field :is_rejected, :boolean, default: false
@@ -37,7 +38,8 @@ defmodule Eworks.Orders.OrderOffer do
       :is_rejected,
       :asking_amount,
       :is_accepted,
-      :is_cancelled
+      :is_cancelled,
+      :has_rejected_order
       # :owner_name,
       # :owner_profile_pic,
       # :owner_job_success,
