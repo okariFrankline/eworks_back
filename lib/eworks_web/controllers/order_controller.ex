@@ -168,7 +168,7 @@ defmodule EworksWeb.OrderController do
     # put the status
     |> put_status(:created)
     # send a response to the user
-    |> render("success.json", message: "Offer successfully submitted.")
+    |> render("success.json", message: "Success. Your offer has been successfully submitted.")
   end # end of submit offer
 
 
