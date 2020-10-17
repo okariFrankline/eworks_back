@@ -74,7 +74,7 @@ defmodule Eworks.Uploaders.OrderAttachment do
     # get the files
     files = attachments |> Enum.map(fn attachment -> String.to_charlist(attachment.path) end)
     # create a zip fiel with the documents
-    {:ok, zip_filename} = :zip.zip("#{Ecto.UUID.generate()}.zip", files)
+    {:ok, zip_filename} = :zip.create("#{Ecto.UUID.generate()}.zip", files)
     # create a new upload struct with the file
     zip_upload = %Plug.Upload{filename: zip_filename, path: Path.absname(zip_filename), content_type: "application/zip"}
 

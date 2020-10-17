@@ -2,9 +2,9 @@ defmodule EworksWeb.WorkersController do
   use EworksWeb, :controller
 
   import Ecto.Query, warn: false
-  alias Eworks.{Repo}
+  alias Eworks.{Repo, Orders}
   alias Eworks.Accounts.User
-  alias Eworks.Dataloader.Loader
+  # alias Eworks.Dataloader.Loader
 
   action_fallback EworksWeb.FallbackController
 
@@ -22,13 +22,15 @@ defmodule EworksWeb.WorkersController do
     # check to ensure the ids are not emlty
     if not Enum.empty?(previous_hires_ids) do
       # get the dataloader
-      Loader.get_data_loader()
+      Dataloader.new
+      # add source
+      |> Dataloader.add_source(Orders, Orders.data())
       # load the order orders with the ids
-      |> Dataloader.load_many(Orders, Order, previous_hires_ids)
+      |> Dataloader.load_many(Orders, Orders.Order, previous_hires_ids)
       # run the loader
       |> Dataloader.run()
       # get the results
-      |> Dataloader.get_many(Orders, Order, previous_hires_ids)
+      |> Dataloader.get_many(Orders, Orders.Order, previous_hires_ids)
     else
       # return an empty list
       []
@@ -155,8 +157,22 @@ defmodule EworksWeb.WorkersController do
     Saves a given worker
   """
   def save_worker(conn, %{"contractor_id" => id}, user) do
-    # add the user's id to the list of saved worked
-    case Ecto.Changeset.change(user, %{saved_workers: [id | user.saved_workers]}) |> Repo.update() do
+    # check if the id ia already saved
+    result = if id not in user.saved_workers do # user is not in the list
+      user
+      # add the user's id to the list of saved worked
+      |> Ecto.Changeset.change(%{
+        saved_workers: [id | user.saved_workers]
+      })
+      # update the result
+      |> Repo.update()
+    else # else user is already in the list
+      # return the result with an ok and the user
+      {:ok, user}
+    end
+
+    # check the result
+    case result do
       # success saving
       {:ok, _user} ->
         conn
@@ -173,7 +189,8 @@ defmodule EworksWeb.WorkersController do
         |> put_view(EworksWeb.ErrorView)
         # render the failed
         |> render("failed.json", message: "Failed. Contractor could not be saved. Please try again later.")
-    end # end of case
+    end
+
   end # end of save worker
 
   @doc """
@@ -233,6 +250,47 @@ defmodule EworksWeb.WorkersController do
     # render the workers
     |> render("workers.json", workers: workers)
   end # end of getting the saved workers
+
+  @doc """
+    Gets a contractor specified by a given id
+  """
+  def get_contractor(conn, %{"contractor_id" => id}, _user) do
+    # get the user with the given id
+    query = from(
+      user in User,
+      # ensure id is given
+      where: user.id == ^id,
+      # join the woek profile
+      join: profile in assoc(user, :work_profile),
+      # prelod the work profil
+      preload: [work_profile: profile]
+    )
+
+    # get the user
+    case Repo.one(query) do
+      # the user does not exist
+      nil ->
+        # return a response
+        conn
+        # put status
+        |> put_status(:not_found)
+        # put error view
+        |> put_view(EworksWeb.ErrorView)
+        # render failed
+        |> render("failed.json", message: "Failed. Requested Contractor Not Found.")
+
+      # the user has being found
+      user ->
+        # get the previous hires
+        hires = load_previous_hires(user.work_profile.previous_hires)
+        # return the results
+        conn
+        # put the status
+        |> put_status(:ok)
+        # render the results
+        |> render("worker_profile.json", user: user, previous_hires: hires)
+    end # end of case for getting the user
+  end # end of gettign a contractor
 
 
 end # end of module

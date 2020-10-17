@@ -37,7 +37,7 @@ defmodule EworksWeb.WorkersView do
     %{
       data: %{
         success: true,
-        details: "message"
+        details: message
       }
     }
   end # end of success.json
@@ -74,13 +74,14 @@ defmodule EworksWeb.WorkersView do
   @doc """
     Renders the work profile
   """
-  def render("work_profile.json", %{work_profile: profile}) do
+  def render("work_profile.json", %{workers: profile}) do
     %{
       id: profile.id,
-      success_rate: profile.success_rate,
+      job_success: profile.success_rate,
       rating: profile.rating,
       about: profile.professional_intro,
       skills: profile.skills,
+      show_more: profile.show_more,
       job_hires: Enum.count(profile.previous_hires)
     }
   end # end of work_profile.json
@@ -88,13 +89,18 @@ defmodule EworksWeb.WorkersView do
   @doc """
     Renders the previous orders
   """
-  def render("previous_hire.json", %{previous_hire: hire}) do
+  def render("previous_hire.json", %{workers: hire}) do
     %{
       id: hire.id,
       description: hire.description,
       rating: hire.rating,
-      comment: hire.review,
-      specialty: hire.specialty
+      comment: hire.comment,
+      specialty: hire.specialty,
+      owner_name: hire.owner_name,
+      show_more: hire.show_more,
+      posted_on: NaiveDateTime.to_iso8601(hire.inserted_at),
+      rating: hire.rating,
+      category: hire.category
     }
   end # end of previous hire
 end # end of defining workers view

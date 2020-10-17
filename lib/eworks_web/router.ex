@@ -118,6 +118,9 @@ defmodule EworksWeb.Router do
     post "/contractors/:contractor_id/save", WorkersController, :save_worker
     post "/contractors/:contractor_id/unsave", WorkersController, :unsave_worker
 
+    # contractors
+    get "/contractors/:contractor_id", WorkersController, :get_contractor
+
   end # end of scope for logged in users
 
   # Enables LiveDashboard only for development
