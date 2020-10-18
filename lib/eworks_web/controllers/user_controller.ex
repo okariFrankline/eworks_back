@@ -248,8 +248,6 @@ defmodule EworksWeb.UserController do
       Repo.paginate(query, after: after_cursor, cursor_fields: [:inserted_at, :id], limit: 10)
     end # end of if
 
-    IO.inspect(page.entries)
-
     # return the result
     conn
     # put the status
