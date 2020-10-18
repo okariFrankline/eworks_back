@@ -100,11 +100,11 @@ defmodule EworksWeb.UserView do
   @doc """
     offers.json
   """
-  def render("offers.json", %{offers: offers, metadata: metadata}) do
+  def render("offers.json", %{offers: offers, next_cursor: next_cursor}) do
     %{
       data: %{
         offers: render_many(offers, __MODULE__, "offer.json"),
-        next_cursor: metadata.after
+        next_cursor: next_cursor
       }
     }
   end
@@ -115,12 +115,13 @@ defmodule EworksWeb.UserView do
   def render("offer.json", %{user: offer}) do
     %{
       id: offer.id,
+      submitted_on: NaiveDateTime.to_iso8601(offer.inserted_at),
       asking_amount: offer.asking_amount,
       is_accepted: offer.is_accepted,
       is_rejected: offer.is_rejected,
       is_cancelled: offer.is_cancelled,
       has_accepted_order: offer.has_accepted_order,
-      order: render_one(offer, OrderListView, "order.json")
+      order: render_one(offer.order, OrderListView, "order.json")
     }
   end
 

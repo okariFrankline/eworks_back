@@ -232,7 +232,7 @@ defmodule EworksWeb.UserController do
       # ensure user id is is similar
       where: offer.user_id == ^user.id and offer.is_cancelled != true and offer.has_rejected_order == false,
       # order by the date of inserted
-      order_by: [desc: offer.inserted, asc: offer.id],
+      order_by: [desc: offer.inserted_at, asc: offer.id],
       # join the user order
       join: order in assoc(offer, :order),
       # preload the order
@@ -247,6 +247,8 @@ defmodule EworksWeb.UserController do
       # get the next page
       Repo.paginate(query, after: after_cursor, cursor_fields: [:inserted_at, :id], limit: 10)
     end # end of if
+
+    IO.inspect(page.entries)
 
     # return the result
     conn
