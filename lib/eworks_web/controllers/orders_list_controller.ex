@@ -95,28 +95,25 @@ defmodule EworksWeb.OrderListController do
   @doc """
     Lists the orders made by the current user
   """
-  def list_current_user_created_orders(conn, %{"metadata" => after_cursor}, user) do
+  def list_current_user_created_orders(conn, %{"next_cursor" => after_cursor}, user) do
     # query for getting the orders created by hte current user
     query = from(
       order in Order,
       # ensure user id matches the id of the current user
-      where: order.user_id == ^user.id and order.is_paid_for == false,
+      where: order.user_id == ^user.id and order.is_cancelled == false,
       # join the order_offers
-      join: offer in assoc(order, :order_offers),
-      # only preload offers that have not been cancelled
-      where: offer.is_cancelled == false and offer.is_rejected == false,
+      left_join: offer in assoc(order, :order_offers),
+      on: offer.is_rejected == false and offer.is_cancelled == false,
       # order by inserted at
       order_by: [desc: order.inserted_at],
-      # preload the order
+      # proload the offers
       preload: [order_offers: offer]
     )
 
     # get the page
-    page = if after_cursor do
-      # get the next cursor
-      next_cursor = after_cursor
+    page = if after_cursor != "false" do
       # get the page
-      Repo.paginate(query, cursor: next_cursor, cursor_fields: [:inserted_at], limit: 10)
+      Repo.paginate(query, cursor: after_cursor, cursor_fields: [:inserted_at], limit: 10)
     else
       # get the first page
       Repo.paginate(query, cursor_fields: [:inserted_at], limit: 10)
@@ -127,7 +124,7 @@ defmodule EworksWeb.OrderListController do
     # put the status
     |> put_status(:ok)
     # render the results
-    |> render("created_orders.json", orders: page.entries, metadata: page.metadata)
+    |> render("created_orders.json", orders: page.entries, next_cursor: page.metadata.after)
   end # end of getting the orders created by the current users.
 
   @doc """
@@ -179,6 +176,8 @@ defmodule EworksWeb.OrderListController do
         preload: [user: {offer_owner, work_profile: profile}]
       )
     ])
+
+    IO.inspect(order)
 
     conn
     # put the status

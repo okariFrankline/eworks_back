@@ -83,6 +83,7 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/attachments", OrderController, :update_order_attachments
     post "/order/:order_id/verify", OrderController, :verify_order
     post "/order/:order_id/tag", OrderController, :tag_order
+    post "/order/:order_id/cancel", OrderController, :cancel_order
 
     # order offers
     post "/order/offer/:order_id/new", OrderController, :submit_order_offer
@@ -112,6 +113,7 @@ defmodule EworksWeb.Router do
 
     # get
     get "/orders/unassigned", OrderListController, :list_unassigned_orders
+    get "/user/orders/created", OrderListController, :list_current_user_created_orders
     get "/contractors", WorkersController, :list_workers
     get "/contractors/search", WorkersController, :search_based_on_skill
     get "/contractors/saved", WorkersController, :list_saved_workers

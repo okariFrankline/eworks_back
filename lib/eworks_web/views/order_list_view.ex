@@ -19,11 +19,11 @@ defmodule EworksWeb.OrderListView do
   @doc """
     renders created_orders.json
   """
-  def render("created_orders.json", %{orders: orders, metadata: metadata}) do
+  def render("created_orders.json", %{orders: orders, next_cursor: cursor}) do
     %{
       data: %{
         orders: render_many(orders, __MODULE__, "created_order.json"),
-        next_cursor: metadata.after
+        next_cursor: cursor
       }
     }
   end # end of created_orders.json
@@ -31,11 +31,11 @@ defmodule EworksWeb.OrderListView do
   @doc """
     Renders assigned_orders.json
   """
-  def render("assigned_orders.json", %{orders: orders, metadata: metadata}) do
+  def render("assigned_orders.json", %{orders: orders, next_cursor: cursor}) do
     %{
       data: %{
         orders: render_many(orders, __MODULE__, "assigned_order.json"),
-        next_cursor: metadata.after
+        next_cursor: cursor
       }
     }
   end # end of assigned_orders.json
@@ -84,7 +84,7 @@ defmodule EworksWeb.OrderListView do
   @doc """
     Renders the created_order.json
   """
-  def render("created_order.json", %{order: order}) do
+  def render("created_order.json", %{order_list: order}) do
     %{
       id: order.id,
       description: order.description,
@@ -95,14 +95,16 @@ defmodule EworksWeb.OrderListView do
       accepted_offers: order.accepted_offers,
       specialty: order.specialty,
       category: order.category,
-      offers_made: Enum.count(order.order_offers),
+      active_offers: active_offers(order.order_offers),
       duration: order.duration,
       order_type: order.order_type,
+      show_more: order.show_more,
       payment_schedule: order.payment_schedule,
       payable_amount: order.payable_amount,
       deadline: show_deadline(order.deadline),
       required_contractors: order.required_contractors,
-      owner: order.owner_name,
+      owner_name: order.owner_name,
+      posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
       attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order}))
     }
   end # end of created_order.json
@@ -134,5 +136,19 @@ defmodule EworksWeb.OrderListView do
 
   defp show_deadline(date) when is_nil(date), do: nil
   defp show_deadline(date), do: Date.to_iso8601(date)
+
+  # function for active offers
+  defp active_offers(offers) when offers == [], do: 0
+  defp active_offers(offers) do
+    # return only the offers that are active
+    offers
+    # map only the active offers
+    |> Enum.filter(fn offer ->
+      # ensure the offer is not cancelled or rejected
+      if not offer.is_rejected and not offer.is_cancelled, do: offer
+    end)
+    # retunr the number
+    |> Enum.count()
+  end
 
 end # end of module

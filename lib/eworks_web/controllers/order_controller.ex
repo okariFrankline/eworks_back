@@ -271,7 +271,35 @@ defmodule EworksWeb.OrderController do
     # send a response
     |> put_status(:ok)
     # render success
-    |> render("success.json", message: "Offer successfully cancelled.")
+    |> render("success.json", message: "Success. You have successfully cancelled your offer.")
   end
+
+  @doc """
+    Cancels an order
+  """
+  def cancel_order(conn, _params, user, order) do
+    # check if the order has being assigned
+    if order.is_assigned do
+      # return the response
+      conn
+      # put the status
+      |> put_status(:bad_request)
+      # put error view
+      |> put_view(Eworks.ErrorView)
+      # render the failed
+      |> render("failed.json", message: "Failed. You cannot cancel an order that is in progress.")
+
+    else
+      # cancel the order
+      with {:ok, _order} <- API.cancel_order(user, order) do
+        # return the result
+        conn
+        # pust status
+        |> put_status(:ok)
+        # render the success.json
+        |> render("success.json", message: "Success. You have successfully cancelled the order.")
+      end # end of with
+    end # end of checking if the erder has being assigned
+  end # end of cancelling an order
 
 end # end of the module

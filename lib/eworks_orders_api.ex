@@ -576,6 +576,52 @@ defmodule Eworks.Orders.API do
     end # end of if
   end # end of the
 
+  @doc """
+    Cancel order
+  """
+  def cancel_order(%User{} = user, %Order{} = order) do
+    # ensure the user is the owner of order
+    if user.id == order.user_id do
+      # preload the orders that have not being rejected
+      offers = Repo.preload(order, [
+        order_offers: from(
+          offer in OrderOffer,
+          # ensure the offer is not cancelled and has not being rejected
+          where: offer.is_rejected == false and offer.is_cancelled == false
+        )
+      ]).order_offers
+
+      # update the offer to cancelled
+      with order <- Ecto.Changeset.change(order, %{is_cancelled: true}) |> Repo.update!() do
+        # send notifications to the owners of the offers
+        Task.start(fn ->
+          # for each of the offers notify owner
+          Stream.each(offers, fn offer ->
+            # create a new notification
+            {:ok, notification} = Notifications.create_notification(%{
+              user_id: offer.user_id,
+              asset_type: "Offer",
+              asset_id: offer.id,
+              notification_type: "Offer Rejection",
+              message: "Your offer for the order: **ORDER::#{order.specialty}** has been rejected. Owner cancelled the order."
+            })
+
+            # send the notificaiton
+            Endpoint.broadcast!("notification:#{offer.user_id}", "notification::offer_rejected", %{notification: Utils.render_notification(notification)})
+          end)
+          # run the stream
+          |> Stream.run()
+        end) # end of task
+
+        # return the result
+        {:ok, order}
+      end # end of wih for updating the order
+    else
+      # return not owner
+      {:error, :not_owner}
+    end
+  end
+
   ####################################### PRIVATE FUNCTIONS #########################################
 
   defp accept_offer(offer, order_owner_name, order_specialty) do

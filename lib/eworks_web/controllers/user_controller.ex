@@ -230,7 +230,7 @@ defmodule EworksWeb.UserController do
     query = from(
       offer in Eworks.Orders.OrderOffer,
       # ensure user id is is similar
-      where: offer.user_id == ^user.id and offer.is_cancelled != true and offer.has_rejected_order == false,
+      where: offer.user_id == ^user.id and offer.is_cancelled ==false and offer.has_rejected_order == false,
       # order by the date of inserted
       order_by: [desc: offer.inserted_at, asc: offer.id],
       # join the user order
