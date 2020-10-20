@@ -22,28 +22,41 @@ defmodule Eworks.Orders do
     Dataloader.Ecto.new(Repo, query: &query/2)
   end # end of daaloader
 
-  # query for getting the previous list of the orders
-  def query(Order, %{prev: cursor}) do
+  # query for getting orders in progress
+  def query(Order, %{filter: "in_progress"}) do
     # query for the getting the orders
     from(
       order in Order,
+      # ensure the filter is unassigned
+      where: order.is_complete == false,
       # order by the date of being update
       order_by: [desc: order.updated_at]
     )
-    |> Repo.paginate(before: cursor, cursor_field: [:updated_at], limit: 10)
+  end # end of in progress orders
 
-  end
-
-  # query for getting the next orders
-  def query(Order, %{next: cursor}) do
+  # get all the orders that are complete and unpaid
+  def query(Order, %{filter: "un_paid"}) do
     # query for the getting the orders
     from(
       order in Order,
+      # ensure the filter is unassigned
+      where: order.is_complete == true and order.is_paid_for == false,
       # order by the date of being update
       order_by: [desc: order.updated_at]
     )
-    |> Repo.paginate(after: cursor, cursor_field: [:updated_at], limit: 10)
-  end
+  end # end of in progress orders
+
+  # get all the orders that have recently being paid
+  def query(Order, %{filter: "recently_paid"}) do
+    # query for the getting the orders
+    from(
+      order in Order,
+      # ensure the filter is unassigned
+      where: order.is_complete == true and order.is_paid_for == true,
+      # order by the date of being update
+      order_by: [desc: order.updated_at]
+    )
+  end # end of in progress orders
 
   def query(queryable, _), do: queryable
 

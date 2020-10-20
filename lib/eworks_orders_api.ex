@@ -620,7 +620,47 @@ defmodule Eworks.Orders.API do
       # return not owner
       {:error, :not_owner}
     end
-  end
+  end # end of cancel orders
+
+  @doc """
+    Marks an order as completed
+  """
+  def mark_order_complete(%User{} = user, %Order{} = order) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
+
+    # mark the order as complete
+    with _order <- Ecto.Changeset.change(order, %{is_complete: true}) |> Repo.update!(),
+      # update the profile
+      profile <- Ecto.Changeset.change(profile, %{un_paid: profile.un_paid + 1}) |> Repo.update!() do
+        # send the owner of the order a notification
+        Task.start(fn ->
+          # send an email notification to the order owner
+          owner = Repo.preload(order, [:user]).user
+          # message
+          message = "#{user.full_name} has completed working on your order *ORDER::#{order.specialty}**"
+          # send an email notification to the owner of the order
+          NewEmail.new_email_notification(owner, "Order Completion for **ORDER::#{order.specialty}**", "#{message} \n Login to your account for more details.")
+          # send the email
+          |> Mailer.deliver_later()
+
+          # create the notification
+          {:ok, notification} = Notifications.create_notification(%{
+            user_id: order.user_id,
+            asset_type: "Order",
+            asset_id: order.id,
+            notification_type: "OrderCompletion",
+            message: message
+          })
+
+          # send the notification to the user
+          Endpoint.broadcast!("notification:#{owner.id}", "notification::order_acceptance", %{notification: Utils.render_notification(notification)})
+        end) # end of task
+
+        # return the result
+        {:ok, profile}
+    end # end of with
+  end # end of mark order
 
   ####################################### PRIVATE FUNCTIONS #########################################
 

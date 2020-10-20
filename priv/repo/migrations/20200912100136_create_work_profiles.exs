@@ -14,6 +14,9 @@ defmodule Eworks.Repo.Migrations.CreateWorkProfiles do
       add :assigned_orders, {:array, :binary_id}, default: []
       add :previous_hires, {:array, :binary_id}, default: []
       add :show_more, :boolean, default: false, null: false
+      add :in_progress, :integer, default: 0, null: false
+      add :un_paid, :integer, default: 0, null: false
+      add :recently_paid, :integer, default: 0, null: false
       # date for indicating how long the upgraded status should last
       add :has_upgrade_expired, :boolean, default: false
       # add for indicating the date for which the upgrade was made

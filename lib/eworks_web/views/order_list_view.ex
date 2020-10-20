@@ -31,25 +31,14 @@ defmodule EworksWeb.OrderListView do
   @doc """
     Renders assigned_orders.json
   """
-  def render("assigned_orders.json", %{page: page}) when page == [] do
+  def render("assigned_orders.json", %{orders: orders, un_paid: unpaid, paid: paid, in_progress: in_progress}) do
+    IO.inspect(orders)
     %{
       data: %{
-        orders: [],
-      }
-    }
-  end # end of assigned_orders.json
-
-  @doc """
-    Renders assigned_orders.json
-  """
-  def render("assigned_orders.json", %{page: page}) do
-    %{
-      data: %{
-        orders: render_many(page.entries, __MODULE__, "assigned_order.json"),
-        # set next cursor
-        next_cursor: page.metadata.after,
-        # set the previous cursor
-        prev_cursor: page.metadata.before
+        orders: render_many(orders, __MODULE__, "created_order.json"),
+        un_paid_count: unpaid,
+        paid_count: paid,
+        in_progress_count: in_progress
       }
     }
   end # end of assigned_orders.json
@@ -61,21 +50,18 @@ defmodule EworksWeb.OrderListView do
     render_one(order, OrderView, "order.json")
   end # end of my_order.json
 
-  @doc """
-    Renders my_assigned_order.json
-  """
-  def render("my_assigned_order.json", %{order: order}) do
-    %{
-      data: %{
-        order: render_one(order, __MODULE__, "assigned_order.json")
-      }
-    }
-  end # end of my_assigned_order.json
+  # def render("my_assigned_order.json", %{order: order}) do
+  #   %{
+  #     data: %{
+  #       order: render_one(order, __MODULE__, "assigned_order.json")
+  #     }
+  #   }
+  # end # end of my_assigned_order.json
 
   @doc """
     Renders the assigned_order.json
   """
-  def render("assigned_order.json", %{order_list: order}) do
+  def render("assigned_order.json", %{order: order}) do
     %{
       id: order.id,
       description: order.description,
@@ -91,6 +77,7 @@ defmodule EworksWeb.OrderListView do
       payment_schedule: order.payment_schedule,
       payable_amount: order.payable_amount,
       show_more: order.show_more,
+      posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
       attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),
       owner_name: order.owner_name
     }

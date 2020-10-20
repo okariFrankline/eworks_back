@@ -93,6 +93,7 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/accept/:order_offer_id", OrderController, :accept_order
     post "/order/offer/:order_offer_id/cancel", OrderController, :cancel_order_offer
     post "/order/:order_id/reject/:order_offer_id", OrderController, :reject_order
+    post "/order/:order_id/complete", OrderController, :mark_order_complete
 
     # invites
     post "/invite/:order_id/new", InviteController, :create_new_invite

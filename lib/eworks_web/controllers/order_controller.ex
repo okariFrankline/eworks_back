@@ -302,4 +302,18 @@ defmodule EworksWeb.OrderController do
     end # end of checking if the erder has being assigned
   end # end of cancelling an order
 
+  @doc """
+    marks an order complete
+  """
+  def mark_order_complete(conn, _params, user, order) do
+    with {:ok, _profile} <- API.mark_order_complete(user, order) do
+      # return a response
+      conn
+      # put the status
+      |> put_status(:ok)
+      # return the result
+      |> render("success.json", message: "Success. You have successfully marked the order as complete.")
+    end
+  end
+
 end # end of the module
