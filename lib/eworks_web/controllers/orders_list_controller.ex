@@ -130,31 +130,19 @@ defmodule EworksWeb.OrderListController do
   @doc """
     Lists the contracts that have being assigned to the current user
   """
-  def list_orders_assigned_to_current_user(conn, _params, user) do
+  def list_orders_assigned_to_current_user(conn, %{"next_cursor" => next_cursor, "prev_cursor" => prev_cursor}, user) do
     # preload the work profile of the current user
     %WorkProfile{assigned_orders: order_ids} = _work_profile = Repo.preload(user, [:work_profile]).work_profile
 
     # check if the assigned orders is empty
-     assigned_orders = if not Enum.empty?(order_ids) do
-      # get the loader
-      Loader.get_data_loader()
-      # load the orders with the given ids
-      |> Dataloader.load_many(Orders, Order, order_ids)
-      # run the loader
-      |> Dataloader.run()
-      # get the orders
-      |> Dataloader.get_many(Ordes, Order, order_ids)
-    else
-      # return an empty list
-      []
-    end # end of assigned orders
+     page = if not Enum.empty?(order_ids), do: load_assigned_orders(next_cursor, prev_cursor, order_ids), else: []
 
     # return the resuls
     conn
     # put the status
     |> put_status(:ok)
     # render the order
-    |> render("assigned_orders.json", orders: assigned_orders)
+    |> render("assigned_orders.json", page: page)
   end # end of list_order_assigned_to_current_user/3
 
   @doc """
@@ -220,5 +208,39 @@ defmodule EworksWeb.OrderListController do
       # return the result
       |> render("order_not_found.json")
   end # end of get_assigned_order
+
+
+  # private function for loading the assigned orders
+  defp load_assigned_orders(next_cursor, prev_cursor, order_ids) do
+    # create the loader
+    loader = Dataloader.new |> Dataloader.add_source(Orders, Orders.data())
+    # check if the cursors are given
+    cond do
+      # next cursor has being given
+      next_cursor != "false" ->
+        # get the loader
+        loader
+        # load the order orders with the ids
+        |> Dataloader.load_many(Orders, {Orders.Order, next: next_cursor}, order_ids)
+
+      # prev cursor has being given
+      prev_cursor != "false" ->
+        # get the loader
+        loader
+        # load the order orders with the ids
+        |> Dataloader.load_many(Orders, {Orders.Order, prev: prev_cursor}, order_ids)
+
+      # both the prev and next cursors are false
+      true ->
+        # laod the orders
+        loader
+        # load the orders
+        |> Dataloader.load_many(Orders, Orders.Order, order_ids)
+    end # end of cond for getting the loader
+    # run the loader
+    |> Dataloader.run()
+    # get the results
+    |> Dataloader.get_many(Orders, Orders.Order, order_ids)
+  end # end of getting teh assigned orders
 
 end # end of module

@@ -114,6 +114,7 @@ defmodule EworksWeb.Router do
     # get
     get "/orders/unassigned", OrderListController, :list_unassigned_orders
     get "/user/orders/created", OrderListController, :list_current_user_created_orders
+    get "/user/orders/assigned", OrderListController, :list_orders_assigned_to_current_user
     get "/contractors", WorkersController, :list_workers
     get "/contractors/search", WorkersController, :search_based_on_skill
     get "/contractors/saved", WorkersController, :list_saved_workers

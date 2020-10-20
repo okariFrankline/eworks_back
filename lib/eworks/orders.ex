@@ -22,6 +22,29 @@ defmodule Eworks.Orders do
     Dataloader.Ecto.new(Repo, query: &query/2)
   end # end of daaloader
 
+  # query for getting the previous list of the orders
+  def query(Order, %{prev: cursor}) do
+    # query for the getting the orders
+    from(
+      order in Order,
+      # order by the date of being update
+      order_by: [desc: order.updated_at]
+    )
+    |> Repo.paginate(before: cursor, cursor_field: [:updated_at], limit: 10)
+
+  end
+
+  # query for getting the next orders
+  def query(Order, %{next: cursor}) do
+    # query for the getting the orders
+    from(
+      order in Order,
+      # order by the date of being update
+      order_by: [desc: order.updated_at]
+    )
+    |> Repo.paginate(after: cursor, cursor_field: [:updated_at], limit: 10)
+  end
+
   def query(queryable, _), do: queryable
 
   # dataloader for the
