@@ -11,7 +11,8 @@ defmodule EworksWeb.Invites.InviteController do
     :cancel_invite_offer,
     :list_invites_created_by_current_user,
     :list_current_user_invite_offers,
-    :list_unassigned_invites
+    :list_unassigned_invites,
+    :list_invite_offers
   ]
   plug Plugs.CanSubmitOrderOffer when action in [:submit_invite_offer]
 
@@ -289,6 +290,47 @@ defmodule EworksWeb.Invites.InviteController do
     # render the offers
     |> render("my_offers.json", offers: offers)
   end
+
+  @doc """
+    List order offers
+  """
+  def list_invite_offers(conn, %{"next_cursor" => next_cursor, "invite_id" => id, "filter" => filter}, _user, _invite) do
+    # query for the offers
+    query = from(
+      invite in InviteOffer,
+      # ensure the order id is simialr to the offers
+      where: invite.order_id == ^id,
+      # order
+      order_by: [desc: invite.inserted_at]
+    )
+
+    # check the filter
+    query = case filter do
+      "pending" ->
+        # filter the query
+        from(invite in query, where: invite.pending == true and invite.cancelled == false and invite.is_rejected == false)
+
+      # accepted offers
+      "accepted" ->
+        # get the accepted offers
+        from(invite in query, where: invite.accepted == true and invite.cancelled == false and invite.is_rejected == false)
+    end # get the fitler
+
+    # check the value of the next cursor
+    page = if next_cursor != "false" do
+      Repo.paginate(query, cursor_fields: [:inserted_at], limit: 10)
+    else
+      Repo.paginate(query, after: next_cursor, cursor_fields: [:inserted_at], limit: 10)
+    end # end of next cursor
+
+    # return the result
+    conn
+    # return the rsult
+    |> put_status(:ok)
+    # return the results
+    |> render("offers.json", offers: page.entries, next_cursor: page.metadata.after)
+
+  end # retun the
 
   @doc """
     Returns a given invite

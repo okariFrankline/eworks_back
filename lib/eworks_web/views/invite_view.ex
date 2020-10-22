@@ -25,6 +25,18 @@ defmodule EworksWeb.Invites.InviteView do
   end # end of invite.json
 
   @doc """
+    Renders offers.json
+  """
+  def render("offers.json", %{offers: offers, next_cursor: cursor}) do
+    %{
+      data: %{
+        offers: render_many(offers, __MODULE__, "offer.json"),
+        next_cursor: cursor
+      }
+    }
+  end # end of offers.json
+
+  @doc """
     Render the collaborators
   """
   def render("collaborator.json", %{invite: offer}) do
@@ -47,15 +59,16 @@ defmodule EworksWeb.Invites.InviteView do
       is_cancelled: offer.is_cancelled,
       is_rejected: offer.is_rejected,
       is_pending: offer.is_pending,
-      placed_on: Date.to_iso8601(offer.inserted_at),
+      placed_on: NaiveDateTime.to_iso8601(offer.inserted_at),
       has_accepted_invite: offer.has_accepted_invite,
+      show_more: offer.show_more,
       owner: %{
         full_name: offer.owner_name,
         rating: offer.owner_rating,
         job_success: offer.owner_job_success,
         about: offer.owner_about,
         id: offer.user_id,
-        profile_pic: offer.owner_profile_pic
+        profile_pic: offer.owner_profile_pic,
       }
     }
   end # end of offer.json
