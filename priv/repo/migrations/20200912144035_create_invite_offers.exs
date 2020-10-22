@@ -9,6 +9,7 @@ defmodule Eworks.Repo.Migrations.CreateInviteOffers do
       add :is_rejected, :boolean, default: false, null: false
       add :is_accepted, :boolean, default: false, null: false
       add :is_cancelled, :boolean, default: false, null: false
+      add :asking_amount, :integer, null: false
 
       add :owner_name, :string, null: false
       add :owner_rating, :integer, null: false

@@ -5,13 +5,17 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
     create table(:invites, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :required_collaborators, :integer, default: 0, null: false
-      add :deadline, :date, null: false
-      add :duration, :string, null: false
+      add :deadline, :date, null: true
       add :is_paid_for, :boolean, default: false
+      add :is_cancelled, :boolean, default: false, null: false
+      add :is_assigned, :boolean, default: false, null: false
+      add :is_draft, :boolean, default: true, null: false
       add :payable_amount, :string, null: true
       add :payment_schedule, :string, null: true
       add :category, :string, null: false
-      add :already_accepted, :integer, default: 0, null: false
+      add :show_more, :boolean, default: false, null: false
+      add :description, :text, null: true
+      add :verification_code, :integer, null: true
       add :collaborators, {:array, :binary_id}, default: []
       add :order_id, :binary_id
 
@@ -26,5 +30,8 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
     create index(:invites, [:category])
     create index(:invites, [:is_paid_for])
     create index(:invites, [:inserted_at])
+    create index(:invites, [:is_cancelled])
+    create index(:invites, [:is_assigned])
+    create index(:invites, [:is_draft])
   end
 end

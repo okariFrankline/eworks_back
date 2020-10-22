@@ -54,6 +54,67 @@ defmodule EworksWeb.Router do
     get "/account/activation/key/resend", UserController, :new_activation_key_request
   end
 
+  # scope "/api/order", EworksWeb do
+  #   # order routes
+  #   get "/order/:order_id", OrderListController, :get_order
+  #   get "/order/:order_id/verification/code", OrderController, :send_order_verification_code
+  #   get "/order/:order_id/resend/verification/code", OrderController, :resend_order_verification_code
+  #   post "/order/new", OrderController, :create_new_order
+  #   post "/order/:order_id/category", OrderController, :update_order_category
+  #   post "/order/:order_id/type", OrderController, :update_order_type_and_contractors
+  #   post "/order/:order_id/payment", OrderController, :update_order_payment
+  #   post "/order/:order_id/description", OrderController, :update_order_description
+  #   post "/order/:order_id/duration", OrderController, :update_order_duration
+  #   post "/order/:order_id/attachments", OrderController, :update_order_attachments
+  #   post "/order/:order_id/verify", OrderController, :verify_order
+  #   post "/order/:order_id/tag", OrderController, :tag_order
+  #   post "/order/:order_id/cancel", OrderController, :cancel_order
+  # end
+
+  # scope for the invites
+  scope "/api/invites", EworksWeb.Invites do
+    pipe_through [:api, :authenticated_and_active]
+
+    ########################################## INVITE GET ROUTES###################################################
+    # gets a single invite
+    get "/:invite_id", InviteController, :get_invite
+    # invite for getting unassigned invites
+    get "/unassigned", InviteController, :list_unassigned_invites
+    # invite for getting invites created by the current user
+    get "/created", InviteController, :list_invites_created_by_current_user
+    # route for getting invite offers created by current user
+    get "/offers/", InviteController, :list_current_user_invite_offers
+    # route for getting a verification code
+    get "/:invite_id/verification", InviteController, :get_verification_code
+    # route for resending a verification code
+    get "/:invite_id/verification/resend", InviteController, :resend_verification_code
+
+   ########################################## INVITE POST ROUTES###################################################
+    # route for creating a new invite
+    post "/:order_id/new", InviteController, :create_new_invite
+    # invite for updating the invite payment
+    post "/:invite_id/category", InviteController, :update_invite_category
+    # invite for updating the invite payment
+    post "/:invite_id/payment", InviteController, :update_invite_payment
+    # invite for updating the description
+    post "/:invite_id/description", InviteController, :update_invite_description
+    # invite for updating the description
+    post "/:invite_id/deadline", InviteController, :update_invite_deadline_collaborators
+    # route for verifying an invite
+    post "/:invite_id/verify", InviteController, :verify_invite
+    # route for creating a new invite
+    post "/offer/:invite_id/new", InviteController, :submit_invite_offer
+    # route for rejecting an invite offer
+    post "/:invite_id/offer/:invite_offer_id/reject", InviteController, :reject_invite_offer
+    # route for accepting an invite offer
+    post "/:invite_id/offer/:invite_offer_id/accept", InviteController, :accept_invite_offer
+    # route for cancelling an invite
+    post "/:invite_id/cancel", InviteController, :cancel_invite
+    # route for cancelling an invite offer
+    post "/offer/:invite_offer_id/cancel", InviteController, :cancel_invite_offer
+
+  end # end of invite scope
+
 
   # scope for the logged in user
   scope "/api", EworksWeb do
@@ -96,13 +157,15 @@ defmodule EworksWeb.Router do
     post "/order/:order_id/complete", OrderController, :mark_order_complete
 
     # invites
-    post "/invite/:order_id/new", InviteController, :create_new_invite
-    post "/invite/:invite_id/payment", InviteController, :update_invite_payment
-    post "/invite/offer/:invite_id/new", InviteController, :submit_invite_offer
-    post "/invite/:invite_id/offer/:invite_offer_id/reject", InviteController, :reject_invite_offer
-    post "/invite/:invite_id/offer/:invite_offer_id/accept", InviteController, :accept_invite_offer
-    post "/invite/:invite_id/cancel", InviteController, :cancel_invite
-    post "/invite/offer/:invite_offer_id/cancel", InviteController, :cancel_invite_offer
+    # post "/invite/:order_id/new", InviteController, :create_new_invite
+    # post "/invite/:invite_id/payment", InviteController, :update_invite_payment
+    # post "/invite/:invite_id/description", InviteController, :update_invite_description
+    # post "/invite/:invite_id/deadline", InviteController, :update_invite_deadline_collaborators
+    # post "/invite/offer/:invite_id/new", InviteController, :submit_invite_offer
+    # post "/invite/:invite_id/offer/:invite_offer_id/reject", InviteController, :reject_invite_offer
+    # post "/invite/:invite_id/offer/:invite_offer_id/accept", InviteController, :accept_invite_offer
+    # post "/invite/:invite_id/cancel", InviteController, :cancel_invite
+    # post "/invite/offer/:invite_offer_id/cancel", InviteController, :cancel_invite_offer
 
     # direct hire
     get "/direct/hire/client", DirectHireController, :list_client_direct_hires

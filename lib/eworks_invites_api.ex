@@ -8,18 +8,17 @@ defmodule Eworks.Collaborations.API do
   alias Eworks.Collaborations.{Invite, InviteOffer}
   alias EworksWeb.Endpoint
   alias Eworks.Utils.{Mailer, NewEmail}
+  alias Eworks.API.Utils
 
   @doc """
     Gets a given invvitation
   """
   def get_invite(%User{} = user, %Invite{} = invite) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
     # checki if user is owner
-    if user.id == invite.user_id do
-      Repo.preload(invite, [invite_offers: from(offer in InviteOffer, where: offer.is_cancelled == false and offer.is_rejected == false)])
-    else
-      # return the invite
-      invite
-    end # end of invite.
+    if profile.id == invite.work_profile_id, do: invite, else: {:error, :not_owner}
+
   end # end of get invite
 
   @doc """
@@ -29,13 +28,53 @@ defmodule Eworks.Collaborations.API do
     # preload the user work profile
     profile = Repo.preload(user, [:work_profile]).work_profile
     # create the invite
-    with {:ok, invite} <- profile |> Ecto.build_assoc(:invites, %{order_id: order_id}) |> Collaborations.create_invite(invite_params) do
-      # preload the offers
-      invite = Repo.preload(invite, [:collaboration_offers])
-      # return resutl
-      {:ok, invite}
-    end # end of with
+    with {:ok, _invite} = result <- profile |> Ecto.build_assoc(:invites, %{order_id: order_id}) |> Collaborations.create_invite(invite_params), do: result
   end # end of create invite
+
+  @doc """
+    Updates the invite's category and specialty
+  """
+  def update_invite_category(%User{} = user, %Invite{} = invite, params) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
+    # ensure the current user is the owner of the invite
+    if profile.id == invite.work_profile_id do
+      # update the order
+      with {:ok, _invite} = result <- Collaborations.update_invite_category(invite, params), do: result
+    else
+      {:error, :not_owner}
+    end # end of checking if the current user is the owner of the invite
+  end # end of update incite deadline
+  @doc """
+    Adds the deadline and the required number of collaborators
+  """
+  def update_invite_deadline_collaborators(%User{} = user, %Invite{} = invite, params) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
+    # ensure the current user is the owner of the invite
+    if profile.id == invite.work_profile_id do
+      # update the order
+      with {:ok, _invite} = result <- Collaborations.update_invite_deadline_collaborator(invite, params), do: result
+    else
+      {:error, :not_owner}
+    end # end of checking if the current user is the owner of the invite
+  end # end of update incite deadline
+
+   @doc """
+    Adds the deadline and the required number of collaborators
+  """
+  def update_invite_description(%User{} = user, %Invite{} = invite, description) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
+    # ensure the current user is the owner of the invite
+    if profile.id == invite.work_profile_id do
+      # update the order
+      with {:ok, _invite} = result <- Collaborations.update_invite_description(invite, %{description: description}), do: result
+    else
+      {:error, :not_owner}
+    end # end of checking if the current user is the owner of the invite
+
+  end # end of update incite deadline
 
   @doc """
     Adds payment information about an invite
@@ -46,12 +85,7 @@ defmodule Eworks.Collaborations.API do
     # ensure the current user is the owner of the invite
     if profile.id == invite.work_profile_id do
       # update the order
-      with {:ok, invite} = result <- Collaborations.update_invite_payment(invite, payment_params) do
-        # preload the offers
-        invite = Repo.preload(invite, [:collaboration_offers])
-        # return resutl
-        {:ok, invite}
-      end # end of with
+      with {:ok, _invite} = result <- Collaborations.update_invite_payment(invite, payment_params), do: result
     else
       {:error, :not_owner}
     end # end of checking if the current user is the owner of the invite
@@ -60,7 +94,7 @@ defmodule Eworks.Collaborations.API do
   @doc """
     Creates a new order offer
   """
-  def create_invite_offer(%User{} = user, %Invite{} = invite) do
+  def create_invite_offer(%User{} = user, %Invite{} = invite, asking_amount) do
     # preload work profile of the curent user
     user = Repo.preload(user, [:work_profile])
     # create invite offer
@@ -69,6 +103,7 @@ defmodule Eworks.Collaborations.API do
     |> Ecto.build_assoc(:invite_offers, %{
       # add invite id
       invite_id: invite.id,
+      asking_amount: asking_amount,
       owner_name: user.full_name,
       rating: user.work_profile.rating,
       owner_about: user.work_profile.cover_letter,
@@ -76,6 +111,30 @@ defmodule Eworks.Collaborations.API do
     })
     # create the offer
     |> Repo.insert!()
+
+    # task for sending an email notification to the owner of the invite
+    Task.start(fn ->
+      # preload the owner of the order
+      owner = Repo.preload(invite, [:user]).user
+      # message
+      message = "#{user.full_name} has submitted an offer for your collaboration invite **INVITE::#{invite.specialty}**"
+      # send an email notification to the owner of the order
+      NewEmail.new_email_notification(owner, "Invite Offer Submission for **INVITE::#{invite.specialty}**", "#{message} \n Login to your account for more details.")
+      # send the email
+      |> Mailer.deliver_later()
+
+      # create a notification for the owner of the invite
+      # create the notification
+      {:ok, notification} = Notifications.create_notification(%{
+        user_id: owner.id,
+        asset_type: "Invite Offer",
+        asset_id: invite.id,
+        notification_type: "Invite Offer Submission",
+        message: message
+      })
+      # send the notification to the user through a websocket.
+      Endpoint.broadcast!("notification:#{owner.id}", "notification::invite_offer_submission", %{notification: Utils.render_notification(notification)})
+    end)
     # return ok
     {:ok, offer}
   end # end of create invite
@@ -99,7 +158,7 @@ defmodule Eworks.Collaborations.API do
             user_id: offer.user_id,
             asset_type: "Offer",
             asset_id: offer.id,
-            notification_type: "Collaboration Invite Offer Rjection",
+            notification_type: "Collaboration Invite Offer Rejection",
             message: "#{user.full_name} has rejected your collaboration offer request for **INVITE::#{invite.category}**"
           })
           # send the notification
@@ -129,7 +188,7 @@ defmodule Eworks.Collaborations.API do
       # check if the user has been suspended
       if not offer_owner.is_suspended do
         # accept the offer
-        with _offer <- offer |> Ecto.Changeset.change(%{is_accepted: true, is_pending: true}) |> Repo.update!() do
+        with _offer <- offer |> Ecto.Changeset.change(%{is_accepted: true, is_pending: false}) |> Repo.update!() do
           # send a notification to the owner of the invite offer using websocket
           Task.start(fn ->
             # creare message for notification
@@ -244,6 +303,57 @@ defmodule Eworks.Collaborations.API do
     # return the offer
     {:ok, offer}
   end # end of cancelling an offer
+
+  @doc """
+    Send invite collaboration invite
+  """
+  def send_verification_code(%User{} = user, %Invite{} = invite) do
+    # send an email to the user with the verification order
+    NewEmail.new_invite_verification_code_email(user, invite)
+    # send the email
+    |> Mailer.deliver_later()
+    # return :ok
+    :ok
+  end # end of send verification code
+
+  @doc """
+    Resends a new verification code
+  """
+  def resend_verification_code(%User{} = user, %Invite{} = invite) do
+    # set a new verification code and send it to the user
+    with invite <- Ecto.Changeset.change(invite, %{verification_code: Enum.random(100_000..999_999)}) |> Repo.update!() do
+      # send an email to the user with the verification order
+      NewEmail.new_invite_verification_code_email(user, invite)
+      # send the email
+      |> Mailer.deliver_later()
+      # return :ok
+      :ok
+    end
+  end # end of send verification code
+
+  @doc """
+    verifies an invite
+  """
+  def verify_invite( _user, %Invite{} = invite, verification_code) do
+    # check if the verification codes match
+    if invite.verification_code == String.to_integer(verification_code) do
+      # update the invite to not draft
+      invite = invite
+      # set the verificaiton code to nil and the is draft to false
+      |> Ecto.Changeset.change(%{
+        verification_code: nil,
+        is_draft: false
+      })
+      # update the invite
+      |> Repo.update!()
+
+      # return ok
+      {:ok, invite}
+
+    else
+        {:error, :invalid_code}
+    end # end of if
+  end # end of verify invite
 
 
   ############################## PRIVATE FUNCTIONS ######################

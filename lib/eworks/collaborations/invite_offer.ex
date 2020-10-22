@@ -10,6 +10,7 @@ defmodule Eworks.Collaborations.InviteOffer do
     field :is_pending, :boolean, default: false
     field :is_rejected, :boolean, default: false
     field :has_accepted_invite, :boolean, default: false
+    field :asking_amount, :integer
     # owner information
     field :owner_name, :string
     field :owner_rating, :integer
@@ -37,7 +38,8 @@ defmodule Eworks.Collaborations.InviteOffer do
       :owner_rating,
       :owner_about,
       :owner_profile_pic,
-      :owner_job_success
+      :owner_job_success,
+      :asking_amount
     ])
     # ensure the user_id is given
     |> foreign_key_constraint(:user_id)

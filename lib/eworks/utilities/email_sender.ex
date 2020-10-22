@@ -5,6 +5,7 @@ defmodule Eworks.Utils.NewEmail do
   import Bamboo.Email
   alias Eworks.Accounts.User
   alias Eworks.Orders.Order
+  alias Eworks.Collaborations.Invite
 
   # function for generating an email after signing in a user
   def new_activation_key_email(%User{auth_email: email} = _user, subject, message) do
@@ -27,6 +28,17 @@ defmodule Eworks.Utils.NewEmail do
     |> subject("New Order Verification Code. **ORDER::#{specialty}**")
     # subject of the email
     |> text_body("Thank you for creating a new order with us. Here is your order verification code: \n #{code}")
+  end # end of the new order verification code email
+
+  # function for sending the order verification code
+  def new_invite_verification_code_email(%User{auth_email: email} = _user, %Invite{verification_code: code, specialty: specialty}) do
+    base_mail()
+    # put the sender of the email
+    |> to(email)
+    # subject of the email
+    |> subject("New Order Verification Code. **ORDER::#{specialty}**")
+    # subject of the email
+    |> text_body("Thank you for creating a new collaboration invite with us. Here is your invite verification code: \n #{code}")
   end # end of the new order verification code email
 
   # function for sending an invite accepting offer

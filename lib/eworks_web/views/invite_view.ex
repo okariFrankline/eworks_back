@@ -1,27 +1,25 @@
-defmodule EworksWeb.InviteView do
+defmodule EworksWeb.Invites.InviteView do
   use EworksWeb, :view
 
   @doc """
-    Renders the invite
+    New invite json
   """
-  def render("invite.json", %{invite: invite, user: user}) do
+  def render("invite.json", %{invite: invite}) do
     %{
       data: %{
         id: invite.id,
         payable_amount: invite.payable_amount,
-        payment_schdule: invite.payment_schedule,
+        payment_schedule: invite.payment_schedule,
         is_paid_for: invite.is_paid_for,
+        is_cancelled: invite.is_cancelled,
+        is_assigned: invite.is_assigned,
         category: invite.category,
         deadline: show_deadline(invite.deadline),
-        already_accepted: invite.already_accepted,
         required_collaborators: invite.required_collaborators,
         order_id: invite.order_id,
-        owner: %{
-          id: user.id,
-          full_name: user.full_name
-        },
-        collaborators: render_collaborators(invite.collaboration_offers, invite.collaborators),
-        offers: render_invite_offers(invite.collaboration_offers, invite.collaborators)
+        specialty: invite.specialty,
+        description: invite.description,
+        show_more: invite.show_more
       }
     }
   end # end of invite.json

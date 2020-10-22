@@ -632,7 +632,7 @@ defmodule Eworks.Orders.API do
     # mark the order as complete
     with _order <- Ecto.Changeset.change(order, %{is_complete: true}) |> Repo.update!(),
       # update the profile
-      profile <- Ecto.Changeset.change(profile, %{un_paid: profile.un_paid + 1}) |> Repo.update!() do
+      profile <- Ecto.Changeset.change(profile, %{un_paid: profile.un_paid + 1, in_progress: profile.in_progress - 1}) |> Repo.update!() do
         # send the owner of the order a notification
         Task.start(fn ->
           # send an email notification to the order owner

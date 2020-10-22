@@ -50,7 +50,6 @@ defmodule Eworks.Collaborations do
 
   """
   def create_invite(%Invite{} = invite, attrs \\ %{}) do
-    IO.inspect(invite)
     invite
     |> Invite.creation_changeset(attrs)
     |> Repo.insert()
@@ -68,9 +67,63 @@ defmodule Eworks.Collaborations do
       {:error, %Ecto.Changeset{}}
 
   """
+  def update_invite_category(%Invite{} = invite, attrs) do
+    invite
+    |> Invite.category_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a invite.
+
+  ## Examples
+
+      iex> update_invite(invite, %{field: new_value})
+      {:ok, %Invite{}}
+
+      iex> update_invite(invite, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
   def update_invite_payment(%Invite{} = invite, attrs) do
     invite
-    |> Invite.changeset(attrs)
+    |> Invite.payment_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a invite.
+
+  ## Examples
+
+      iex> update_invite(invite, %{field: new_value})
+      {:ok, %Invite{}}
+
+      iex> update_invite(invite, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_invite_description(%Invite{} = invite, attrs) do
+    invite
+    |> Invite.description_changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Updates a invite.
+
+  ## Examples
+
+      iex> update_invite(invite, %{field: new_value})
+      {:ok, %Invite{}}
+
+      iex> update_invite(invite, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_invite_deadline_collaborator(%Invite{} = invite, attrs) do
+    invite
+    |> Invite.deadline_collaborators_required_changeset(attrs)
     |> Repo.update()
   end
 

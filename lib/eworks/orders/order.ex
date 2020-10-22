@@ -204,7 +204,7 @@ defmodule Eworks.Orders.Order do
   # function for validating the payment amounts
   defp validate_payment_amounts(%Changeset{valid?: true, changes: %{min_payment: min_payment, max_payment: max_payment}} = changeset) do
     # check if the max amount is more than the min amount
-    if min_payment < max_payment do
+    if String.to_integer(min_payment) < String.to_integer(max_payment) do
       # return the changeset as is
       changeset
     else

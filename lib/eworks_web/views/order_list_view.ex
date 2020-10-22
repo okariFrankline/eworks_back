@@ -32,16 +32,25 @@ defmodule EworksWeb.OrderListView do
     Renders assigned_orders.json
   """
   def render("assigned_orders.json", %{orders: orders, un_paid: unpaid, paid: paid, in_progress: in_progress}) do
-    IO.inspect(orders)
+    orders = Enum.filter(orders, fn order -> not is_nil(order) end)
     %{
       data: %{
-        orders: render_many(orders, __MODULE__, "created_order.json"),
+        orders: render_many(orders, __MODULE__, "assigned_order.json"),
         un_paid_count: unpaid,
         paid_count: paid,
         in_progress_count: in_progress
       }
     }
   end # end of assigned_orders.json
+
+  def render("my_assigned_orders.json", %{orders: orders}) do
+    orders = Enum.filter(orders, fn order -> not is_nil(order) end)
+    %{
+      data: %{
+        orders: render_many(orders, __MODULE__, "assigned_order.json")
+      }
+    }
+  end
 
   @doc """
     Renders my_order.json
@@ -61,7 +70,7 @@ defmodule EworksWeb.OrderListView do
   @doc """
     Renders the assigned_order.json
   """
-  def render("assigned_order.json", %{order: order}) do
+  def render("assigned_order.json", %{order_list: order}) do
     %{
       id: order.id,
       description: order.description,
