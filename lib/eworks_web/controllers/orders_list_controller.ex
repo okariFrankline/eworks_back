@@ -95,7 +95,7 @@ defmodule EworksWeb.OrderListController do
   @doc """
     Lists the orders made by the current user
   """
-  def list_current_user_created_orders(conn, %{"next_cursor" => after_cursor}, user) do
+  def list_current_user_created_orders(conn, %{"next_cursor" => after_cursor, "filter" => filter}, user) do
     # query for getting the orders created by hte current user
     query = from(
       order in Order,
@@ -109,6 +109,19 @@ defmodule EworksWeb.OrderListController do
       # proload the offers
       preload: [order_offers: offer]
     )
+
+    # modify query depending on the filter
+    query = case filter do
+      "unassigned" ->
+        from(order in query, where: order.is_assigned == false)
+
+      "in_progress" ->
+        from(order in query, where: order.is_assigned == true and order.is_complete == false)
+
+      "complete" ->
+        from(order in query, where: order.is_complete == true and order.is_paid_for == false)
+
+    end
 
     # get the page
     page = if after_cursor != "false" do

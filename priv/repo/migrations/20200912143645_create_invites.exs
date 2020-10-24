@@ -4,7 +4,7 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
   def change do
     create table(:invites, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :required_collaborators, :integer, default: 0, null: false
+      add :required_collaborators, :integer, default: 1, null: false
       add :deadline, :date, null: true
       add :is_paid_for, :boolean, default: false
       add :is_cancelled, :boolean, default: false, null: false
@@ -13,6 +13,7 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
       add :payable_amount, :string, null: true
       add :payment_schedule, :string, null: true
       add :category, :string, null: false
+      add :specialty, :string, null: false
       add :show_more, :boolean, default: false, null: false
       add :description, :text, null: true
       add :verification_code, :integer, null: true

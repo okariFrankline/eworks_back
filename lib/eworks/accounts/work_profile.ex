@@ -18,9 +18,9 @@ defmodule Eworks.Accounts.WorkProfile do
     field :cover_letter, :string
     field :job_hires, :integer
     field :professional_intro, :string
-    field :rating, :integer
+    field :rating, :float
     field :skills, {:array, :string}
-    field :success_rate, :integer
+    field :success_rate, :float
     field :show_more, :boolean, default: false
     field :in_progress, :integer, default: 0
     field :un_paid, :integer, default: 0

@@ -12,6 +12,8 @@
 alias Eworks.Repo
 alias Eworks.Accounts.{User, WorkProfile}
 alias Eworks.Orders.{Order}
+alias Eworks.Collaborations.{Invite, InviteOffer}
+import Ecto.Query, warn: false
 
 users = [
   %{email: "frankokari@gmail.com", full_name: "Frank Okari"},
@@ -69,8 +71,8 @@ created_users = Enum.map(users, fn user ->
       user_id: user.id,
       cover_letter: "Not too bad! We grab our loader and load a batch exactly like we were doing in IEx previously. New to the helper team is on_load , which we’re importing from Absinthe.Resolution.Helpers . The callback function we pass to on_load is a lot like the callback function we pass to the batch helper. Similar to batch , on_load hands off control to the Absinthe.Middleware.Dataloader module, which arranges to run our callback after the Dataloader batches have been run.",
       professional_intro: "Not too bad! We grab our loader and load a batch exactly like we were doing in IEx previously. New to the helper team is on_load , which we’re importing from Absinthe.Resolution.Helpers . The callback function we pass to on_load is a lot like the callback function we pass to the batch helper. Similar to batch , on_load hands off control to the Absinthe.Middleware.Dataloader module, which arranges to run our callback after the Dataloader batches have been run.",
-      success_rate: 50,
-      rating: 3,
+      success_rate: 50.0,
+      rating: 3.0,
       skills: ["IOS Developer", "Android Developer", "Events Planner"]
     }
     # insert to the db
@@ -97,7 +99,8 @@ categories = [
   %{category: "Construction and Construction Repairs", specialty: "Roofing Repairs"}
 ]
 
-Enum.each(0..20, fn _ ->
+
+created_orders = Enum.map(0..20, fn _ ->
   user = Enum.random(created_users)
   category = Enum.random(categories)
   {:ok, date} = Date.from_iso8601("2020-10-20")
@@ -117,5 +120,86 @@ Enum.each(0..20, fn _ ->
     order_type: "One Time Order"
   }
   # insert the order
-  |> Repo.insert()
+  |> Repo.insert!()
 end) # end of each
+
+first_10_orders = Enum.take(created_orders, 5)
+
+first_10_ids = first_10_orders |> Enum.map(fn order -> order.id end)
+
+# create the user
+frank = %User{
+  full_name: "Frankline Okari",
+  auth_email: "okarifrankline1@gmail.com",
+  user_type: "Independent Contractor",
+  password_hash: Argon2.hash_pwd_salt("okari5678"),
+  is_active: true,
+  username: "okarifrankline1"
+} |> Repo.insert!()
+
+# create a work profile for the user
+frank_profile = %WorkProfile{
+  user_id: frank.id,
+  cover_letter: "Not too bad! We grab our loader and load a batch exactly like we were doing in IEx previously. New to the helper team is on_load , which we’re importing from Absinthe.Resolution.Helpers . The callback function we pass to on_load is a lot like the callback function we pass to the batch helper. Similar to batch , on_load hands off control to the Absinthe.Middleware.Dataloader module, which arranges to run our callback after the Dataloader batches have been run.",
+  professional_intro: "Not too bad! We grab our loader and load a batch exactly like we were doing in IEx previously. New to the helper team is on_load , which we’re importing from Absinthe.Resolution.Helpers . The callback function we pass to on_load is a lot like the callback function we pass to the batch helper. Similar to batch , on_load hands off control to the Absinthe.Middleware.Dataloader module, which arranges to run our callback after the Dataloader batches have been run.",
+  success_rate: 50.0,
+  rating: 3.0,
+  skills: ["IOS Developer", "Android Developer", "Events Planner"],
+  assigned_orders: first_10_ids
+}
+# insert to the db
+|> Repo.insert!()
+
+# assign 10 orders to the user
+invites = Enum.map(first_10_orders, fn order ->
+  category = Enum.random(categories)
+  # for each of the orders, make a collaboration offer
+  {:ok, date} = Date.from_iso8601("2020-10-20")
+  %Invite{
+    order_id: order.id,
+    work_profile_id: frank_profile.id,
+    category: category.category,
+    specialty: category.specialty,
+    payment_schedule: Enum.random(payment_schedules),
+    payable_amount: "2000 - 3000",
+    required_collaborators: 1,
+    is_draft: false,
+    description: description,
+    deadline: date
+  }
+  # inser the invite into the db
+  |> Repo.insert!()
+end)
+
+# get users who are independent contractors
+user_type = "Independent Contractor"
+
+users = from(
+  user in User,
+  where: user.user_type == ^user_type and user.id != ^frank.id,
+  join: profile in assoc(user, :work_profile),
+  preload: [work_profile: profile]
+)
+# get all the users
+|> Repo.all()
+
+# create at least 6 offers for each of the invites
+Enum.each(invites, fn invite ->
+  Enum.map(0..6, fn _ ->
+
+    user = Enum.random(users)
+    # create an invite offers
+    %InviteOffer{
+      invite_id: invite.id,
+      user_id: user.id,
+      asking_amount: 4000,
+      owner_name: user.full_name,
+      owner_about: user.work_profile.cover_letter,
+      owner_rating: user.work_profile.rating,
+      owner_job_success: user.work_profile.success_rate,
+      owner_profile_pic: nil
+    }
+    # inser the offers
+    |> Repo.insert!()
+  end )
+end)

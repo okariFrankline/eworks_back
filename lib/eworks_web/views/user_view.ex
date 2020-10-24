@@ -1,4 +1,4 @@
-defmodule EworksWeb.UserView do
+defmodule EworksWeb.Users.UserView do
   use EworksWeb, :view
 
   alias Eworks.Uploaders.ProfilePicture

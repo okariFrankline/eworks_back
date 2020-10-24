@@ -35,7 +35,7 @@ defmodule Eworks.Orders do
   end # end of in progress orders
 
   # get all the orders that are complete and unpaid
-  def query(Order, %{filter: "un_paid"}) do
+  def query(Order, %{filter: "unpaid"}) do
     # query for the getting the orders
     from(
       order in Order,

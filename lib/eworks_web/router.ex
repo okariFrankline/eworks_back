@@ -33,43 +33,28 @@ defmodule EworksWeb.Router do
     plug Plugs.SessionPlug
   end
 
+  # scopre for account login and registration
   scope "/api", EworksWeb do
     pipe_through :api
 
-    post "/account/register", UserController, :register
+    post "/account/register", Users.UserController, :register
     post "/account/login", SessionController, :login
   end
 
   scope "/api", EworksWeb do
     pipe_through [:api, :authenticated]
 
-    get "/account/user", UserController, :get_user
+    get "/account/user", Users.UserController, :get_user
     post "/account/logout", SessionController, :logout
   end
 
   scope "/api", EworksWeb do
     pipe_through [:api, :authenticated_and_not_active]
 
-    post "/account/activate", UserController, :activate_account
-    get "/account/activation/key/resend", UserController, :new_activation_key_request
+    post "/account/activate", Users.UserController, :activate_account
+    get "/account/activation/key/resend", Users.UserController, :new_activation_key_request
   end
 
-  # scope "/api/order", EworksWeb do
-  #   # order routes
-  #   get "/order/:order_id", OrderListController, :get_order
-  #   get "/order/:order_id/verification/code", OrderController, :send_order_verification_code
-  #   get "/order/:order_id/resend/verification/code", OrderController, :resend_order_verification_code
-  #   post "/order/new", OrderController, :create_new_order
-  #   post "/order/:order_id/category", OrderController, :update_order_category
-  #   post "/order/:order_id/type", OrderController, :update_order_type_and_contractors
-  #   post "/order/:order_id/payment", OrderController, :update_order_payment
-  #   post "/order/:order_id/description", OrderController, :update_order_description
-  #   post "/order/:order_id/duration", OrderController, :update_order_duration
-  #   post "/order/:order_id/attachments", OrderController, :update_order_attachments
-  #   post "/order/:order_id/verify", OrderController, :verify_order
-  #   post "/order/:order_id/tag", OrderController, :tag_order
-  #   post "/order/:order_id/cancel", OrderController, :cancel_order
-  # end
 
   # scope for the invites
   scope "/api/invites", EworksWeb.Invites do
@@ -115,21 +100,52 @@ defmodule EworksWeb.Router do
 
   end # end of invite scope
 
+  # scope for users
+  scope "/api/user", EworksWeb.Users do
+    # ensure user is authenticated and active
+    pipe_through [:api, :authenticated_and_active]
+
+    ######################################## GET ROUTES ################################
+    # get user offers
+    get "/offers", UserController, :get_user_offers
+    # sends new user action key
+    get "/new/activation", UserController, :new_activation_key_request
+
+    ######################################## POST ROUTES ###############################
+    # updates the current user's location information
+    post "/profile/location", UserController, :update_user_profile_location
+    # updates the current user's email information
+    post "/profile/emails", UserController, :update_user_profile_emails
+    # updates the current user's phone numbers
+    post "/profile/phones", UserController, :update_user_profile_phones
+    # updates the current user's profile picture
+    post "/profile/picture", UserController, :update_user_profile_picture
+    # updates the current user's password
+    post "/change/password", UserController, :change_user_password
+    # updates the work profile skills of the current user
+    post "/work/profile/:work_profile_id/skills", UserController, :update_work_profile_skills
+    # updates the intro of the current user
+    post "/work/profile/:work_profile_id/intro", UserController, :update_work_profile_prof_intro
+    # updates the cover letter of the current user
+    post "/work/profile/:work_profile_id/letter", UserController, :update_work_profile_cover_letter
+
+  end # end of users' scope
+
 
   # scope for the logged in user
   scope "/api", EworksWeb do
     pipe_through [:api, :authenticated_and_active]
 
-    post "/user/profile/location", UserController, :update_user_profile_location
-    post "/user/profile/emails", UserController, :update_user_profile_emails
-    post "/user/profile/phones", UserController, :update_user_profile_phones
-    post "/user/profile/picture", UserController, :update_user_profile_picture
-    post "/user/change/password", UserController, :change_user_password
-    get "/user/new/activation", UserController, :new_activation_key_request
+    # post "/user/profile/location", UserController, :update_user_profile_location
+    # post "/user/profile/emails", UserController, :update_user_profile_emails
+    # post "/user/profile/phones", UserController, :update_user_profile_phones
+    # post "/user/profile/picture", UserController, :update_user_profile_picture
+    # post "/user/change/password", UserController, :change_user_password
+    # get "/user/new/activation", UserController, :new_activation_key_request
 
-    post "/work/profile/:work_profile_id/skills", UserController, :update_work_profile_skills
-    post "/work/profile/:work_profile_id/intro", UserController, :update_work_profile_prof_intro
-    post "/work/profile/:work_profile_id/letter", UserController, :update_work_profile_cover_letter
+    # post "/work/profile/:work_profile_id/skills", UserController, :update_work_profile_skills
+    # post "/work/profile/:work_profile_id/intro", UserController, :update_work_profile_prof_intro
+    # post "/work/profile/:work_profile_id/letter", UserController, :update_work_profile_cover_letter
 
     # order routes
     get "/order/:order_id", OrderListController, :get_order
@@ -188,7 +204,7 @@ defmodule EworksWeb.Router do
     # contractors
     get "/contractors/:contractor_id", WorkersController, :get_contractor
     # get user offers
-    get "/user/offers", UserController, :get_user_offers
+    #get "/user/offers", UserController, :get_user_offers
 
   end # end of scope for logged in users
 

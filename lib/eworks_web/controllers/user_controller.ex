@@ -1,4 +1,4 @@
-defmodule EworksWeb.UserController do
+defmodule EworksWeb.Users.UserController do
   use EworksWeb, :controller
 
   import Ecto.Query, warn: false
@@ -225,19 +225,31 @@ defmodule EworksWeb.UserController do
   @doc """
     Gets the user's offers
   """
-  def get_user_offers(conn, %{"metadata" => after_cursor}, user) do
+  def get_user_offers(conn, %{"next_cursor" => after_cursor, "filter" => filter}, user) do
     # query for getting the offers
     query = from(
       offer in Eworks.Orders.OrderOffer,
       # ensure user id is is similar
-      where: offer.user_id == ^user.id and offer.is_cancelled ==false and offer.has_rejected_order == false,
+      where: offer.user_id == ^user.id and offer.is_cancelled ==false,
       # order by the date of inserted
-      order_by: [desc: offer.inserted_at, asc: offer.id],
+      order_by: [asc: offer.inserted_at, asc: offer.id],
       # join the user order
       join: order in assoc(offer, :order),
       # preload the order
       preload: [order: order]
     )
+
+    # return a new query based on the filter
+    query = case filter do
+      "pending" ->
+        from(offer in query, where: offer.is_pending == true)
+
+      "accepted" ->
+        from(offer in query, where: offer.is_accepted == true and offer.has_accepted_order == false)
+
+      "rejected" ->
+        from(offer in query, where: offer.is_rejected == true)
+    end # end of query
 
     # check if the after_cursor is given
     page = if after_cursor == "false" do

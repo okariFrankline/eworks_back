@@ -18,6 +18,18 @@ defmodule EworksWeb.SessionController do
       |> put_status(:ok)
       # render the logged in user
       |> render("logged_in.json", result)
+
+      # the login was unsuccessful
+    else
+      {:error, message} ->
+        # return the result
+        conn
+        # put the status
+        |> put_status(:bad_request)
+        # put the view
+        |> put_view(EworksWeb.ErrorView)
+        # render failed
+        |> render("failed.json", message: message)
     end # end of the with for loging in the user
   end # end of login functionalities
 

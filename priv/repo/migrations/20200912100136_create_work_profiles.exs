@@ -5,7 +5,7 @@ defmodule Eworks.Repo.Migrations.CreateWorkProfiles do
     create table(:work_profiles, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :rating, :float, default: 2.5
-      add :success_rate, :integer, default: 50
+      add :success_rate, :float, default: 50.0
       add :skills, {:array, :string}, default: []
       add :professional_intro, :text, null: true
       add :cover_letter, :text, null: true

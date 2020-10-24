@@ -9,7 +9,7 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :is_assigned, :boolean, default: false, null: false
       add :is_complete, :boolean, default: false, null: false
       add :is_paid_for, :boolean, default: false, null: false
-      add :is_cancelled, :booleand, default: false, null: false
+      add :is_cancelled, :boolean, default: false, null: false
       add :duration, :string, null: true
       add :deadline, :date, null: true
       add :order_type, :string, null: true

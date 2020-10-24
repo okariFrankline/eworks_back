@@ -15,7 +15,7 @@ defmodule EworksWeb.Authentication do
       # user not found
       nil ->
         # return error user not found
-        {:error, "User with email address: #{email} does not exist."}
+        {:error, "Failed. User with email address: #{email} does not exist."}
 
       # user found
       %User{} = user ->
@@ -27,7 +27,7 @@ defmodule EworksWeb.Authentication do
 
           {:error, _message} ->
             # return an error message
-            {:error, "Failed. Invalid user credentials"}
+            {:error, "Failed. The credentials provided are invalid."}
         end # end of veriifying the user password
     end # end of case for getting a user b a given email address
   end # end of verifying that the user provided password and email
