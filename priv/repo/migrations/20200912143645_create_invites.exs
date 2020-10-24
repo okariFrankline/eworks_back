@@ -13,6 +13,7 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
       add :payable_amount, :string, null: true
       add :payment_schedule, :string, null: true
       add :category, :string, null: false
+      add :owner_name, :string, null: false
       add :specialty, :string, null: false
       add :show_more, :boolean, default: false, null: false
       add :description, :text, null: true

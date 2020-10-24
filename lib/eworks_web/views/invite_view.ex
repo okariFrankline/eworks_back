@@ -25,6 +25,18 @@ defmodule EworksWeb.Invites.InviteView do
   end # end of invite.json
 
   @doc """
+    Renders display_invite.json
+  """
+  def render("display_invites.json", %{invites: invites, next_cursor: cursor}) do
+    %{
+      data: %{
+        invites: render_many(invites, __MODULE__, "invite.json"),
+        next_cursor: cursor
+      }
+    }
+  end
+
+  @doc """
     Renders offers.json
   """
   def render("offers.json", %{offers: offers, next_cursor: cursor}) do

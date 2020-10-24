@@ -13,6 +13,17 @@ defmodule Eworks.Accounts do
     Dataloader.Ecto.new(Repo, query: &query/2)
   end # end of daaloader
 
+  def query(User, _) do
+    # return the user and his/her workprofile
+    from(
+      user in User,
+      # join the work profile
+      join: profile in assoc(user, :work_profile),
+      # preload the profile
+      preload: [work_profile: profile]
+    )
+  end
+
   def query(queryable, _), do: queryable
 
   @doc """

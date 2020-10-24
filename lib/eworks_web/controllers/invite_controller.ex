@@ -238,11 +238,13 @@ defmodule EworksWeb.Invites.InviteController do
     Returns a list of invites to be diaplayed that are not assiigned
   """
   def list_unassigned_invites(conn, %{"next_cursor" => cursor}, user, _invite) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
     # query for the invites
     query = from(
       invite in Invite,
       # ensure the user id is ismilar to that of the current user
-      where: invite.is_assigned == false and invite.is_cancelled == false and invite.user_id != ^user.id,
+      where: invite.is_assigned == false and invite.is_cancelled == false and invite.work_profile_id != ^profile.id,
       # order by the inserted at
       order_by: [desc: invite.inserted_at]
     )

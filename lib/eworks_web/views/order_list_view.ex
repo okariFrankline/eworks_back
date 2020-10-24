@@ -2,7 +2,7 @@ defmodule EworksWeb.OrderListView do
   use EworksWeb, :view
   alias Eworks.API.Utils
   alias Eworks.Uploaders.OrderAttachment
-  alias EworksWeb.OrderView
+  alias EworksWeb.Orders.OrderView
 
   @doc """
     Renders the display_orders.json
@@ -59,13 +59,6 @@ defmodule EworksWeb.OrderListView do
     render_one(order, OrderView, "order.json")
   end # end of my_order.json
 
-  # def render("my_assigned_order.json", %{order: order}) do
-  #   %{
-  #     data: %{
-  #       order: render_one(order, __MODULE__, "assigned_order.json")
-  #     }
-  #   }
-  # end # end of my_assigned_order.json
 
   @doc """
     Renders the assigned_order.json

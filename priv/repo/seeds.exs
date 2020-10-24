@@ -150,6 +150,41 @@ frank_profile = %WorkProfile{
 # insert to the db
 |> Repo.insert!()
 
+# get users who are independent contractors
+user_type = "Independent Contractor"
+
+users = from(
+  user in User,
+  where: user.user_type == ^user_type and user.id != ^frank.id,
+  join: profile in assoc(user, :work_profile),
+  preload: [work_profile: profile]
+)
+# get all the users
+|> Repo.all()
+
+# for the first 10 offers create invites
+Enum.each(first_10_orders, fn order ->
+  category = Enum.random(categories)
+  user = Enum.random(users)
+  # for each of the orders, make a collaboration offer
+  {:ok, date} = Date.from_iso8601("2020-10-20")
+  %Invite{
+    order_id: order.id,
+    work_profile_id: user.work_profile.id,
+    category: category.category,
+    specialty: category.specialty,
+    payment_schedule: Enum.random(payment_schedules),
+    payable_amount: "2000 - 3000",
+    required_collaborators: 1,
+    is_draft: false,
+    description: description,
+    deadline: date,
+    owner_name: user.full_name
+  }
+  # inser the invite into the db
+  |> Repo.insert!()
+end)
+
 # assign 10 orders to the user
 invites = Enum.map(first_10_orders, fn order ->
   category = Enum.random(categories)
@@ -165,23 +200,13 @@ invites = Enum.map(first_10_orders, fn order ->
     required_collaborators: 1,
     is_draft: false,
     description: description,
-    deadline: date
+    deadline: date,
+    owner_name: frank.full_name
   }
   # inser the invite into the db
   |> Repo.insert!()
 end)
 
-# get users who are independent contractors
-user_type = "Independent Contractor"
-
-users = from(
-  user in User,
-  where: user.user_type == ^user_type and user.id != ^frank.id,
-  join: profile in assoc(user, :work_profile),
-  preload: [work_profile: profile]
-)
-# get all the users
-|> Repo.all()
 
 # create at least 6 offers for each of the invites
 Enum.each(invites, fn invite ->

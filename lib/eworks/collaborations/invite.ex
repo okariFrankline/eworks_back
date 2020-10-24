@@ -27,6 +27,7 @@ defmodule Eworks.Collaborations.Invite do
     field :is_cancelled, :boolean, default: false
     field :is_assigned, :boolean, default: false
     field :is_draft, :boolean, default: true
+    field :owner_name, :string
 
     field :collaborators, {:array, :binary_id} # holds the ids of the people assigned as collaborators
     field :description, :string
@@ -60,7 +61,8 @@ defmodule Eworks.Collaborations.Invite do
       :is_assigned,
       :verification_code,
       :show_more,
-      :is_draft
+      :is_draft,
+      :owner_name
     ])
   end
 

@@ -1,8 +1,10 @@
-defmodule EworksWeb.OrderController do
+defmodule EworksWeb.Orders.OrderController do
   use EworksWeb, :controller
 
-  alias Eworks.Orders.{API}
+  import Ecto.Query, warn: false
+  alias Eworks.Orders.{API, OrderOffer}
   alias EworksWeb.Plugs
+  alias Eworks.{Repo, Accounts, Orders}
 
   plug Plugs.OrderById when  action not in [:create_new_order, :cancel_order_offer]
   plug Plugs.CanSubmitOrderOffer when action in [:submit_order_offer]
@@ -314,6 +316,92 @@ defmodule EworksWeb.OrderController do
       # return the result
       |> render("success.json", message: "Success. You have successfully marked the order as complete.")
     end
-  end
+  end # end of marking an order complete
+
+  @doc """
+    Gets an order specified by a given id that belongs to the current user
+  """
+  def get_order(conn, _params, _user, order) do
+    conn
+    # put the status
+    |> put_status(:ok)
+    # render the worker
+    |> render("my_order.json", order: order)
+  end # end of get order
+
+  @doc """
+    Gets the offers for a given order
+  """
+  def list_order_offers(conn, %{"filter" => filter, "next_cursor" => cursor}, _user, order) do
+    # query for the order offers
+    query = from(
+      offer in OrderOffer,
+      # ensure they belong to the order
+      where: offer.order_id == ^order.id and offer.is_cancelled == false,
+      # join the user who is the owner of the offer
+      join: user in assoc(offer, :user),
+      # join the work profile for the user
+      join: profile in assoc(user, :work_profile),
+      # order
+      order_by: [asc: offer.inserted_at],
+      # preload the user
+      preload: [user: {user, work_profile: profile}]
+    )
+
+    # modify the query based on the filter
+    query = case filter do
+      "pending" ->
+        from(offer in query, where: offer.is_pending == false)
+
+      "accepted" ->
+        from(offer in query, where: offer.is_accepted == true and offer.has_accepted_order == false)
+    end # end of query modification
+
+    # return the results based on the next_cursor
+    page = if cursor == "false" do
+      Repo.paginate(query, cursor_fields: [:inserted_at], limit: 5)
+    else
+      Repo.paginate(query, after: cursor, cursor_fields: [:inserted_at], limit: 5)
+    end # end of if for getting the result
+
+    IO.inspect(page.entries)
+
+    # return the results
+    conn
+    # put the status
+    |> put_status(:ok)
+    # render the offers
+    |> render("offers.json", offers: page.entries, next_cursor: page.metadata.after)
+  end # end of list order offers
+
+  @doc """
+    Returns the assignees of a given order
+  """
+  def list_order_assignees(conn, _params, _user, order) do
+    # get the assignees
+    assignees = order.assignees
+    # get the assignees
+    assignees = if  not Enum.empty?(assignees) do
+      # load the dataloader
+      Dataloader.new()
+      # add the source
+      |> Dataloader.add_source(Accounts, Accounts.data())
+      # load the assignees
+      |> Dataloader.load_many(Accounts, Accounts.User, assignees)
+      # run the dataloader
+      |> Dataloader.run()
+      # get the results
+      |> Dataloader.get_many(Accounts, Accounts.User, assignees)
+    else
+      []
+    end # end of assignees
+
+    # return the results
+    conn
+    # put the status
+    |> put_status(:ok)
+    # render the assignees
+    |> render("assignees.json", assignees: assignees)
+  end # end of list_order_assignees
 
 end # end of the module

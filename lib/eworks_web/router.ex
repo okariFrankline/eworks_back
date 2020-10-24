@@ -58,21 +58,23 @@ defmodule EworksWeb.Router do
 
   # scope for the invites
   scope "/api/invites", EworksWeb.Invites do
+    # ensure user is logged in and is active
     pipe_through [:api, :authenticated_and_active]
 
     ########################################## INVITE GET ROUTES###################################################
-    # gets a single invite
-    get "/:invite_id", InviteController, :get_invite
+
     # invite for getting unassigned invites
     get "/unassigned", InviteController, :list_unassigned_invites
     # invite for getting invites created by the current user
     get "/created", InviteController, :list_invites_created_by_current_user
     # route for getting invite offers created by current user
-    get "/offers/", InviteController, :list_current_user_invite_offers
+    get "/offers", InviteController, :list_current_user_invite_offers
     # route for getting a verification code
     get "/:invite_id/verification", InviteController, :get_verification_code
     # route for resending a verification code
     get "/:invite_id/verification/resend", InviteController, :resend_verification_code
+    # gets a single invite
+    get "/:invite_id", InviteController, :get_invite
 
    ########################################## INVITE POST ROUTES###################################################
     # route for creating a new invite
@@ -131,6 +133,61 @@ defmodule EworksWeb.Router do
 
   end # end of users' scope
 
+  # scope for order
+  scope "/api/order", EworksWeb.Orders do
+    # ensure user is logged in and active
+    pipe_through [:api, :authenticated_and_active]
+
+    ################################### GET ROUTES #####################################
+    # returns a single order with a given id
+    get "/:order_id", OrderController, :get_order
+    # returns a list of the offers for a given order
+    get "/:order_id/offers", OrderController, :list_order_offers
+    # returns the list of assignees for a given order
+    get "/:order_id/assignees", OrderController, :list_order_assignees
+    # gets the verification for the given order
+    get "/:order_id/verification", OrderController, :send_order_verification_code
+    # resends the order verification code
+    get "/order/:order_id/verification/resend", OrderController, :resend_order_verification_code
+
+    ##################################### POST ROUTES ################################################
+    # creates a new order
+    post "/new", OrderController, :create_new_order
+    # updates the order's category
+    post "/:order_id/category", OrderController, :update_order_category
+    # updates the order's type
+    post "/:order_id/type", OrderController, :update_order_type_and_contractors
+    post "/:order_id/payment", OrderController, :update_order_payment
+    # updates the order's description
+    post "/:order_id/description", OrderController, :update_order_description
+    # updates the order's duration
+    post "/:order_id/duration", OrderController, :update_order_duration
+    # updates the order's attachments
+    post "/:order_id/attachments", OrderController, :update_order_attachments
+    # verifies an order
+    post "/:order_id/verify", OrderController, :verify_order
+    # tags an order
+    post "/:order_id/tag", OrderController, :tag_order
+    # cancels an order
+    post "/:order_id/cancel", OrderController, :cancel_order
+    # creates a new offer for agiven order
+    post "/offer/:order_id/new", OrderController, :submit_order_offer
+    # rejects an offer for a given order
+    post "/:order_id/offer/:order_offer_id/reject", OrderController, :reject_order_offer
+    # accepts an offer fr a given order
+    post "/:order_id/offer/:order_offer_id/accept", OrderController, :accept_order_offer
+    # assigns a given order
+    post "/:order_id/assign/:to_assign_id", OrderController, :assign_order
+    # accepts an order
+    post "/:order_id/accept/:order_offer_id", OrderController, :accept_order
+    # cancels a given order
+    post "/offer/:order_offer_id/cancel", OrderController, :cancel_order_offer
+    # rejects an order
+    post "/:order_id/reject/:order_offer_id", OrderController, :reject_order
+    # marks an order as complete
+    post "/:order_id/complete", OrderController, :mark_order_complete
+  end # end of order's scope
+
 
   # scope for the logged in user
   scope "/api", EworksWeb do
@@ -148,29 +205,29 @@ defmodule EworksWeb.Router do
     # post "/work/profile/:work_profile_id/letter", UserController, :update_work_profile_cover_letter
 
     # order routes
-    get "/order/:order_id", OrderListController, :get_order
-    get "/order/:order_id/verification/code", OrderController, :send_order_verification_code
-    get "/order/:order_id/resend/verification/code", OrderController, :resend_order_verification_code
-    post "/order/new", OrderController, :create_new_order
-    post "/order/:order_id/category", OrderController, :update_order_category
-    post "/order/:order_id/type", OrderController, :update_order_type_and_contractors
-    post "/order/:order_id/payment", OrderController, :update_order_payment
-    post "/order/:order_id/description", OrderController, :update_order_description
-    post "/order/:order_id/duration", OrderController, :update_order_duration
-    post "/order/:order_id/attachments", OrderController, :update_order_attachments
-    post "/order/:order_id/verify", OrderController, :verify_order
-    post "/order/:order_id/tag", OrderController, :tag_order
-    post "/order/:order_id/cancel", OrderController, :cancel_order
+    # get "/order/:order_id", OrderListController, :get_order
+    # get "/order/:order_id/verification/code", OrderController, :send_order_verification_code
+    # get "/order/:order_id/resend/verification/code", OrderController, :resend_order_verification_code
+    # post "/order/new", OrderController, :create_new_order
+    # post "/order/:order_id/category", OrderController, :update_order_category
+    # post "/order/:order_id/type", OrderController, :update_order_type_and_contractors
+    # post "/order/:order_id/payment", OrderController, :update_order_payment
+    # post "/order/:order_id/description", OrderController, :update_order_description
+    # post "/order/:order_id/duration", OrderController, :update_order_duration
+    # post "/order/:order_id/attachments", OrderController, :update_order_attachments
+    # post "/order/:order_id/verify", OrderController, :verify_order
+    # post "/order/:order_id/tag", OrderController, :tag_order
+    # post "/order/:order_id/cancel", OrderController, :cancel_order
 
-    # order offers
-    post "/order/offer/:order_id/new", OrderController, :submit_order_offer
-    post "/order/:order_id/offer/:order_offer_id/reject", OrderController, :reject_order_offer
-    post "/order/:order_id/offer/:order_offer_id/accept", OrderController, :accept_order_offer
-    post "/order/:order_id/assign/:to_assign_id", OrderController, :assign_order
-    post "/order/:order_id/accept/:order_offer_id", OrderController, :accept_order
-    post "/order/offer/:order_offer_id/cancel", OrderController, :cancel_order_offer
-    post "/order/:order_id/reject/:order_offer_id", OrderController, :reject_order
-    post "/order/:order_id/complete", OrderController, :mark_order_complete
+    # # order offers
+    # post "/order/offer/:order_id/new", OrderController, :submit_order_offer
+    # post "/order/:order_id/offer/:order_offer_id/reject", OrderController, :reject_order_offer
+    # post "/order/:order_id/offer/:order_offer_id/accept", OrderController, :accept_order_offer
+    # post "/order/:order_id/assign/:to_assign_id", OrderController, :assign_order
+    # post "/order/:order_id/accept/:order_offer_id", OrderController, :accept_order
+    # post "/order/offer/:order_offer_id/cancel", OrderController, :cancel_order_offer
+    # post "/order/:order_id/reject/:order_offer_id", OrderController, :reject_order
+    # post "/order/:order_id/complete", OrderController, :mark_order_complete
 
     # invites
     # post "/invite/:order_id/new", InviteController, :create_new_invite

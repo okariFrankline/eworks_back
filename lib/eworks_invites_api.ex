@@ -28,7 +28,7 @@ defmodule Eworks.Collaborations.API do
     # preload the user work profile
     profile = Repo.preload(user, [:work_profile]).work_profile
     # create the invite
-    with {:ok, _invite} = result <- profile |> Ecto.build_assoc(:invites, %{order_id: order_id}) |> Collaborations.create_invite(invite_params), do: result
+    with {:ok, _invite} = result <- profile |> Ecto.build_assoc(:invites, %{order_id: order_id, owner_name: user.full_name}) |> Collaborations.create_invite(invite_params), do: result
   end # end of create invite
 
   @doc """

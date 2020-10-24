@@ -4,8 +4,6 @@ defmodule EworksWeb.OrderListController do
   import Ecto.Query, warn: false
   alias Eworks.{Orders, Repo}
   alias Eworks.Orders.{Order, OrderOffer}
-  alias Eworks.Accounts.WorkProfile
-  alias Eworks.Dataloader.Loader
 
   action_fallback EworksWeb.FallbackController
 
@@ -177,22 +175,7 @@ defmodule EworksWeb.OrderListController do
   """
   def get_order(conn, %{"order_id" => id}, _user) do
     # get the order
-    order = Orders.get_order!(id) |> Repo.preload([
-      # preload offers
-      order_offers: from(
-        offer in OrderOffer,
-        # only preload offers that have not been cancelled
-        where: offer.is_cancelled == false and offer.is_rejected == false,
-        # join the users of the offers
-        join: offer_owner in assoc(offer, :user),
-        # get the work-profile
-        join: profile in assoc(offer_owner, :work_profile),
-        # preload the order_offer
-        preload: [user: {offer_owner, work_profile: profile}]
-      )
-    ])
-
-    IO.inspect(order)
+    order = Orders.get_order!(id)
 
     conn
     # put the status
