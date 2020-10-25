@@ -3,7 +3,7 @@ defmodule EworksWeb.OrderListController do
 
   import Ecto.Query, warn: false
   alias Eworks.{Orders, Repo}
-  alias Eworks.Orders.{Order, OrderOffer}
+  alias Eworks.Orders.{Order}
 
   action_fallback EworksWeb.FallbackController
 
@@ -21,7 +21,7 @@ defmodule EworksWeb.OrderListController do
   @doc """
     Lists all orders that have not being assinged to every user
   """
-  def list_unassigned_orders(conn, %{"metadata" => after_cursor}, user) do
+  def list_unassigned_orders(conn, %{"next_cursor" => cursor}, user) do
     # query for getting the orders
     query = from(
       order in Order,
@@ -35,14 +35,12 @@ defmodule EworksWeb.OrderListController do
       preload: [user: user]
     )
     # get the page
-    page = if after_cursor == "false" do
+    page = if cursor == "false" do
       # get the page
       Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 5)
     else
-      # get the next cursor
-      next_cursor = after_cursor
       # get the first page
-      Repo.paginate(query, after: next_cursor, cursor_fields: [:inserted_at, :id], limit: 5)
+      Repo.paginate(query, after: cursor, cursor_fields: [:inserted_at, :id], limit: 5)
     end # end of if for checking for the metadata
 
     # return the results
@@ -50,7 +48,7 @@ defmodule EworksWeb.OrderListController do
     # put the status
     |> put_status(:ok)
     # render the results
-    |> render("display_orders.json", orders: page.entries, metadata: page.metadata)
+    |> render("display_orders.json", orders: page.entries, next_cursor: page.metadata.after)
   end # end of list_unassigned_orders/3
 
   @doc """

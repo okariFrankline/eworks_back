@@ -188,6 +188,26 @@ defmodule EworksWeb.Router do
     post "/:order_id/complete", OrderController, :mark_order_complete
   end # end of order's scope
 
+  # scope for direct hires
+  scope "/api/direct/hire", EworksWeb.Requests do
+    # ensure the user is logged in and is active
+    pipe_through [:api, :authenticated_and_active]
+
+    ########################################## GET ROUTES ###############################
+    # returns a client's direct hire requests
+    get "/direct/hire/client", DirectHireController, :list_client_direct_hires
+    # returns a contractors direct hires
+    get "/direct/hire/contractor", DirectHireController, :list_contractor_direct_hires
+    # returns a direct hire
+    get "/:direct_hire_id", DirectHireController, :get_direct_hire
+
+
+    post "/:order_id/contractor/:contractor_id/new", DirectHireController, :create_new_direct_hire_request
+    post "/direct/hire/:direct_hire_id/accept", DirectHireController, :accept_direct_hire_request
+    post "/direct/hire/:direct_hire_id/reject", DirectHireController, :reject_direct_hire_request
+    post "/direct/hire/:direct_hire_id/assign", DirectHireController, :assign_order_from_direct_hire
+  end # end of direct hire's scope
+
 
   # scope for the logged in user
   scope "/api", EworksWeb do
@@ -241,12 +261,12 @@ defmodule EworksWeb.Router do
     # post "/invite/offer/:invite_offer_id/cancel", InviteController, :cancel_invite_offer
 
     # direct hire
-    get "/direct/hire/client", DirectHireController, :list_client_direct_hires
-    get "/direct/hire/contractor", DirectHireController, :list_contractor_direct_hires
-    post "/direct/hire/:order_id/contractor/:contractor_id/new", DirectHireController, :create_new_direct_hire_request
-    post "/direct/hire/:direct_hire_id/accept", DirectHireController, :accept_direct_hire_request
-    post "/direct/hire/:direct_hire_id/reject", DirectHireController, :reject_direct_hire_request
-    post "/direct/hire/:direct_hire_id/assign", DirectHireController, :assign_order_from_direct_hire
+    # get "/direct/hire/client", DirectHireController, :list_client_direct_hires
+    # get "/direct/hire/contractor", DirectHireController, :list_contractor_direct_hires
+    # post "/direct/hire/:order_id/contractor/:contractor_id/new", DirectHireController, :create_new_direct_hire_request
+    # post "/direct/hire/:direct_hire_id/accept", DirectHireController, :accept_direct_hire_request
+    # post "/direct/hire/:direct_hire_id/reject", DirectHireController, :reject_direct_hire_request
+    # post "/direct/hire/:direct_hire_id/assign", DirectHireController, :assign_order_from_direct_hire
 
     # get
     get "/orders/unassigned", OrderListController, :list_unassigned_orders

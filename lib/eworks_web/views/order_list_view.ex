@@ -7,11 +7,11 @@ defmodule EworksWeb.OrderListView do
   @doc """
     Renders the display_orders.json
   """
-  def render("display_orders.json", %{orders: orders, metadata: metadata}) do
+  def render("display_orders.json", %{orders: orders, next_cursor: cursor}) do
     %{
       data: %{
         orders: render_many(orders, __MODULE__, "order.json"),
-        cursor_after: metadata.after
+        next_cursor: cursor
       }
     }
   end # end of display_orders.json

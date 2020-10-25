@@ -7,10 +7,10 @@ defmodule Eworks.Requests.DirectHire do
   schema "direct_hires" do
     field :is_accepted, :boolean, default: false
     field :is_rejected, :boolean, default: false
-    # order for which this direct order if for
-    field :order_id, :binary_id
     field :is_pending, :boolean, default: true
 
+    # belongs to one order
+    belongs_to :order, Eworks.Orders.Order, type: :binary_id
     # the contractors for whom the request is intended for
     belongs_to :work_profile, Eworks.Accounts.WorkProfile, type: :binary_id
     # the owner of the direct hire
@@ -25,7 +25,6 @@ defmodule Eworks.Requests.DirectHire do
     |> cast(attrs, [
       :is_accepted,
       :is_rejected,
-      :order_id,
       :is_pending
     ])
     # foregin key constraint

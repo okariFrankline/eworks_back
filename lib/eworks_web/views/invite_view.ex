@@ -19,7 +19,9 @@ defmodule EworksWeb.Invites.InviteView do
         order_id: invite.order_id,
         specialty: invite.specialty,
         description: invite.description,
-        show_more: invite.show_more
+        show_more: invite.show_more,
+        owner_name: invite.owner_name,
+        posted_on: NaiveDateTime.to_iso8601(invite.inserted_at)
       }
     }
   end # end of invite.json

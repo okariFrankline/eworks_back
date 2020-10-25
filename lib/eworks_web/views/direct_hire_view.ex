@@ -1,8 +1,36 @@
-defmodule EworksWeb.DirectHireView do
+defmodule EworksWeb.Requests.DirectHireView do
   use EworksWeb, :view
-  alias EworksWeb.{OrderView}
+  alias EworksWeb.Orders.OrderView
   alias Eworks.API.Utils
   alias Eworks.Uploaders.ProfilePicture
+
+  @doc """
+    Render request.json
+  """
+  def render("request.json", %{request: request}) do
+    %{
+      data: %{
+        order: render_one(request.order, OrderView, "order.json"),
+        contractor: render_one(request.work_profile, __MODULE__, "contractor.json")
+      }
+    }
+  end # end of request.json
+
+  @doc """
+    Render contractor.json
+  """
+  def render("contractor.json", %{direct_hire: profile}) do
+    %{
+      job_success: profile.success_rate,
+      rating: profile.rating,
+      about: profile.professional_intro,
+      skills: profile.skills,
+      show_more: profile.show_more,
+      id: profile.user.id,
+      full_name: profile.user.full_name,
+      profile_pic: Utils.upload_url(ProfilePicture.url({profile.user.profile_pic, profile.user}, :thumb))
+    }
+  end # end of contractor.json
 
   @doc """
     Renders hire.json

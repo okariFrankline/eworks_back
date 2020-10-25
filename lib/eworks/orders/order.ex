@@ -44,6 +44,8 @@ defmodule Eworks.Orders.Order do
     field :assignees, {:array, :binary_id}
     # has many order_offers
     has_many :order_offers, Eworks.Orders.OrderOffer
+    # has one direct hire request
+    has_one :direct_hire, Eworks.Requests.DirectHire
 
 
     timestamps()

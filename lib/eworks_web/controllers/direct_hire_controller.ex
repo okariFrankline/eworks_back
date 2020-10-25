@@ -1,7 +1,11 @@
-defmodule EworksWeb.DirectHireController do
+defmodule EworksWeb.Requests.DirectHireController do
   use EworksWeb, :controller
 
   alias Eworks.Requests.API
+  import Ecto.Query, warn: false
+  alias Eworks.Accounts.{WorkProfile}
+  alias Eworks.{Repo}
+  alias Eworks.Requests.DirectHire
 
   action_fallback EworksWeb.FallbackController
 
@@ -45,13 +49,13 @@ defmodule EworksWeb.DirectHireController do
     creates a new direct hire request
   """
   def create_new_direct_hire_request(conn, %{"order_id" => order_id, "contractor_id" => cont_id}, user) do
-    with {:ok, result} <- API.create_new_direct_hire_request(user, order_id, cont_id) do
+    with {:ok, _result} <- API.create_new_direct_hire_request(user, order_id, cont_id) do
       # return the result
       conn
       # put the stauts
       |> put_status(:created)
       # render the hire
-      |> render("hire.json", direct_hire: result.hire, recipient: result.recipient, order: result.order)
+      |> render("success.json", message: "Success. You have successfully sent a direct hire request to the contractor.")
     end # end of with
   end # end of createing a new direct hire request
 
@@ -77,7 +81,7 @@ defmodule EworksWeb.DirectHireController do
       # put the stauts
       |> put_status(:ok)
       #
-      |> render("success.json", message: "Direct Hire Request successfully rejected.")
+      |> render("success.json", message: "Success. Direct Hire Request successfully rejected.")
     end # end of with
   end # end of accept direct hire request
 
@@ -85,15 +89,56 @@ defmodule EworksWeb.DirectHireController do
     assigns an order for which a direct hire was for
   """
   def assign_order_from_direct_hire(conn, %{"direct_hire_id" => id}, user) do
-    with {:ok, result} <- API.assign_order_from_direct_hire(user, id) do
+    with {:ok, _result} <- API.assign_order_from_direct_hire(user, id) do
       conn
       # put status
       |> put_status(:ok)
       # put view
       |> put_view(EworksWeb.OrderView)
       # render
-      |> render("order.json", order: result.order, offers: result.offers)
+      |> render("success.json", message: "Success. You have succeessfully assigned the order.")
     end # end of with
   end # end of assign_order_from_direct_hire
+
+  @doc """
+    Returns the invite
+  """
+  def get_direct_hire_request(conn, %{"direct_hire_id" => id}, _user) do
+    # get the request
+    request = from(
+      request in DirectHire,
+      # ensure the ids match
+      where: request.id == ^id,
+      # join the order
+      join: order in assoc(request, :order),
+      # join the work profile
+      join: profile in assoc(request, :work_profile),
+      # add the owner of the profile
+      join: user in assoc(profile, :user),
+      # preload the details
+      preload: [order: order, work_profile: {profile, user: user}]
+    )
+    # get the request
+    |> Repo.one!()
+
+    # return the results
+    conn
+    # put the status
+    |> put_status(:ok)
+    # render the results
+    |> render("request.json", request: request)
+
+  rescue
+    # the request was not found
+    Ecto.NoResultsError ->
+      # return the result
+      conn
+      # put the status
+      |> put_status(:not_found)
+      # put the error view
+      |> put_view(EworksWeb.ErrorView)
+      # render failed
+      |> render("failed.json", message: "Failed. The request direct hire was not found.")
+  end # end of get direct hire request
 
 end
