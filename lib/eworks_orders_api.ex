@@ -583,20 +583,25 @@ defmodule Eworks.Orders.API do
     # ensure the user is the owner of order
     if user.id == order.user_id do
       # preload the orders that have not being rejected
-      offers = Repo.preload(order, [
+      order = Repo.preload(order, [
+        # preload the direct hire
+        :direct_hire,
+        # preload the order offers
         order_offers: from(
           offer in OrderOffer,
           # ensure the offer is not cancelled and has not being rejected
           where: offer.is_rejected == false and offer.is_cancelled == false
         )
-      ]).order_offers
+      ])
 
       # update the offer to cancelled
       with order <- Ecto.Changeset.change(order, %{is_cancelled: true}) |> Repo.update!() do
         # send notifications to the owners of the offers
         Task.start(fn ->
+          # check if the order has a direct hire request and also cancel the request
+          with false <- is_nil(order.direct_hire), do: Eworks.Requests.API.cancel_direct_hire_request(user, order.direct_hire.id)
           # for each of the offers notify owner
-          Stream.each(offers, fn offer ->
+          Stream.each(order.offers, fn offer ->
             # create a new notification
             {:ok, notification} = Notifications.create_notification(%{
               user_id: offer.user_id,

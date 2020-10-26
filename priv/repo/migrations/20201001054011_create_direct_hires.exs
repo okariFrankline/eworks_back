@@ -7,6 +7,7 @@ defmodule Eworks.Repo.Migrations.CreateDirectHires do
       add :is_accepted, :boolean, default: false, null: false
       add :is_pending, :boolean, default: true, null: false
       add :is_rejected, :boolean, default: false, null: false
+      add :is_cancelled, :boolean, default: false, null: false
 
       # id of the contractors giv en the job
       add :work_profile_id, references(:work_profiles, on_delete: :nothing, type: :binary_id)

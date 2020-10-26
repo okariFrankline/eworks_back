@@ -49,13 +49,13 @@ defmodule EworksWeb.Requests.DirectHireController do
     creates a new direct hire request
   """
   def create_new_direct_hire_request(conn, %{"order_id" => order_id, "contractor_id" => cont_id}, user) do
-    with {:ok, _result} <- API.create_new_direct_hire_request(user, order_id, cont_id) do
+    with {:ok, hire} <- API.create_new_direct_hire_request(user, order_id, cont_id) do
       # return the result
       conn
       # put the stauts
       |> put_status(:created)
       # render the hire
-      |> render("success.json", message: "Success. You have successfully sent a direct hire request to the contractor.")
+      |> render("hire_success.json", message: "Success. You have successfully sent a direct hire request to the contractor.", hire_id: hire.id)
     end # end of with
   end # end of createing a new direct hire request
 
@@ -140,5 +140,18 @@ defmodule EworksWeb.Requests.DirectHireController do
       # render failed
       |> render("failed.json", message: "Failed. The request direct hire was not found.")
   end # end of get direct hire request
+
+  @doc """
+    Cancels a direct hire
+  """
+  def cancel_direct_hire_request(conn, %{"direct_hire_id" => id}, user) do
+    API.cancel_direct_hire_request(user, id)
+    # return the result
+    conn
+    # put the status
+    |> put_status(:ok)
+    # render the result
+    |> render("success.json", message: "Success. You have successfully cancelled the direct hire request.")
+  end # end of cancel direct hire
 
 end

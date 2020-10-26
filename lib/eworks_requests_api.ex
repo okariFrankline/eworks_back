@@ -3,7 +3,7 @@ defmodule Eworks.Requests.API do
     Defines api functions for handling business logic for requests
   """
   import Ecto.Query, warn: false
-  alias Eworks.{Repo, Notifications, Accounts, Orders}
+  alias Eworks.{Repo, Notifications, Accounts, Orders, Requests}
   alias Eworks.Accounts.{User}
   alias Eworks.Requests.{DirectHire}
   alias Eworks.API.Utils
@@ -36,8 +36,6 @@ defmodule Eworks.Requests.API do
     creaetes a new direct hire request
   """
   def create_new_direct_hire_request(%User{} = user, order_id, recipient_id) do
-    # task for getting the order
-    order_task = Task.async(fn -> Orders.get_order!(order_id) end)
     # ensure that the recipient exist
     recipient = Accounts.get_user!(recipient_id) |> Repo.preload(:work_profile)
     # ensure the user is not suspended
@@ -65,10 +63,9 @@ defmodule Eworks.Requests.API do
         Endpoint.broadcast!("user:#{recipient.id}", "notification::direct_hire_request", %{notification: Utils.render_notification(notification)})
       end) # end of task
 
-      # preload the order and return the result
-      order = Task.await(order_task)
       # retun the result
-      {:ok, %{hire: hire, recipient: recipient, order: order}}
+      {:ok, hire}
+
     else # the user is suspended
       {:error, :use_suspended, recipient.full_name}
     end # end of checking if the user is suspended
@@ -170,5 +167,34 @@ defmodule Eworks.Requests.API do
     # assign the order
     Eworks.Orders.API.assign_order(user, order, hire.work_profile.user_id)
   end # end of assign_order_from_direct_hire
+
+  @doc """
+    Cancels a direct hire request
+  """
+  def cancel_direct_hire_request(%User{} = user, hire_id) do
+    # get the direct hire
+    hire = Requests.get_direct_hire!(hire_id)
+    # cancel the direct hire
+    with hire <- hire |> Ecto.Changeset.change(%{is_cancelled: true, is_pending: false}) |> Repo.update!() do
+      # notify the person being assigned the job
+      Task.start(fn ->
+        # get the person for whom the hire was intended for
+        profile = Accounts.get_work_profile!(hire.work_profile_id) |> Repo.preload(:user)
+        # create a new notification for the person for whom the request was intended
+        {:ok, notification} = Notifications.create_notification(%{
+          user_id: profile.user.id,
+          asset_id: hire.id,
+          asset_type: "Direct Hire Request",
+          notification_type: "Direct Hire Request Cancellation",
+          message: "#{user.full_name} has cancelled their direct hire request for you to work on their order."
+        })
+        # send the notification in real time
+        Endpoint.broadcast!("user:#{profile.user.id}", "notification::direct_hire_rejection", %{notificaiton: Utils.render_notification(notification)})
+      end)
+
+    # return the result
+    :ok
+    end # end of with
+  end # end of canceldirect hire request
 
 end # end of Eworks.Request.API

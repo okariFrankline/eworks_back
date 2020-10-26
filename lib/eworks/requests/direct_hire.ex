@@ -8,6 +8,7 @@ defmodule Eworks.Requests.DirectHire do
     field :is_accepted, :boolean, default: false
     field :is_rejected, :boolean, default: false
     field :is_pending, :boolean, default: true
+    field :is_cancelled, :boolean, default: false
 
     # belongs to one order
     belongs_to :order, Eworks.Orders.Order, type: :binary_id
@@ -25,7 +26,8 @@ defmodule Eworks.Requests.DirectHire do
     |> cast(attrs, [
       :is_accepted,
       :is_rejected,
-      :is_pending
+      :is_pending,
+      :is_cancelled
     ])
     # foregin key constraint
     |> foreign_key_constraint(:user)

@@ -97,13 +97,16 @@ defmodule EworksWeb.OrderListController do
       order in Order,
       # ensure user id matches the id of the current user
       where: order.user_id == ^user.id and order.is_cancelled == false,
+      # join the direct hire
+      left_join: hire in assoc(order, :direct_hire),
       # join the order_offers
       left_join: offer in assoc(order, :order_offers),
+      # ensure the offer is rejected and the offer is not cancelled
       on: offer.is_rejected == false and offer.is_cancelled == false,
       # order by inserted at
       order_by: [desc: order.inserted_at],
       # proload the offers
-      preload: [order_offers: offer]
+      preload: [order_offers: offer, direct_hire: hire]
     )
 
     # modify query depending on the filter
@@ -128,12 +131,51 @@ defmodule EworksWeb.OrderListController do
       Repo.paginate(query, cursor_fields: [:inserted_at], limit: 10)
     end # end of if for checking for the metadata
 
+    IO.inspect(Enum.count(page.entries))
+
     # return the results
     conn
     # put the status
     |> put_status(:ok)
     # render the results
     |> render("created_orders.json", orders: page.entries, next_cursor: page.metadata.after)
+  end # end of getting the orders created by the current users.
+
+  @doc """
+    Lists the orders made by the current user
+  """
+  def list_orders_for_direct_hire(conn, %{"next_cursor" => after_cursor}, user) do
+    # query for getting the orders created by hte current user
+    query = from(
+      order in Order,
+      # ensure user id matches the id of the current user
+      where: order.user_id == ^user.id and order.is_cancelled == false and  order.is_assigned == false,
+      # join the direct hires
+      left_join: hire in assoc(order, :direct_hire),
+      # order by inserted at
+      order_by: [desc: order.inserted_at],
+      # proload the offers
+      preload: [direct_hire: hire]
+    )
+
+    # get the page
+    page = if after_cursor != "false" do
+      # get the page
+      Repo.paginate(query, cursor: after_cursor, cursor_fields: [:inserted_at], limit: 10)
+    else
+      # get the first page
+      Repo.paginate(query, cursor_fields: [:inserted_at], limit: 10)
+    end # end of if for checking for the metadata
+
+    # return the orders that do not already have a direct hire request
+    orders = Enum.filter(page.entries, fn order -> is_nil(order.direct_hire) end)
+
+    # return the results
+    conn
+    # put the status
+    |> put_status(:ok)
+    # render the results
+    |> render("direct_hire_orders.json", orders: orders, next_cursor: page.metadata.after)
   end # end of getting the orders created by the current users.
 
   @doc """

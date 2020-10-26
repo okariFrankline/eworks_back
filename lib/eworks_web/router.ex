@@ -199,13 +199,15 @@ defmodule EworksWeb.Router do
     # returns a contractors direct hires
     get "/direct/hire/contractor", DirectHireController, :list_contractor_direct_hires
     # returns a direct hire
-    get "/:direct_hire_id", DirectHireController, :get_direct_hire
+    get "/:direct_hire_id", DirectHireController, :get_direct_hire_request
 
 
     post "/:order_id/contractor/:contractor_id/new", DirectHireController, :create_new_direct_hire_request
-    post "/direct/hire/:direct_hire_id/accept", DirectHireController, :accept_direct_hire_request
-    post "/direct/hire/:direct_hire_id/reject", DirectHireController, :reject_direct_hire_request
-    post "/direct/hire/:direct_hire_id/assign", DirectHireController, :assign_order_from_direct_hire
+    post "/:direct_hire_id/accept", DirectHireController, :accept_direct_hire_request
+    post "/:direct_hire_id/reject", DirectHireController, :reject_direct_hire_request
+    post "/:direct_hire_id/assign", DirectHireController, :assign_order_from_direct_hire
+    # route for cancellation of the nvite
+    post "/:direct_hire_id/cancel", DirectHireController, :cancel_direct_hire_request
   end # end of direct hire's scope
 
 
@@ -271,6 +273,7 @@ defmodule EworksWeb.Router do
     # get
     get "/orders/unassigned", OrderListController, :list_unassigned_orders
     get "/user/orders/created", OrderListController, :list_current_user_created_orders
+    get "/user/orders/direct/hires", OrderListController, :list_orders_for_direct_hire
     get "/user/orders/assigned", OrderListController, :list_orders_assigned_to_current_user
     get "/contractors", WorkersController, :list_workers
     get "/contractors/search", WorkersController, :search_based_on_skill

@@ -29,6 +29,18 @@ defmodule EworksWeb.OrderListView do
   end # end of created_orders.json
 
   @doc """
+    renders created_orders.json
+  """
+  def render("direct_hire_orders.json", %{orders: orders, next_cursor: cursor}) do
+    %{
+      data: %{
+        orders: render_many(orders, __MODULE__, "hire_order.json"),
+        next_cursor: cursor
+      }
+    }
+  end # end of created_orders.json
+
+  @doc """
     Renders assigned_orders.json
   """
   def render("assigned_orders.json", %{orders: orders, un_paid: unpaid, paid: paid, in_progress: in_progress}) do
@@ -109,6 +121,34 @@ defmodule EworksWeb.OrderListView do
       required_contractors: order.required_contractors,
       owner_name: order.owner_name,
       posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
+      attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),
+      request: render_request(order.direct_hire)
+    }
+  end # end of created_order.json
+
+  @doc """
+    Renders the created_order.json
+  """
+  def render("hire_order.json", %{order_list: order}) do
+    %{
+      id: order.id,
+      description: order.description,
+      is_verified: order.is_verified,
+      is_assigned: order.is_assigned,
+      is_complete: order.is_complete,
+      is_paid_for: order.is_paid_for,
+      accepted_offers: order.accepted_offers,
+      specialty: order.specialty,
+      category: order.category,
+      duration: order.duration,
+      order_type: order.order_type,
+      show_more: order.show_more,
+      payment_schedule: order.payment_schedule,
+      payable_amount: order.payable_amount,
+      deadline: show_deadline(order.deadline),
+      required_contractors: order.required_contractors,
+      owner_name: order.owner_name,
+      posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
       attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order}))
     }
   end # end of created_order.json
@@ -138,6 +178,15 @@ defmodule EworksWeb.OrderListView do
     }
   end # end of order.json
 
+  @doc """
+    Render request.json
+  """
+  def render("request.json", %{order_list: request}) do
+    %{
+      id: request.id
+    }
+  end
+
   defp show_deadline(date) when is_nil(date), do: nil
   defp show_deadline(date), do: Date.to_iso8601(date)
 
@@ -154,5 +203,9 @@ defmodule EworksWeb.OrderListView do
     # retunr the number
     |> Enum.count()
   end
+
+  # function for rendering the request
+  defp render_request(request) when is_nil(request), do: nil
+  defp render_request(request), do: render_one(request, __MODULE__, "request.json")
 
 end # end of module
