@@ -195,9 +195,9 @@ defmodule EworksWeb.Router do
 
     ########################################## GET ROUTES ###############################
     # returns a client's direct hire requests
-    get "/direct/hire/client", DirectHireController, :list_client_direct_hires
+    get "/client", DirectHireController, :list_client_direct_hires
     # returns a contractors direct hires
-    get "/direct/hire/contractor", DirectHireController, :list_contractor_direct_hires
+    get "/requests", DirectHireController, :list_contractor_direct_hires
     # returns a direct hire
     get "/:direct_hire_id", DirectHireController, :get_direct_hire_request
 

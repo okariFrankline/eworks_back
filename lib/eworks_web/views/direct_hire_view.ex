@@ -39,6 +39,33 @@ defmodule EworksWeb.Requests.DirectHireView do
   end # end of contractor.json
 
   @doc """
+   Renders contractor_hires/json
+  """
+  def render("contractor_hires.json", %{hires: hires}) do
+    # ensure he hires are not nil
+    hires = Enum.filter(hires, fn order -> not is_nil(order) end)
+    # return the result
+    %{
+      data: %{
+        requests: render_many(hires, __MODULE__, "hire.json")
+      }
+    }
+  end
+
+  @doc """
+    Renders contractor_hires.json
+  """
+  def render("hire.json", %{direct_hire: hire}) do
+    %{
+      id: hire.id,
+      is_rejected: hire.is_rejected,
+      is_pending: hire.is_pending,
+      created_on: Date.to_iso8601(hire.inserted_at),
+      orders: render_many(hire.order, OrderListView, "hire_order.json")
+    }
+  end # end of contractor_hires.json
+
+  @doc """
     Renders hire.json
   """
   def render("hire.json", %{direct_hire: hire, recipient: recipient, order: order}) do

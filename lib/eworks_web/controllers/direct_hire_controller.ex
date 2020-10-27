@@ -17,25 +17,23 @@ defmodule EworksWeb.Requests.DirectHireController do
     apply(__MODULE__, action_name(conn), args)
   end # end action
 
-  @doc """
-    Returns a list of requests made the current user
-  """
-  def list_client_direct_hires(conn, _params, user) do
-    with {:ok, hires} <- API.list_direct_hires(:client, user) do
-      # return the reuslt
-      conn
-      # put the status
-      |> put_status(:ok)
-      # render the hires
-      |> render("contractor_hires.json", hires: hires)
-    end # end of direct hires
-  end # end of list my_direct hires
+  
+  # def list_client_direct_hires(conn, _params, user) do
+  #   with {:ok, hires} <- API.list_direct_hires(:client, user) do
+  #     # return the reuslt
+  #     conn
+  #     # put the status
+  #     |> put_status(:ok)
+  #     # render the hires
+  #     |> render("contractor_hires.json", hires: hires)
+  #   end # end of direct hires
+  # end # end of list my_direct hires
 
   @doc """
     Returns a list of all the direct hire requests made to a given contractor
   """
   def list_contractor_direct_hires(conn, _params, user) do
-    with {:ok, hires} <- API.list_direct_hires(:contractor, user) do
+    with {:ok, hires} <- API.list_direct_hires(user) do
       # return the reuslt
       conn
       # put the status

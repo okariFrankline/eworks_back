@@ -13,23 +13,24 @@ defmodule Eworks.Requests.API do
   @doc """
     Returns a list of direct hires for a user
   """
-  def list_direct_hires(type, %User{} = user) do
-    # check the type
-    case type do
-      :client ->
-        # get the direct hires made by this user and for each of the hires, preload the order and the person assigned the order
-        direct_hires = Repo.preload(user, [direct_hires: [:order, work_profile: [:user]]]).direct_hires
-        # returnt the direct hires
-        {:ok, direct_hires}
-
-      :contractor ->
-        # get the direct hires made to this user
-        hires = Repo.preload(user, [work_profiles: [direct_hires: from(hire in DirectHire, where: hire.is_pending == false)]]).direct_hires
-        # for each of the hires. preload their orders
-        hires = Stream.map(hires, fn hire -> hire |> Repo.preload([:order]) end) |> Enum.to_list()
-        # return the hires
-        {:ok, hires}
-    end # end of case for the type
+  def list_direct_hires(%User{} = user) do
+    # query for getting the direct hires
+    query = from(
+      # get the profile
+      from profile in Accounts.WorkProfile,
+      # join the work profile
+      left_join: hire in assoc(profile, :direct_hires),
+      # ensure hte invite is not rejected and also not cancelled
+      on: hire.is_rejected == false and hire.is_cancelled == false,
+      # join the order
+      join: order in assoc(hire, :order),
+      # preload the invite and the offer
+      preload: [direct_hires: {hire, order: order}]
+    )
+    # get the direct hires made to this user
+    hires = Repo.preload(user, [work_profiles: [direct_hires: query]]).work_profile.direct_hires
+    # return the hires
+    {:ok, hires}
   end # end of list direct hires
 
   @doc """
