@@ -17,18 +17,18 @@ defmodule Eworks.Requests.API do
     # query for getting the direct hires
     query = from(
       # get the profile
-      from profile in Accounts.WorkProfile,
-      # join the work profile
-      left_join: hire in assoc(profile, :direct_hires),
+      from hire in Requests.DirectHire,
       # ensure hte invite is not rejected and also not cancelled
-      on: hire.is_rejected == false and hire.is_cancelled == false,
+      where: hire.is_rejected == false and hire.is_cancelled == false,
       # join the order
       join: order in assoc(hire, :order),
       # preload the invite and the offer
-      preload: [direct_hires: {hire, order: order}]
+      preload: [order: order]
     )
     # get the direct hires made to this user
-    hires = Repo.preload(user, [work_profiles: [direct_hires: query]]).work_profile.direct_hires
+    hires = Repo.preload(user, [work_profile: [direct_hires: query]]).work_profile.direct_hires
+
+    IO.inspect(hires)
     # return the hires
     {:ok, hires}
   end # end of list direct hires
@@ -86,8 +86,6 @@ defmodule Eworks.Requests.API do
     user = Repo.preload(user, [work_profile: [direct_hires: from(hire in DirectHire, where: hire.id == ^hire_id)]])
     # get the hire
     [hire | _rest] = user.work_profile.direct_hires
-    # get the order
-    task_order = Task.async(fn -> Orders.get_order!(hire.order_id) end)
     # accept the direct hires
     with hire <- hire |> Ecto.Changeset.change(%{is_accepted: true, is_pending: false}) |> Repo.update!() do
       # send a notification to the owner of the hire about the accepting of the hire
@@ -105,7 +103,7 @@ defmodule Eworks.Requests.API do
         {:ok, notification} = Notifications.create_notification(%{
           user_id: owner.id,
           asset_type: "Direct Hire Request",
-          asset_id: hire_id,
+          asset_id: hire.id,
           notification_type: "Direct Hire Request Acceptance",
           message: "#{message}. Continue to assign the order to the contractor."
         })
@@ -113,10 +111,8 @@ defmodule Eworks.Requests.API do
         Endpoint.broadcast!("user:#{owner.id}", "notification::direct_hire_acceptance", %{notificaiton: Utils.render_notification(notification)})
       end) # end of task
 
-      # get the order
-      order = Task.await(task_order)
       # return the hire
-      {:ok, %{hire: hire, order: order, recipient: user}}
+      {:ok, hire}
     end # end of with
   end # end of accepting a direct hire request
 

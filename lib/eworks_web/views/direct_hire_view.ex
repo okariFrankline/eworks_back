@@ -61,7 +61,7 @@ defmodule EworksWeb.Requests.DirectHireView do
       is_rejected: hire.is_rejected,
       is_pending: hire.is_pending,
       created_on: Date.to_iso8601(hire.inserted_at),
-      orders: render_many(hire.order, OrderListView, "hire_order.json")
+      order: render_one(hire.order, OrderListView, "hire_order.json")
     }
   end # end of contractor_hires.json
 

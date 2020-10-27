@@ -17,7 +17,7 @@ defmodule EworksWeb.Requests.DirectHireController do
     apply(__MODULE__, action_name(conn), args)
   end # end action
 
-  
+
   # def list_client_direct_hires(conn, _params, user) do
   #   with {:ok, hires} <- API.list_direct_hires(:client, user) do
   #     # return the reuslt
@@ -61,12 +61,12 @@ defmodule EworksWeb.Requests.DirectHireController do
     accepts a direct hire request
   """
   def accept_direct_hire_request(conn, %{"direct_hire_id" => id}, user) do
-    with {:ok, result} <- API.accept_direct_hire_request(user, id) do
+    with {:ok, _result} <- API.accept_direct_hire_request(user, id) do
       conn
       # put the stauts
       |> put_status(:ok)
       #
-      |> render("hire.json", direct_hire: result.hire, recipient: result.recipient, order: result.order)
+      |> render("success.json", message: "Success. You have successfully accepted the direct hire request.")
     end # end of with
   end # end of accept direct hire request
 
@@ -79,7 +79,7 @@ defmodule EworksWeb.Requests.DirectHireController do
       # put the stauts
       |> put_status(:ok)
       #
-      |> render("success.json", message: "Success. Direct Hire Request successfully rejected.")
+      |> render("success.json", message: "Success. You have successfully rejected the direct hire request.")
     end # end of with
   end # end of accept direct hire request
 

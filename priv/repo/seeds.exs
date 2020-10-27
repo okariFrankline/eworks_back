@@ -9,7 +9,7 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
-alias Eworks.Repo
+alias Eworks.{Repo, Requests}
 alias Eworks.Accounts.{User, WorkProfile}
 alias Eworks.Orders.{Order}
 alias Eworks.Collaborations.{Invite, InviteOffer}
@@ -227,4 +227,17 @@ Enum.each(invites, fn invite ->
     # inser the offers
     |> Repo.insert!()
   end )
+end)
+
+# create a direct hire for frank
+Enum.each(Enum.take(first_10_orders, 5), fn order ->
+  profile =Repo.preload(frank, [:work_profile]).work_profile
+  # creae a new direct hire
+  %Requests.DirectHire{
+    order_id: order.id,
+    user_id: order.user_id,
+    work_profile_id: profile.id
+  }
+  # insert the request
+  |> Repo.insert!()
 end)
