@@ -19,8 +19,10 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
       add :description, :text, null: true
       add :verification_code, :integer, null: true
       add :collaborators, {:array, :binary_id}, default: []
-      add :order_id, :binary_id
+      #add :order_id, :binary_id
 
+      # order for which the invite is for
+      add :order_id, references(:orders, on_delete: :nothing, type: :binary_id)
       # owner of the collaboration invite
       add :work_profile_id, references(:work_profiles, on_delete: :nothing, type: :binary_id)
 

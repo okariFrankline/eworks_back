@@ -144,12 +144,12 @@ defmodule EworksWeb.Invites.InviteController do
     Submits an offer for an invite
   """
   def submit_invite_offer(conn, %{"asking_amount" => asking_amount}, user, invite) do
-    with {:ok, offer} <- API.create_invite_offer(user, invite, asking_amount) do
+    with {:ok, _offer} <- API.create_invite_offer(user, invite, asking_amount) do
       conn
       # put status
       |> put_status(:created)
       # render the offer
-      |> render("invite_offer.json", offer: offer)
+      |> render("success.json", message: "Success. You have successfully submitted an offer for the invite.")
     end # end of with
   end # end of submit invite ffer
 
@@ -176,7 +176,7 @@ defmodule EworksWeb.Invites.InviteController do
     # put the status
     |> put_status(:ok)
     # render succes
-    |> render("success.json", message: "Collaboratioin invite successfully cancelled.")
+    |> render("success.json", message: "Success. You have successfully cancelled your offer on the collaboratioin invite.")
   end # end of cancel_invitaion_offeer
 
   @doc """
@@ -188,7 +188,7 @@ defmodule EworksWeb.Invites.InviteController do
       # put the status
       |> put_status(:ok)
       # render success
-      |> render("success.json")
+      |> render("success.json", message: "Success. You have successfully cancelled the collaboration invite")
     end # end of with
   end # end of canceling an invite
 
@@ -208,14 +208,33 @@ defmodule EworksWeb.Invites.InviteController do
   @doc """
     Gets all invites created by the given user
   """
-  def list_invites_created_by_current_user(conn, %{next_cursor: cursor}, user, _invite) do
+  def list_invites_created_by_current_user(conn, %{"next_cursor" =>  cursor, "filter" => filter}, user, _invite) do
+    # get the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
+    # get the query
     query = from(
       invite in Invite,
       # ensure the user id is ismilar to that of the current user
-      where: invite.user_id == ^user.id and invite.is_cancelled == false,
+      where: invite.work_profile_id == ^profile.id and invite.is_cancelled == false,
+      # join the orders
+      left_join: offer in assoc(invite, :collaboration_offers),
+      # ensure the offer is not cancelled and also not rejected
+      on: offer.is_cancelled == false and offer.is_rejected == false,
       # order by the inserted at
-      order_by: [desc: invite.inserted_at]
+      order_by: [desc: invite.inserted_at],
+      # preload the offers
+      preload: [collaboration_offers: offer]
     )
+
+    # apply the filter on the query
+    query = case filter do
+      # in progress
+      "unassigned" ->
+        from(invite in query, where: invite.is_assigned == false)
+      # completed
+      "in_progress" ->
+        from(invite in query, where: invite.is_assigned == true)
+    end # end of query
 
     # check if the cursor is given
     page = if cursor == "false" do
@@ -239,12 +258,12 @@ defmodule EworksWeb.Invites.InviteController do
   """
   def list_unassigned_invites(conn, %{"next_cursor" => cursor}, user, _invite) do
     # preload the work profile
-    profile = Repo.preload(user, [:work_profile]).work_profile
+    user = Repo.preload(user, [:work_profile, invite_offers: from(offer in InviteOffer, select: [offer.invite_id])])
     # query for the invites
     query = from(
       invite in Invite,
       # ensure the user id is ismilar to that of the current user
-      where: invite.is_assigned == false and invite.is_cancelled == false and invite.work_profile_id != ^profile.id,
+      where: invite.is_assigned == false and invite.is_cancelled == false and invite.work_profile_id != ^user.work_profile.id,
       # order by the inserted at
       order_by: [desc: invite.inserted_at]
     )
@@ -263,27 +282,41 @@ defmodule EworksWeb.Invites.InviteController do
     # put the status
     |> put_status(:ok)
     # render the results
-    |> render("display_invites.json", invites: page.entries, next_cursor: page.metadata.after)
+    |> render("display_invites.json", invites: page.entries, next_cursor: page.metadata.after, offer_invite_ids: user.invite_offers)
   end # end of list unassigned invites
 
   @doc """
     Returns the current user's collaboration invites
   """
   def list_current_user_invite_offers(conn, %{"filter" => filter}, user, _invite) do
+    # query for getting the offers
+    query = from(
+      offer in InviteOffer,
+      # ensure the offer belongs to the user
+      where: offer.user_id == ^user.id,
+      # preload the order
+      join: invite in assoc(offer, :invite),
+      # join hte order in the invite
+      join: order in assoc(invite, :order),
+      # preload the offer
+      preload: [invite: {invite, order: order}]
+    )
     # get the offers
     offers = case filter do
       # return the pending offers
       "pending" ->
-        Repo.preload(user, [invite_offers: from(offer in InviteOffer, where: offer.is_pending == true)])
+        from(offer in query, where: offer.is_pending == true)
 
       # return the accepted offers
       "accepted" ->
-        Repo.preload(user, [invite_offers: from(offer in InviteOffer, where: offer.is_accepted == true)])
+        from(offer in query, where: offer.is_accepted == true)
 
       # return the rejected offers
       "rejected" ->
-        Repo.preload(user, [invite_offers: from(offer in InviteOffer, where: offer.is_rejected == true)])
+        from(offer in query, where: offer.is_rejected == true)
     end # end of case
+    # get all the offers
+    |> Repo.all()
 
     # return the results
     conn
@@ -299,27 +332,27 @@ defmodule EworksWeb.Invites.InviteController do
   def list_invite_offers(conn, %{"next_cursor" => next_cursor, "invite_id" => id, "filter" => filter}, _user, _invite) do
     # query for the offers
     query = from(
-      invite in InviteOffer,
+      offer in InviteOffer,
       # ensure the order id is simialr to the offers
-      where: invite.order_id == ^id,
+      where: offer.invite_id == ^id,
       # order
-      order_by: [desc: invite.inserted_at]
+      order_by: [desc: offer.inserted_at]
     )
 
     # check the filter
     query = case filter do
       "pending" ->
         # filter the query
-        from(invite in query, where: invite.pending == true and invite.cancelled == false and invite.is_rejected == false)
+        from(invite in query, where: invite.is_pending == true and invite.is_cancelled == false and invite.is_rejected == false)
 
       # accepted offers
       "accepted" ->
         # get the accepted offers
-        from(invite in query, where: invite.accepted == true and invite.cancelled == false and invite.is_rejected == false)
+        from(invite in query, where: invite.is_accepted == true and invite.is_cancelled == false and invite.is_rejected == false)
     end # get the fitler
 
     # check the value of the next cursor
-    page = if next_cursor != "false" do
+    page = if next_cursor == "false" do
       Repo.paginate(query, cursor_fields: [:inserted_at], limit: 10)
     else
       Repo.paginate(query, after: next_cursor, cursor_fields: [:inserted_at], limit: 10)

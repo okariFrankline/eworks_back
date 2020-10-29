@@ -4,13 +4,14 @@ defmodule Eworks.Repo.Migrations.CreateInviteOffers do
   def change do
     create table(:invite_offers, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :is_pending, :boolean, default: false, null: false
+      add :is_pending, :boolean, default: true, null: false
       add :has_accepted_invite, :boolean, default: false, null: false
       add :is_rejected, :boolean, default: false, null: false
       add :is_accepted, :boolean, default: false, null: false
       add :is_cancelled, :boolean, default: false, null: false
       add :asking_amount, :integer, null: false
       add :show_more, :boolean, default: false, null: false
+      add :owner_skills, {:array, :string}, default: []
 
       add :owner_name, :string, null: false
       add :owner_rating, :float, null: false

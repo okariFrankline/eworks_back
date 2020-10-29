@@ -18,7 +18,6 @@ defmodule Eworks.Collaborations.API do
     profile = Repo.preload(user, [:work_profile]).work_profile
     # checki if user is owner
     if profile.id == invite.work_profile_id, do: invite, else: {:error, :not_owner}
-
   end # end of get invite
 
   @doc """
@@ -103,10 +102,12 @@ defmodule Eworks.Collaborations.API do
     |> Ecto.build_assoc(:invite_offers, %{
       # add invite id
       invite_id: invite.id,
-      asking_amount: asking_amount,
+      asking_amount: String.to_integer(asking_amount),
       owner_name: user.full_name,
-      rating: user.work_profile.rating,
+      owner_rating: user.work_profile.rating,
       owner_about: user.work_profile.cover_letter,
+      owner_job_success: user.work_profile.success_rate,
+      owner_skills: user.work_profile.skills,
       owner_profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({user.profile_pic, user}))
     })
     # create the offer
@@ -115,7 +116,7 @@ defmodule Eworks.Collaborations.API do
     # task for sending an email notification to the owner of the invite
     Task.start(fn ->
       # preload the owner of the order
-      owner = Repo.preload(invite, [:user]).user
+      owner = Repo.preload(invite, [work_profile: [:user]]).work_profile.user
       # message
       message = "#{user.full_name} has submitted an offer for your collaboration invite **INVITE::#{invite.specialty}**"
       # send an email notification to the owner of the order
@@ -254,14 +255,16 @@ defmodule Eworks.Collaborations.API do
 
   # function for cancelling an invitations
   def cancel_invite(%User{} = user, %Invite{} = invite) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
     # ensure the current user is the owner of the invite
-    if user.id == invite.user_id do
+    if profile.id == invite.work_profile_id do
        # cacnel the order
        with invite <- invite |> Ecto.Changeset.change(%{is_cancelled: true}) |> Repo.update!() do
         # task for notifying the users who have invite offers
         Task.start(fn ->
           # preload the offers
-          offers = Repo.preload(invite, [invite_offers: from(offer in InviteOffer, where: offer.is_cancelled == false and offer.is_rejected == false)]).invite_offers
+          offers = Repo.preload(invite, [collaboration_offers: from(offer in InviteOffer, where: offer.is_cancelled == false and offer.is_rejected == false)]).collaboration_offers
           # only send notifications to the owner of the offers if the offers is not empty
           with false <- Enum.empty?(offers) do
             # for each of the offers, reject and notify the user
@@ -272,8 +275,9 @@ defmodule Eworks.Collaborations.API do
                 # create a notification
                 {:ok, notification} = Notifications.create_notification(%{
                   user_id: offer.user_id,
-                  asset_type: :offer,
+                  asset_type: "Invite Offer",
                   asset_id: offer.id,
+                  notification_type: "Invite Offer Rejection",
                   message: "Your collaboration invite offer has been rejected because the collaboration request was cancelled by owner."
                 })
                 # send notification

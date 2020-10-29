@@ -69,6 +69,8 @@ defmodule EworksWeb.Router do
     get "/created", InviteController, :list_invites_created_by_current_user
     # route for getting invite offers created by current user
     get "/offers", InviteController, :list_current_user_invite_offers
+    # route for getting the route for getting the offers made for a given invite
+    get "/:invite_id/offers", InviteController, :list_invite_offers
     # route for getting a verification code
     get "/:invite_id/verification", InviteController, :get_verification_code
     # route for resending a verification code

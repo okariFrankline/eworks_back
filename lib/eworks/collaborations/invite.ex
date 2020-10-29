@@ -32,9 +32,10 @@ defmodule Eworks.Collaborations.Invite do
     field :collaborators, {:array, :binary_id} # holds the ids of the people assigned as collaborators
     field :description, :string
     # virtual fields
+
     field :deadline_string_date, :string, virtual: true
     # order id for the order the invite is for
-    field :order_id, :binary_id
+    belongs_to :order, Eworks.Orders.Order, type: :binary_id
     # belongs to one user who is a contractor
     belongs_to :work_profile, Eworks.Accounts.WorkProfile, type: :binary_id
     # has many inviation offers
@@ -52,7 +53,6 @@ defmodule Eworks.Collaborations.Invite do
       :is_paid_for,
       :required_collaborators,
       :payment_schedule,
-      :order_id,
       :category,
       :specialty,
       :collaborators,

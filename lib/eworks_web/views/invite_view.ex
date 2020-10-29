@@ -1,6 +1,8 @@
 defmodule EworksWeb.Invites.InviteView do
   use EworksWeb, :view
 
+  alias EworksWeb.OrderListView
+
   @doc """
     New invite json
   """
@@ -27,14 +29,86 @@ defmodule EworksWeb.Invites.InviteView do
   end # end of invite.json
 
   @doc """
-    Renders display_invite.json
+    Renders my_invites.json
   """
-  def render("display_invites.json", %{invites: invites, next_cursor: cursor}) do
+  def render("my_invites.json", %{invites: invites, next_cursor: cursor}) do
     %{
       data: %{
-        invites: render_many(invites, __MODULE__, "invite.json"),
+        invites: render_many(invites, __MODULE__, "my_invite.json"),
         next_cursor: cursor
       }
+    }
+  end # end of my_invites.json
+
+  @doc """
+    Renders my_invite.json
+  """
+  def render("my_invite.json", %{invite: invite}) do
+    %{
+      id: invite.id,
+      payable_amount: invite.payable_amount,
+      payment_schedule: invite.payment_schedule,
+      is_paid_for: invite.is_paid_for,
+      is_cancelled: invite.is_cancelled,
+      is_assigned: invite.is_assigned,
+      category: invite.category,
+      deadline: show_deadline(invite.deadline),
+      required_collaborators: invite.required_collaborators,
+      order_id: invite.order_id,
+      specialty: invite.specialty,
+      description: invite.description,
+      show_more: invite.show_more,
+      owner_name: invite.owner_name,
+      posted_on: NaiveDateTime.to_iso8601(invite.inserted_at),
+      active_offers: Enum.count(invite.collaboration_offers),
+      order_id: invite.order_id
+    }
+  end
+
+  @doc """
+    Renders display_invite.json
+  """
+  def render("display_invites.json", %{invites: invites, next_cursor: cursor, offer_invite_ids: ids}) do
+    %{
+      data: %{
+        invites: render_many(invites, __MODULE__, "display_invite.json"),
+        next_cursor: cursor,
+        invite_ids: List.flatten(ids)
+      }
+    }
+  end # end of display invites
+
+  @doc """
+    Renders my_offers.json
+  """
+  def render("my_offers.json", %{offers: offers}) do
+    %{
+      data: %{
+        offers: render_many(offers, __MODULE__, "my_offer.json")
+      }
+    }
+  end # end of my_offers.json
+
+  @doc """
+    renders display_invite.json
+  """
+  def render("display_invite.json", %{invite: invite}) do
+    %{
+      id: invite.id,
+      payable_amount: invite.payable_amount,
+      payment_schedule: invite.payment_schedule,
+      is_paid_for: invite.is_paid_for,
+      is_cancelled: invite.is_cancelled,
+      is_assigned: invite.is_assigned,
+      category: invite.category,
+      deadline: show_deadline(invite.deadline),
+      required_collaborators: invite.required_collaborators,
+      order_id: invite.order_id,
+      specialty: invite.specialty,
+      description: invite.description,
+      show_more: invite.show_more,
+      owner_name: invite.owner_name,
+      posted_on: NaiveDateTime.to_iso8601(invite.inserted_at)
     }
   end
 
@@ -49,6 +123,22 @@ defmodule EworksWeb.Invites.InviteView do
       }
     }
   end # end of offers.json
+
+  @doc """
+    Renders my_offer.json
+  """
+  def render("my_offer.json", %{invite: offer}) do
+    %{
+      id: offer.id,
+      is_cancelled: offer.is_cancelled,
+      is_rejected: offer.is_rejected,
+      is_pending: offer.is_pending,
+      placed_on: NaiveDateTime.to_iso8601(offer.inserted_at),
+      has_accepted_invite: offer.has_accepted_invite,
+      asking_amount: offer.asking_amount,
+      order: render_one(offer.invite.order, OrderListView, "hire_order.json")
+    }
+  end # end of my_offer.json
 
   @doc """
     Render the collaborators
@@ -75,6 +165,7 @@ defmodule EworksWeb.Invites.InviteView do
       is_pending: offer.is_pending,
       placed_on: NaiveDateTime.to_iso8601(offer.inserted_at),
       has_accepted_invite: offer.has_accepted_invite,
+      asking_amount: offer.asking_amount,
       show_more: offer.show_more,
       owner: %{
         full_name: offer.owner_name,
@@ -83,6 +174,7 @@ defmodule EworksWeb.Invites.InviteView do
         about: offer.owner_about,
         id: offer.user_id,
         profile_pic: offer.owner_profile_pic,
+        skills: offer.owner_skills
       }
     }
   end # end of offer.json

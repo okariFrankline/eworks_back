@@ -7,7 +7,7 @@ defmodule Eworks.Collaborations.InviteOffer do
   schema "invite_offers" do
     field :is_accepted, :boolean, default: false
     field :is_cancelled, :boolean, default: false
-    field :is_pending, :boolean, default: false
+    field :is_pending, :boolean, default: true
     field :is_rejected, :boolean, default: false
     field :has_accepted_invite, :boolean, default: false
     field :asking_amount, :integer
@@ -18,6 +18,7 @@ defmodule Eworks.Collaborations.InviteOffer do
     field :owner_about, :string
     field :owner_profile_pic, :string
     field :owner_job_success, :float
+    field :owner_skills, {:array, :string}
     # belongs to one user
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
     # belongs to one invite
@@ -41,7 +42,8 @@ defmodule Eworks.Collaborations.InviteOffer do
       :owner_profile_pic,
       :owner_job_success,
       :asking_amount,
-      :show_more
+      :show_more,
+      :owner_skills
     ])
     # ensure the user_id is given
     |> foreign_key_constraint(:user_id)
