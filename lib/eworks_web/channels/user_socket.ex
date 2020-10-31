@@ -1,7 +1,10 @@
 defmodule EworksWeb.UserSocket do
   use Phoenix.Socket
 
-  alias EworksWeb.Authentication.Guardian
+  # alias the user struct
+  alias Eworks.Accounts.{Session}
+  alias Eworks.Repo
+  import Ecto.Query, warn: false
 
   ## Channels
   channel "notification:*", EworksWeb.NotificationChannel
@@ -18,21 +21,28 @@ defmodule EworksWeb.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   @impl true
-  def connect(%{"token" => token}, socket, _connect_info) do
-    # authenticate to ensure that the user is currently logged in
-    case Guardian.decode_and_verify(token) do
-      {:ok, claims} ->
-        # get the resource(current user) with the token
-        case Guardian.resource_from_claims(claims) do
-          {:ok, user} ->
-            # set the current user to the assigns
-            {:ok, assign(socket, :current_user, user)}
+  def connect(%{"token" => "Bearer " <> token}, socket, _connect_info) do
+    # get the user with the given id
+    Session
+    # filter only where the token is required
+    |> where(token: ^token)
+    # get one result from the dp
+    |> Repo.one()
+    # check if ther user exists or not
+    |> case do
+      # the session does not exist
+      nil ->
+        # deny the connection
+        :error
+      # the user exist
+      session ->
+        # get the account
+        user = Repo.preload(session, [:user]).user
+        # return the account
+        {:ok, assign(socket, :current_user, user)}
+    end # end of cond
 
-          {:error, _reason} ->
-            # return error denying the connection
-            :error
-        end # end of getting the claims from the token
-    end # end of verifying the token that has being given
+    #{:ok, socket}
   end # end of the connect function
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
