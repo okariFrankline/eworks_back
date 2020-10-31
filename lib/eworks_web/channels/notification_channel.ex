@@ -28,7 +28,7 @@ defmodule EworksWeb.NotificationChannel do
     # preload all the notification for the current user and only for notification that have not yet being viewed
     user = Repo.preload(user, [notifications: from(notification in Notification, where: notification.is_viewed == false)])
     # push the notifications to the client
-    push(socket, "notification::unviewed_notifications", %{unviewed_notifications: user.notification})
+    push(socket, "notification::unviewed_notifications", %{notifications: user.notifications})
     # return a no reply
     {:noreply, socket}
   end # end of handling after join function.

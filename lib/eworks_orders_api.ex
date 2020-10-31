@@ -138,9 +138,9 @@ defmodule Eworks.Orders.API do
         # preload the owner of the order
         owner = Accounts.get_user!(order.user_id)
         # message
-        message = "#{user.full_name} has submitted an offer for **Order::#{order.specialty}**."
+        message = "#{user.full_name} has submitted an offer of KES #{asking_amount} to work of your order **#{order.category}::#{order.specialty}**."
         # send an email notification to the owner of the order
-        NewEmail.new_email_notification(owner, "Offer submission for **Order::#{order.specialty}**", "#{message} \n Login to your account for more details.")
+        NewEmail.new_email_notification(owner, "Offer submission for order: **#{order.category} :: #{order.specialty}**", "#{message} \n Login to your account for more details.")
         # send the email
         |> Mailer.deliver_later()
 
@@ -153,7 +153,7 @@ defmodule Eworks.Orders.API do
           message: message
         })
         # send the notification to the user using websocket
-        Endpoint.broadcast!("notification:#{order.user_id}", "notification::offer_submission", %{notification: Utils.render_notification(notification)})
+        Endpoint.broadcast!("notification:#{order.user_id}", "new_notification", %{notification: notification})
       end) # end of the task
       # return ok
       {:ok, offer}
@@ -171,7 +171,7 @@ defmodule Eworks.Orders.API do
       # get the order offer
       [offer | _rest] = Repo.preload(order, [order_offers: from(offer in OrderOffer, where: offer.id == ^offer_id)]).order_offers
       # update the offer
-      case accept_offer(offer, user.full_name, order.specialty) do
+      case accept_offer(offer, user.full_name, order.specialty, order.category) do
         # offer successfully accepted
         :ok ->
           # check if the order has already allowed number of offers allowed to accept
@@ -264,9 +264,9 @@ defmodule Eworks.Orders.API do
           # start a task for sending the assignee a notification about the assigning
           Task.start(fn ->
             # message
-            message = "#{user.full_name} has assigned you to work on the order **ORDER::#{order.specialty}**."
+            message = "#{user.full_name} has assigned you to work on their order: **#{order.category} :: #{order.specialty}**."
             # send an email notification to the owner of the order
-            NewEmail.new_email_notification(profile.user, "Order Assignment for **ORDER::#{order.specialty}**", "#{message} \n Login to your account for more details.")
+            NewEmail.new_email_notification(profile.user, "Order Assignment for order: **#{order.category} :: #{order.specialty}**", "#{message} \n Login to your account for more details.")
             # send the email
             |> Mailer.deliver_later()
 
@@ -279,7 +279,7 @@ defmodule Eworks.Orders.API do
               message: message
             })
             # notify the assigned user through the websocket using the notification::new_assigned_order
-            Endpoint.broadcast!("notification:#{to_assign_id}", "notification::new_assigned_order", %{notification: Utils.render_notification(notification)})
+            Endpoint.broadcast!("notification:#{to_assign_id}", "new_notification", %{notification: notification})
           end) # end of task for sending a notification to the user about the job assignment
 
           # check if once the added assignee is added, it brings the number of assigned equal to the required orders
@@ -371,13 +371,13 @@ defmodule Eworks.Orders.API do
           # creaate a notification to informat the owner of the offer about the rejection.
           {:ok, notification} = Notifications.create_notification(%{
             user_id: updated_offer.user_id,
-            asset_type: "Offer",
+            asset_type: "Order Offer",
             asset_id: offer_id,
             notification_type: "Order Offer Rejection",
-            message: "#{user.full_name} has rejected your offer for order **ORDER::#{order.specialty}**."
+            message: "#{user.full_name} has rejected your submitted offer of amount KES #{offer.asking_amount} for order **#{order.category} :: #{order.specialty}**."
           })
           # send notification to the owner of the offer through the websocket
-          Endpoint.broadcast!("notification:#{updated_offer.user_id}", "notification::offer_rejected", %{notification: Utils.render_notification(notification)})
+          Endpoint.broadcast!("notification:#{updated_offer.user_id}", "new_notification", %{notification: notification})
         end # end of the with
       end) # end of with for checking the order had being cancelled.
       # return ok
@@ -427,22 +427,22 @@ defmodule Eworks.Orders.API do
           # preload the owner of the order
           owner = Repo.preload(order, [:user]).user
           # message
-          message = "#{user.full_name} has acepted to work on your order **ORDER::#{order.specialty}**"
+          message = "#{user.full_name} has acepted to be contracted to work on your order: **#{order.category} :: #{order.specialty}**"
           # send an email notification to the owner of the order
-          NewEmail.new_email_notification(owner, "Order Acceptance for **ORDER::#{order.specialty}**", "#{message} \n Login to your account for more details.")
+          NewEmail.new_email_notification(owner, "Order Acceptance for Order:  **#{order.category} :: #{order.specialty}**", "#{message} \n Login to your account for more details.")
           # send the email
           |> Mailer.deliver_later()
 
           # create the notification
           {:ok, notification} = Notifications.create_notification(%{
             user_id: order.user_id,
-            asset_type: "Offer",
+            asset_type: "Order",
             asset_id: order.id,
             notification_type: "Order Acceptance",
             message: message
           })
           # send the notification to the user through a websocket.
-          Endpoint.broadcast!("notification:#{order.user_id}", "notification::order_acceptance", %{notification: Utils.render_notification(notification)})
+          Endpoint.broadcast!("notification:#{order.user_id}", "new_notification", %{notification: notification})
         end) # end of task
         # return the order
         {:ok, offer}
@@ -469,22 +469,22 @@ defmodule Eworks.Orders.API do
           # preload the owner of the order
           owner = Repo.preload(order, [:user]).user
           # message
-          message = "#{user.full_name} has declined to work on your order **ORDER::#{order.specialty}**"
+          message = "#{user.full_name} has declined to be contracted to work on your order **#{order.category} :: #{order.specialty}**"
           # send an email notification to the owner of the order
-          NewEmail.new_email_notification(owner, "Order Decline for **ORDER::#{order.specialty}**", "#{message} \n Login to your account for more details.")
+          NewEmail.new_email_notification(owner, "Order Decline for order: **#{order.category} :: #{order.specialty}**", "#{message} \n Login to your account for more details.")
           # send the email
           |> Mailer.deliver_later()
 
           # create the notification
           {:ok, notification} = Notifications.create_notification(%{
             user_id: order.user_id,
-            asset_type: "Offer",
+            asset_type: " Order",
             asset_id: order.id,
             notification_type: "Order Rejection",
             message: message
           })
           # send the notification to the user through a websocket.
-          Endpoint.broadcast!("notification:#{order.user_id}", "notification::order_rejection", %{notification: Utils.render_notification(notification)})
+          Endpoint.broadcast!("notification:#{order.user_id}", "new_notification", %{notification: notification})
         end) # end of task
         # return the order
         {:ok, offer}
@@ -605,14 +605,14 @@ defmodule Eworks.Orders.API do
             # create a new notification
             {:ok, notification} = Notifications.create_notification(%{
               user_id: offer.user_id,
-              asset_type: "Offer",
+              asset_type: "Order Offer",
               asset_id: offer.id,
               notification_type: "Offer Rejection",
-              message: "Your offer for the order: **ORDER::#{order.specialty}** has been rejected. Owner cancelled the order."
+              message: "Your order offer for amount #{offer.asking_amount} for the order: **#{order.category} :: #{order.specialty}** has been rejected due to cancellation of the order."
             })
 
             # send the notificaiton
-            Endpoint.broadcast!("notification:#{offer.user_id}", "notification::offer_rejected", %{notification: Utils.render_notification(notification)})
+            Endpoint.broadcast!("notification:#{offer.user_id}", "new_notification", %{notification: notification})
           end)
           # run the stream
           |> Stream.run()
@@ -649,9 +649,9 @@ defmodule Eworks.Orders.API do
           # send an email notification to the order owner
           owner = Repo.preload(order, [:user]).user
           # message
-          message = "#{user.full_name} has completed working on your order *ORDER::#{order.specialty}**"
+          message = "#{user.full_name} has completed working on your order *#{order.category} :: #{order.specialty}**. Please review the order and approve the contractor's payment."
           # send an email notification to the owner of the order
-          NewEmail.new_email_notification(owner, "Order Completion for **ORDER::#{order.specialty}**", "#{message} \n Login to your account for more details.")
+          NewEmail.new_email_notification(owner, "Order Completion for order: **#{order.category} :: #{order.specialty}**", "#{message} \n Login to your account for more details.")
           # send the email
           |> Mailer.deliver_later()
 
@@ -660,12 +660,12 @@ defmodule Eworks.Orders.API do
             user_id: order.user_id,
             asset_type: "Order",
             asset_id: order.id,
-            notification_type: "OrderCompletion",
+            notification_type: "Order Completion",
             message: message
           })
 
           # send the notification to the user
-          Endpoint.broadcast!("notification:#{owner.id}", "notification::order_acceptance", %{notification: Utils.render_notification(notification)})
+          Endpoint.broadcast!("notification:#{owner.id}", "new_notification", %{notification: notification})
         end) # end of task
 
         # return the result
@@ -675,7 +675,7 @@ defmodule Eworks.Orders.API do
 
   ####################################### PRIVATE FUNCTIONS #########################################
 
-  defp accept_offer(offer, order_owner_name, order_specialty) do
+  defp accept_offer(offer, order_owner_name, order_specialty, order_category) do
     # check if the offer is cancelled or not
     if not offer.is_cancelled do
       # update the offer
@@ -685,9 +685,9 @@ defmodule Eworks.Orders.API do
           # get the owner
           owner = Repo.preload(offer, [:user]).user
           # message
-          message = "#{order_owner_name} has accepted your offer to work on his/her **ORDER::#{order_specialty}**"
+          message = "#{order_owner_name} has accepted the offer of amount KES #{offer.asking_amount} you submitted to work on their order **#{order_category} :: #{order_specialty}**"
           # send an email notification to the owner of the order
-          NewEmail.new_email_notification(owner, "Offer Acceptance for **ORDER::#{order_specialty}**", "#{message} \n Login to your account for more details.")
+          NewEmail.new_email_notification(owner, "Offer Acceptance for order: **#{order_category} :: #{order_specialty}**", "#{message} \n Login to your account for more details.")
           # send the email
           |> Mailer.deliver_later()
 
@@ -699,7 +699,7 @@ defmodule Eworks.Orders.API do
             message: message
           })
           # send the noification to the user through the webscoket
-          Endpoint.broadcast!("notification:#{offer.user_id}", "notification::offer_accepted", %{notification: Utils.render_notification(notification)})
+          Endpoint.broadcast!("notification:#{offer.user_id}", "new_notification", %{notification: notification})
         end) # end of task
 
         # return ok

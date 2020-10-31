@@ -8,7 +8,6 @@ defmodule Eworks.Collaborations.API do
   alias Eworks.Collaborations.{Invite, InviteOffer}
   alias EworksWeb.Endpoint
   alias Eworks.Utils.{Mailer, NewEmail}
-  alias Eworks.API.Utils
 
   @doc """
     Gets a given invvitation
@@ -118,9 +117,9 @@ defmodule Eworks.Collaborations.API do
       # preload the owner of the order
       owner = Repo.preload(invite, [work_profile: [:user]]).work_profile.user
       # message
-      message = "#{user.full_name} has submitted an offer for your collaboration invite **INVITE::#{invite.specialty}**"
+      message = "#{user.full_name} has submitted an offer of amount KES #{asking_amount} for your collaboration invite **#{invite.category} :: #{invite.specialty}**"
       # send an email notification to the owner of the order
-      NewEmail.new_email_notification(owner, "Invite Offer Submission for **INVITE::#{invite.specialty}**", "#{message} \n Login to your account for more details.")
+      NewEmail.new_email_notification(owner, "Invite Offer Submission for Invite:  **#{invite.category} :: #{invite.specialty}**", "#{message} \n Login to your account for more details.")
       # send the email
       |> Mailer.deliver_later()
 
@@ -134,7 +133,7 @@ defmodule Eworks.Collaborations.API do
         message: message
       })
       # send the notification to the user through a websocket.
-      Endpoint.broadcast!("notification:#{owner.id}", "notification::invite_offer_submission", %{notification: Utils.render_notification(notification)})
+      Endpoint.broadcast!("notification:#{owner.id}", "new_notification", %{notification: notification})
     end)
     # return ok
     {:ok, offer}
@@ -160,10 +159,10 @@ defmodule Eworks.Collaborations.API do
             asset_type: "Offer",
             asset_id: offer.id,
             notification_type: "Collaboration Invite Offer Rejection",
-            message: "#{user.full_name} has rejected your collaboration offer request for **INVITE::#{invite.category}**"
+            message: "#{user.full_name} has rejected your collaboration offer of amount KES #{offer.asking_amount} request for **invite.category :: #{invite.specialty}**"
           })
           # send the notification
-          Endpoint.broadcast!("user:#{offer.user_id}", "notification::invite_offer_rejection", %{notification: render_notification(notification)})
+          Endpoint.broadcast!("user:#{offer.user_id}", "new_notification", %{notification: notification})
         end # end of with
       end) # end of task
 
@@ -193,7 +192,7 @@ defmodule Eworks.Collaborations.API do
           # send a notification to the owner of the invite offer using websocket
           Task.start(fn ->
             # creare message for notification
-            message = "#{user.full_name} has accepted your collaboration offer. **INVITE::#{invite.category}**"
+            message = "#{user.full_name} has accepted your submitted collaboration offer of amount KES #{offer.asking_amount}. **#{invite.category} :: #{invite.specialty}**"
             # send an email notification about the accepting of the invite offer accepting
             NewEmail.new_email_notification(offer_owner, "Collaboration Offer Acceptance", "#{message} \n Login to your account to view more details.")
             # send the email
@@ -209,7 +208,7 @@ defmodule Eworks.Collaborations.API do
               message: message
             })
             # send the notificaiton to the owner
-            Endpoint.broadcast!("user:#{offer_owner.id}", "notification::invite_offer_acceptance", %{notification: render_notification(notification)})
+            Endpoint.broadcast!("user:#{offer_owner.id}", "new_notification", %{notification: notification})
           end) # end of task
 
           # update the invite
@@ -278,10 +277,10 @@ defmodule Eworks.Collaborations.API do
                   asset_type: "Invite Offer",
                   asset_id: offer.id,
                   notification_type: "Invite Offer Rejection",
-                  message: "Your collaboration invite offer has been rejected because the collaboration request was cancelled by owner."
+                  message: "Your collaboration invite offer of amount KES #{offer.asking_amount} has been rejected because the collaboration request was cancelled by owner."
                 })
                 # send notification
-                Endpoint.broadcast("user:#{offer.user_id}", "notification::invite_offer_rejection", %{notification: render_notification(notification)})
+                Endpoint.broadcast("user:#{offer.user_id}", "new_notification", %{notification: notification})
               end) # end of task for each offer
             end) # end of stream.each
             # run the stream
@@ -364,17 +363,5 @@ defmodule Eworks.Collaborations.API do
   defp upload_url(url) do
     if url, do: url |> String.split("?") |> List.first(), else: nil
   end
-
-  # render_notification
-  defp render_notification(notification) do
-    %{
-      user_id: notification.user_id,
-      asset_type: notification.asset_type,
-      asset_id: notification.id,
-      message: notification.message
-    }
-  end # end of notificaiton
-
-
 
 end # end of module

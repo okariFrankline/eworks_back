@@ -6,7 +6,6 @@ defmodule Eworks.Requests.API do
   alias Eworks.{Repo, Notifications, Accounts, Orders, Requests}
   alias Eworks.Accounts.{User}
   alias Eworks.Requests.{DirectHire}
-  alias Eworks.API.Utils
   alias Eworks.Utils.{NewEmail, Mailer}
   alias EworksWeb.Endpoint
 
@@ -46,7 +45,7 @@ defmodule Eworks.Requests.API do
       # start a task to send the owner of the request a notification throught he email and websocket
       Task.start(fn ->
         # message
-        message = "#{user.full_name} has made a direct hire request to you to work on his/her order."
+        message = "#{user.full_name} has made a direct hire request for you to work on their order. Please review the order and respond promptly."
         # create a new email
         NewEmail.new_email_notification(recipient, "New Direct Hire Request", "#{message} \n Please Login to view details.")
         # send the email
@@ -61,7 +60,7 @@ defmodule Eworks.Requests.API do
           message: message
         })
         # send the notification to through the webscoket
-        Endpoint.broadcast!("user:#{recipient.id}", "notification::direct_hire_request", %{notification: Utils.render_notification(notification)})
+        Endpoint.broadcast!("user:#{recipient.id}", "new_notification", %{notification: notification})
       end) # end of task
 
       # retun the result
@@ -93,7 +92,7 @@ defmodule Eworks.Requests.API do
         # preload the owner of the hire
         owner = Repo.preload(hire, [:user]).user
         # message
-        message = "#{user.full_name} has accepted your direct hire request to work on your order."
+        message = "#{user.full_name} has accepted to be contracted to work on your direct hire request. Review the request and assign the order."
         # send email notification to the user
         NewEmail.new_email_notification(owner, "Direct Hire Acceptance", "#{message} \n Login to your account to assign the order.")
         # send the email
@@ -105,10 +104,10 @@ defmodule Eworks.Requests.API do
           asset_type: "Direct Hire Request",
           asset_id: hire.id,
           notification_type: "Direct Hire Request Acceptance",
-          message: "#{message}. Continue to assign the order to the contractor."
+          message: message
         })
         # send the notification
-        Endpoint.broadcast!("user:#{owner.id}", "notification::direct_hire_acceptance", %{notificaiton: Utils.render_notification(notification)})
+        Endpoint.broadcast!("user:#{owner.id}", "new_notification", %{notificaiton: notification})
       end) # end of task
 
       # return the hire
@@ -129,7 +128,7 @@ defmodule Eworks.Requests.API do
         # preload the owner of the hire
         owner = Repo.preload(hire, [:user]).user
         # message
-        message = "#{user.full_name} has rejected your direct hire request to work on your order."
+        message = "#{user.full_name} has declient to be contracted to work on your direct hire request. Please revie the request to reassign or make it public."
         # send email notification to the user
         NewEmail.new_email_notification(owner, "Direct Hire Rejection", "#{message} \n Login to your account to re-assign the order.")
         # send the email
@@ -141,10 +140,10 @@ defmodule Eworks.Requests.API do
           asset_type: "Direct Hire Request",
           asset_id: hire_id,
           notification_type: "Direct Hire Request Rejction.",
-          message: "#{message}. Continue to re-assign the order to the contractor."
+          message: message
         })
         # send the notification
-        Endpoint.broadcast!("user:#{owner.id}", "notification::direct_hire_rejection", %{notificaiton: Utils.render_notification(notification)})
+        Endpoint.broadcast!("user:#{owner.id}", "new_notification", %{notificaiton: notification})
       end) # end of task
 
       # return the hire
@@ -186,7 +185,7 @@ defmodule Eworks.Requests.API do
           message: "#{user.full_name} has cancelled their direct hire request for you to work on their order."
         })
         # send the notification in real time
-        Endpoint.broadcast!("user:#{profile.user.id}", "notification::direct_hire_rejection", %{notificaiton: Utils.render_notification(notification)})
+        Endpoint.broadcast!("user:#{profile.user.id}", "new_notification", %{notificaiton: notification})
       end)
 
     # return the result
