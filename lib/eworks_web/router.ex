@@ -127,11 +127,11 @@ defmodule EworksWeb.Router do
     # updates the current user's password
     post "/change/password", UserController, :change_user_password
     # updates the work profile skills of the current user
-    post "/work/profile/:work_profile_id/skills", UserController, :update_work_profile_skills
+    post "/profile/skills", UserController, :update_work_profile_skills
     # updates the intro of the current user
-    post "/work/profile/:work_profile_id/intro", UserController, :update_work_profile_prof_intro
+    post "/profile/intro", UserController, :update_work_profile_prof_intro
     # updates the cover letter of the current user
-    post "/work/profile/:work_profile_id/letter", UserController, :update_work_profile_cover_letter
+    post "/profile/letter", UserController, :update_work_profile_cover_letter
 
   end # end of users' scope
 

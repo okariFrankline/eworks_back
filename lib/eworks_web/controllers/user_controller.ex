@@ -5,25 +5,14 @@ defmodule EworksWeb.Users.UserController do
   alias Eworks
   alias Eworks.Accounts.User
   alias Eworks.Utils.{Mailer, NewEmail}
-  alias EworksWeb.{Plugs}
   alias Eworks.Repo
-
-  @work_profile_actions ~w(update_work_profile_skills update_work_profile_cover_letter update_work_profile_prof_intro)a
-
-  plug Plugs.WorkProfileById when action in @work_profile_actions
 
 
   action_fallback EworksWeb.FallbackController
 
   # alter the arity of the action functions
   def action(conn, _) do
-    args = if action_name(conn) in @work_profile_actions do
-      # return th args including the current user and the work profile
-      [conn, conn.params, Map.get(conn.assigns, :current_user), conn.assigns.work_profile]
-    else
-      # returns the arg with only the current user
-      [conn, conn.params, Map.get(conn.assigns, :current_user)]
-    end # end of if
+    args = [conn, conn.params, Map.get(conn.assigns, :current_user)]
     # apply the funtcions
     apply(__MODULE__, action_name(conn), args)
   end # end of action
@@ -58,23 +47,13 @@ defmodule EworksWeb.Users.UserController do
   """
   def activate_account(conn, %{"activation" => %{"activation_key" => key}}, user) do
     # actiate the account
-    with {:ok, user} <- Eworks.verify_account(user, key) do
-      if user.user_type == "Client" do
-        # return the result
-        conn
-        # put the okay status
-        |> put_status(:ok)
-        # render the loggedin.json
-        |> render("profile.json", user: user)
-      else
-        # the user is a practise
-        # return the result
-        conn
-        # put the okay status
-        |> put_status(:ok)
-        # render the loggedin.json
-        |> render("practise_profile.json", user: user)
-      end
+    with {:ok, _user} <- Eworks.verify_account(user, key) do
+      # return the result
+      conn
+      # put the okay status
+      |> put_status(:ok)
+      # render the loggedin.json
+      |> render("success.json", message: "Success. Your account has been successfully activated.")
     end # end of with for verifying account
   end # end of the activate_account/2
 
@@ -131,8 +110,11 @@ defmodule EworksWeb.Users.UserController do
   @doc """
     Updates the current user's work profile skills
   """
-  def update_work_profile_skills(conn, %{"work_profile" => %{"new_skills" => new_skills}}, user, work_profile) do
-    with {:ok, work_profile} <- Eworks.update_work_profile_skills(user, work_profile, new_skills) do
+  def update_work_profile_skills(conn, %{"user_profile" => %{"new_skills" => new_skills}}, user) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
+    # update the profile
+    with {:ok, work_profile} <- Eworks.update_work_profile_skills(user, profile, new_skills) do
       conn
       # put ok on the status
       |> put_status(:ok)
@@ -144,8 +126,11 @@ defmodule EworksWeb.Users.UserController do
   @doc """
     Updates the cover letter of a work profile
   """
-  def update_work_profile_cover_letter(conn, %{"work_profile" => %{"cover_letter" => cover_letter}}, user, work_profile) do
-    with {:ok, work_profile} <- Eworks.update_work_profile_cover_letter(user, work_profile, cover_letter) do
+  def update_work_profile_cover_letter(conn, %{"user_profile" => %{"cover_letter" => cover_letter}}, user) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
+    # update the profile
+    with {:ok, work_profile} <- Eworks.update_work_profile_cover_letter(user, profile, cover_letter) do
       conn
       # update the status
       |> put_status(:ok)
@@ -157,8 +142,11 @@ defmodule EworksWeb.Users.UserController do
   @doc """
     Updates the professional introduction of a work profile
   """
-  def update_work_profile_prof_intro(conn, %{"work_profile" => %{"professional_intro" => prof_intro}}, user, work_profile) do
-    with {:ok, work_profile} <- Eworks.update_work_profile_prof_intro(user, work_profile, prof_intro) do
+  def update_work_profile_prof_intro(conn, %{"user_profile" => %{"professional_intro" => prof_intro}}, user) do
+    # preload the work profile
+    profile = Repo.preload(user, [:work_profile]).work_profile
+    # update the profile
+    with {:ok, work_profile} <- Eworks.update_work_profile_prof_intro(user, profile, prof_intro) do
       conn
       # update the status
       |> put_status(:ok)

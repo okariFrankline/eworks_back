@@ -60,8 +60,7 @@ defmodule EworksWeb.Invites.InviteView do
       show_more: invite.show_more,
       owner_name: invite.owner_name,
       posted_on: NaiveDateTime.to_iso8601(invite.inserted_at),
-      active_offers: Enum.count(invite.collaboration_offers),
-      order_id: invite.order_id
+      active_offers: Enum.count(invite.collaboration_offers)
     }
   end
 

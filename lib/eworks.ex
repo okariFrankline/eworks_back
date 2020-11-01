@@ -229,7 +229,7 @@ defmodule Eworks do
   """
   def resend_activation_key(%User{} = user) do
     # generate key
-    key = Enum.random(10000..999999)
+    key = Enum.random(100000..999999)
     # update the activation key
     user = user |> Ecto.Changeset.change(%{activation_key: key}) |> Repo.update!()
     # send an email notification with the new key

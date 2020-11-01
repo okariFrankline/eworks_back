@@ -99,7 +99,6 @@ defmodule EworksWeb.WorkersView do
       owner_name: hire.owner_name,
       show_more: hire.show_more,
       posted_on: NaiveDateTime.to_iso8601(hire.inserted_at),
-      rating: hire.rating,
       category: hire.category
     }
   end # end of previous hire
