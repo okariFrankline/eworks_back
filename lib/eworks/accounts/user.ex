@@ -16,10 +16,13 @@ defmodule Eworks.Accounts.User do
     field :is_company, :boolean
     field :is_active, :boolean, default: false
     field :is_suspended, :boolean, default: false
+    field :profile_complete, :boolean, default: false
     field :password_hash, :string
     field :user_type, :string
     field :activation_key, :integer
     field :username, :string
+    # indicates whether the user has a work profile due to an upgrade
+    field :is_upgraded_contractor, :boolean, default: false
     # profile information
     field :city, :string
     field :country, :string
@@ -70,7 +73,9 @@ defmodule Eworks.Accounts.User do
       :emails,
       :phones,
       :is_suspended,
-      :saved_workers
+      :saved_workers,
+      :profile_complete,
+      :is_upgraded_contractor
     ])
     # cast the profile_pic attachmetns
     |> cast_attachments(attrs, [

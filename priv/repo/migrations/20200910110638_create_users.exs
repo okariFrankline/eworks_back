@@ -20,6 +20,10 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
       add :is_company, :boolean ,default: false
       # is suspended
       add :is_suspended, :boolean, default: false
+      # check of the profile is complete
+      add :profile_complete, :boolean, default: false
+      # is upgraded contractor
+      add :is_upgraded_contractor, :boolean, default: false
       # full name
       add :full_name, :string, null: false
       # city

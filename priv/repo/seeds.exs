@@ -49,6 +49,7 @@ created_users = Enum.map(users, fn user ->
       user_type: role,
       full_name: user.full_name,
       is_active: true,
+      profile_complete: true,
       username: String.split(user.email, "@") |> List.first(),
     }
     # insert into the db
@@ -134,6 +135,7 @@ frank = %User{
   user_type: "Independent Contractor",
   password_hash: Argon2.hash_pwd_salt("okari5678"),
   is_active: true,
+  profile_complete: true,
   username: "okarifrankline1"
 } |> Repo.insert!()
 

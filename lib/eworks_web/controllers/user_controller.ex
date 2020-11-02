@@ -5,7 +5,7 @@ defmodule EworksWeb.Users.UserController do
   alias Eworks
   alias Eworks.Accounts.User
   alias Eworks.Utils.{Mailer, NewEmail}
-  alias Eworks.Repo
+  alias Eworks.{Repo, Orders}
 
 
   action_fallback EworksWeb.FallbackController
@@ -255,5 +255,49 @@ defmodule EworksWeb.Users.UserController do
     # render he results
     |> render("offers.json", offers: page.entries, next_cursor: page.metadata.after)
   end
+
+  @doc """
+    Returns the profile of the current user
+  """
+  def get_user_profile(conn, _params, user) do
+    # check the user type of the current user
+    if user.user_type == "Independent Contractor" or user.is_upgraded_contractor do
+      # load the work profile
+      user = Repo.preload(user, [:work_profile])
+      # get the previous hires
+      previous_hires = load_previous_hires(user.work_profile.previous_hires)
+      # return the result
+      conn
+      # put the status
+      |> put_status(:ok)
+      # render the profile
+      |> render("contractor_profile.json", user: user, previous_hires: previous_hires)
+
+    else
+      # the user is a client
+      # return the result
+      conn
+      # put the status
+      |> put_status(:ok)
+      # render the profile
+      |> render("user.json", user: user)
+    end # end of checking the user type
+  end # end of gettingthe user profile
+
+
+  ## function for loading the previous hires
+  defp load_previous_hires(ids) when ids == [], do: []
+  # when the ids are not empaty
+  defp load_previous_hires(ids) do
+    Dataloader.new
+    # add the source
+    |> Dataloader.add_source(Orders, Orders.data())
+    # load the orders
+    |> Dataloader.load_many(Orders, Orders.Order, ids)
+    # run the loader
+    |> Dataloader.run()
+    # get the results
+    |> Dataloader.get_many(Orders, Orders.Order, ids)
+  end # end of load previous hires
 
 end # end of the module

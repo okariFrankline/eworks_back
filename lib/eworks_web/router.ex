@@ -114,6 +114,8 @@ defmodule EworksWeb.Router do
     get "/offers", UserController, :get_user_offers
     # sends new user action key
     get "/new/activation", UserController, :new_activation_key_request
+    # route for getting the current user's profile
+    get "/current/profile", UserController, :get_user_profile
 
     ######################################## POST ROUTES ###############################
     # updates the current user's location information

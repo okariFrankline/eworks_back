@@ -26,6 +26,42 @@ defmodule EworksWeb.Users.UserView do
   end # end of the new_user.json
 
   @doc """
+     Rednders contractor_profile.json
+  """
+  def render("contractor_profile.json", %{user: user, previous_hires: hires}) do
+    %{
+      data: %{
+        user: %{
+          id: user.id,
+          is_active: user.is_active,
+          country: user.country,
+          city: user.city,
+          location: "#{String.capitalize(user.city)}, #{String.capitalize(user.country)}",
+          is_suspended: user.is_suspended,
+          profile_complete: user.profile_complete,
+          user_type: user.user_type,
+          is_company: user.is_company,
+          full_name: user.full_name,
+          profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
+          emails: user.emails,
+          phones: user.phones,
+          # work profile
+          work_profile: %{
+            skills: user.work_profile.skills,
+            about: user.work_profile.professional_intro,
+            job_success: user.work_profile.success_rate,
+            job_hires: user.work_profile.job_hires,
+            rating: user.work_profile.rating,
+            show_more: user.work_profile.show_more
+          },
+        },
+        # previous hires
+        previous_hires: render_many(hires, __MODULE__, "order.json")
+      }
+    }
+  end # end of render contrator profile .json
+
+  @doc """
     Renders the profile.json
   """
   def render("profile.json", %{user: user} = result) do
@@ -137,6 +173,7 @@ defmodule EworksWeb.Users.UserView do
       country: user.country,
       city: user.city,
       is_suspended: user.is_suspended,
+      profile_complte: user.profile_complete,
       user_type: user.user_type,
       is_company: user.is_company,
       profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
