@@ -202,25 +202,6 @@ defmodule EworksWeb.Invites.InviteView do
   end # end of succes.json
 
   ################################# PRIVATE FUNCTIONS ####################
-  # render the collaborators
-  defp render_collaborators(offers, collaborators) do
-    # filter the offers to ownly those whose owner's ids are in the list of assignees of the order
-    collaborator_offers = Enum.filter(offers, fn offer -> offer.user_id in collaborators end)
-    # call the render many for assigneess
-    render_many(collaborator_offers, __MODULE__, "collaborator.json")
-  end
-
-  # redner invite offers
-  defp render_invite_offers(offers, collaborators) do
-    # filter only those offers whose owner's are not in the list of assignees of the order
-    offers = Enum.filter(offers, fn offer ->
-      # return only the offers whose oofer.user.order_id does not equal the current order id
-      offer.user_id not in collaborators
-    end)
-    # render the offers
-    render_many(offers, __MODULE__, "offer.json")
-  end # end of render invite offers
-
   # rednr the deadline
   defp show_deadline(date) when is_nil(date), do: nil
   defp show_deadline(date), do: Date.to_iso8601(date)

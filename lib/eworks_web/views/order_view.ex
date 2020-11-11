@@ -132,7 +132,7 @@ defmodule EworksWeb.Orders.OrderView do
         id: offer.user.id,
         full_name: offer.user.full_name,
         rating: offer.user.work_profile.rating,
-        cover_letter: offer.user.work_profile.cover_letter,
+        cover_letter: offer.user.work_profile.professional_intro,
         profile_pic: Utils.upload_url(ProfilePicture.url({offer.user.profile_pic, offer.user})),
         show_more: offer.user.work_profile.show_more
       }

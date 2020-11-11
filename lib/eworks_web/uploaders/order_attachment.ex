@@ -32,8 +32,8 @@ defmodule Eworks.Uploaders.OrderAttachment do
   # end
 
   # Override the storage directory:
-  def storage_dir(_version, {_file, _scope}) do
-    "uploads/orders"
+  def storage_dir(_version, {_file, scope}) do
+    "uploads/orders/#{scope.id}"
   end
 
   # Provide a default URL if there hasn't been a file uploaded

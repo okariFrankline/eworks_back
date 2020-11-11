@@ -169,7 +169,7 @@ defmodule Eworks.Accounts do
   end
 
   @doc """
-  Updates a profile by adding an email address.
+  Updates a user's auth email address
 
   ## Examples
 
@@ -180,9 +180,9 @@ defmodule Eworks.Accounts do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_user_emails(%User{} = user, attrs) do
+  def update_auth_email(%User{} = user, attrs) do
     user
-    |> User.email_changeset(attrs)
+    |> User.auth_email_changeset(attrs)
     |> Repo.update()
   end
 
@@ -191,14 +191,14 @@ defmodule Eworks.Accounts do
 
   ## Examples
 
-      iex> add_phone_to_profile(profile, %{phone: new_value})
+      iex> update_user_phone(profile, %{phone: new_value})
       {:ok, %Profile{}}
 
-      iex> add_phone_to_profile(profile, %{phone: bad_value})
+      iex> update_user_phone(profile, %{phone: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_user_phones(%User{} = user, attrs) do
+  def update_user_phone(%User{} = user, attrs) do
     user
     |> User.phone_changeset(attrs)
     |> Repo.update()

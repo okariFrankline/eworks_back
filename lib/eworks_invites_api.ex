@@ -8,6 +8,7 @@ defmodule Eworks.Collaborations.API do
   alias Eworks.Collaborations.{Invite, InviteOffer}
   alias EworksWeb.Endpoint
   alias Eworks.Utils.{Mailer, NewEmail}
+  alias Eworks.API.Utils
 
   @doc """
     Gets a given invvitation
@@ -104,10 +105,10 @@ defmodule Eworks.Collaborations.API do
       asking_amount: String.to_integer(asking_amount),
       owner_name: user.full_name,
       owner_rating: user.work_profile.rating,
-      owner_about: user.work_profile.cover_letter,
+      owner_about: user.work_profile.professional_intro,
       owner_job_success: user.work_profile.success_rate,
       owner_skills: user.work_profile.skills,
-      owner_profile_pic: upload_url(Eworks.Uploaders.ProfilePicture.url({user.profile_pic, user}))
+      owner_profile_pic: Utils.upload_url(Eworks.Uploaders.ProfilePicture.url({user.profile_pic, user}))
     })
     # create the offer
     |> Repo.insert!()

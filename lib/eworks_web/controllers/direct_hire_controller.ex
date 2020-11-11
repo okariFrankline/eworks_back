@@ -3,7 +3,6 @@ defmodule EworksWeb.Requests.DirectHireController do
 
   alias Eworks.Requests.API
   import Ecto.Query, warn: false
-  alias Eworks.Accounts.{WorkProfile}
   alias Eworks.{Repo}
   alias Eworks.Requests.DirectHire
 
@@ -33,14 +32,27 @@ defmodule EworksWeb.Requests.DirectHireController do
     Returns a list of all the direct hire requests made to a given contractor
   """
   def list_contractor_direct_hires(conn, _params, user) do
-    with {:ok, hires} <- API.list_direct_hires(user) do
-      # return the reuslt
+    # ensure the user is a contractor or if the user is a recently upgraded contractor
+    if user.user_type == "Independent Contractor" or user.is_upgraded_contractor do
+      with {:ok, hires} <- API.list_direct_hires(user) do
+        # return the reuslt
+        conn
+        # put the status
+        |> put_status(:ok)
+        # render the hires
+        |> render("contractor_hires.json", hires: hires)
+      end # end of direct hires
+
+    else
+      # the user is a client
       conn
-      # put the status
-      |> put_status(:ok)
-      # render the hires
-      |> render("contractor_hires.json", hires: hires)
-    end # end of direct hires
+      # put status
+      |> put_status(:forbidden)
+      # put view
+      |> put_view(EworksWeb.ErrorView)
+      # render is client
+      |> render("is_client.json", message: "Complete a One Time Upgrade and get hired directly to see those requests.")
+    end # end of checking if the user is contractor
   end # end of list contractors direct_hires
 
   @doc """

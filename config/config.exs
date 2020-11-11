@@ -40,30 +40,40 @@ config :eworks, EworksWeb.Authentication.Guardian,
   issuer: "eworks",
   secret_key: "v093/e5DdJwpN4uTAG1nYejCInpiw8/Z4N9BhT3/p3DyHkYmIToLlfl4YujdB5Ax"
 
-config :arc,
-  storage: Arc.Storage.S3,
+config :waffle,
+  storage: Waffle.Storage.S3,
   # set the virtual to true
   virtual_host: true,
   # bucket name
-  bucket: "cf-simple-s3-origin-eworks-072111920045",
+  bucket: "cf-simple-s3-origin-new-stack-072111920045",
   # the asset host
-  asset_host: "https://d12hykkw3lmuf.cloudfront.net/",
+  asset_host: "http://d38ybxjihk2f55.cloudfront.net/",
   # the version timroute
   version_timeout: 100_000
+
+# config :waffle,
+#   storage: Waffle.Storage.S3,
+#   # set the virtual to true
+#   virtual_host: true,
+#   # bucket name
+#   bucket: "cf-simple-s3-origin-eworks-072111920045",
+#   # the asset host
+#   asset_host: "https://d12hykkw3lmuf.cloudfront.net/",
+#   # the version timroute
+#   version_timeout: 100_000
 
 # configure the aws
 config :ex_aws,
   # use the default phoenix jason_library
   json_codec: Jason,
-  access_key_id: "AKIARBSRUSOWTCDALPES",
-  secret_access_key: "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",
+  access_key_id: "AKIARBSRUSOWZ23TJ57U",
+  secret_access_key: "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",
   region: "ap-south-1"
 
-  config :cors_plug,
-    origin: ["http://localhost:3000", "http://localhost:42407"],
-    max_age: 86400,
-    methods: ["GET", "POST"]
-
+config :cors_plug,
+  origin: ["http://localhost:3000", "https://b8a3835de759.ngrok.io"],
+  max_age: 86400,
+  methods: ["GET", "POST"]
 # configure guardian
 # config :guardian, Guardian.DB,
 #   repo: Eworks.Repo,

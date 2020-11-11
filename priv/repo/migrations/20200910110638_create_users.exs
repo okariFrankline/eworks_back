@@ -30,10 +30,8 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
       add :city, :string, null: true
       # country
       add :country, :string, null: true
-      # emails
-      add :emails, {:array, :string}, default: []
-      # phones
-      add :phones, {:array, :string}, default: []
+      # phone
+      add :phone, :string, null: true
       # profile pic
       add :profile_pic, :string, null: true
       # saved workers
@@ -44,6 +42,7 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
 
     create unique_index(:users, [:auth_email])
     create unique_index(:users, [:username])
+    create unique_index(:users, [:phone])
     create index(:users, [:is_active])
     create index(:users, [:full_name])
     create index(:users, [:is_company])

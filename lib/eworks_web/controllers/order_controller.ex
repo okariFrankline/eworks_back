@@ -305,6 +305,27 @@ defmodule EworksWeb.Orders.OrderController do
   end # end of cancelling an order
 
   @doc """
+    Deletes an order
+  """
+  def delete_order(conn, _params, _user, order) do
+    # delete order
+    with {:ok, _order} <- Orders.delete_order(order) do
+      # return the result
+      conn
+      # send the response
+      |> send_resp(:ok, "")
+
+    else
+      # an order occured
+      {:error, _} ->
+        # order could not be deleted
+        conn
+        # send response
+        |> send_resp(:bad_request, "")
+    end # end of deleting an order
+  end # end of delete order
+
+  @doc """
     marks an order complete
   """
   def mark_order_complete(conn, _params, user, order) do

@@ -15,7 +15,6 @@ defmodule Eworks.Accounts.WorkProfile do
     field :upgrade_expiry_date, :utc_datetime
     # field for indicating whether the upgrade of an account is expired
     field :has_upgrade_expired, :boolean, default: false
-    field :cover_letter, :string
     field :job_hires, :integer
     field :professional_intro, :string
     field :rating, :float
@@ -48,7 +47,6 @@ defmodule Eworks.Accounts.WorkProfile do
       :skills,
       :professional_intro,
       :job_hires,
-      :cover_letter,
       :is_upgraded,
       :upgrade_duration,
       :last_upgraded_on,
@@ -73,14 +71,14 @@ defmodule Eworks.Accounts.WorkProfile do
     |> add_to_skills()
   end # end of the skills_changeset/2
 
-  @doc false
-  def cover_letter_changeset(profile, attrs) do
-    changeset(profile, attrs)
-    # ensure the cover letter is give
-    |> validate_required([
-      :cover_letter
-    ])
-  end # end of cover_letter changeset/2
+  # @doc false
+  # def cover_letter_changeset(profile, attrs) do
+  #   changeset(profile, attrs)
+  #   # ensure the cover letter is give
+  #   |> validate_required([
+  #     :cover_letter
+  #   ])
+  # end # end of cover_letter changeset/2
 
   @doc false
   def professional_intro_changeset(profile, attrs) do

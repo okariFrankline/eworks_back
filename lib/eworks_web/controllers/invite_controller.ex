@@ -209,122 +209,163 @@ defmodule EworksWeb.Invites.InviteController do
     Gets all invites created by the given user
   """
   def list_invites_created_by_current_user(conn, %{"next_cursor" =>  cursor, "filter" => filter}, user, _invite) do
-    # get the work profile
-    profile = Repo.preload(user, [:work_profile]).work_profile
-    # get the query
-    query = from(
-      invite in Invite,
-      # ensure the user id is ismilar to that of the current user
-      where: invite.work_profile_id == ^profile.id and invite.is_cancelled == false,
-      # join the orders
-      left_join: offer in assoc(invite, :collaboration_offers),
-      # ensure the offer is not cancelled and also not rejected
-      on: offer.is_cancelled == false and offer.is_rejected == false,
-      # order by the inserted at
-      order_by: [desc: invite.inserted_at],
-      # preload the offers
-      preload: [collaboration_offers: offer]
-    )
+    # ensure the user is a contractor or if the user is a recently upgraded contractor
+    if user.user_type == "Independent Contractor" or user.is_upgraded_contractor do
+      # get the work profile
+      profile = Repo.preload(user, [:work_profile]).work_profile
+      # get the query
+      query = from(
+        invite in Invite,
+        # ensure the user id is ismilar to that of the current user
+        where: invite.work_profile_id == ^profile.id and invite.is_cancelled == false,
+        # join the orders
+        left_join: offer in assoc(invite, :collaboration_offers),
+        # ensure the offer is not cancelled and also not rejected
+        on: offer.is_cancelled == false and offer.is_rejected == false,
+        # order by the inserted at
+        order_by: [desc: invite.inserted_at],
+        # preload the offers
+        preload: [collaboration_offers: offer]
+      )
 
-    # apply the filter on the query
-    query = case filter do
-      # in progress
-      "unassigned" ->
-        from(invite in query, where: invite.is_assigned == false)
-      # completed
-      "in_progress" ->
-        from(invite in query, where: invite.is_assigned == true)
-    end # end of query
+      # apply the filter on the query
+      query = case filter do
+        # in progress
+        "unassigned" ->
+          from(invite in query, where: invite.is_assigned == false)
+        # completed
+        "in_progress" ->
+          from(invite in query, where: invite.is_assigned == true)
+      end # end of query
 
-    # check if the cursor is given
-    page = if cursor == "false" do
-      # return the first 10 invites
-      Repo.paginate(query, cursor_fields: [:inserted_at], limit: 10)
+      # check if the cursor is given
+      page = if cursor == "false" do
+        # return the first 10 invites
+        Repo.paginate(query, cursor_fields: [:inserted_at], limit: 10)
+      else
+        # return the list of invites from the last known corsor
+        Repo.paginate(query, after: cursor, cursor_fields: [:inserted_at], limit: 10)
+      end
+
+      # return the results
+      conn
+      # put the status
+      |> put_status(:ok)
+      # render the results
+      |> render("my_invites.json", invites: page.entries, next_cursor: page.metadata.after)
+
     else
-      # return the list of invites from the last known corsor
-       Repo.paginate(query, after: cursor, cursor_fields: [:inserted_at], limit: 10)
-    end
-
-    # return the results
-    conn
-    # put the status
-    |> put_status(:ok)
-    # render the results
-    |> render("my_invites.json", invites: page.entries, next_cursor: page.metadata.after)
+      # the user is a client
+      conn
+      # put status
+      |> put_status(:forbidden)
+      # put view
+      |> put_view(EworksWeb.ErrorView)
+      # render is client
+      |> render("is_client.json", message: "Complete the One Time Upgrade and create collaboration invites to see them.")
+    end # end of checking if the user is contractor
   end # end of function
 
   @doc """
     Returns a list of invites to be diaplayed that are not assiigned
   """
   def list_unassigned_invites(conn, %{"next_cursor" => cursor}, user, _invite) do
-    # preload the work profile
-    user = Repo.preload(user, [:work_profile, invite_offers: from(offer in InviteOffer, select: [offer.invite_id])])
     # query for the invites
     query = from(
       invite in Invite,
       # ensure the user id is ismilar to that of the current user
-      where: invite.is_assigned == false and invite.is_cancelled == false and invite.work_profile_id != ^user.work_profile.id,
+      where: invite.is_assigned == false and invite.is_cancelled == false,
       # order by the inserted at
       order_by: [desc: invite.inserted_at]
     )
 
+    query_map = if user.user_type == "Independent Contractor" or user.is_upgraded_contractor do
+      # preload the work profile
+      user = Repo.preload(user, [:work_profile, invite_offers: from(offer in InviteOffer, select: [offer.invite_id])])
+      # return the query
+      query = from(
+        invite in query,
+        # ensure invite does not belong to the current user
+        where: invite.work_profile_id != ^user.work_profile.id
+      )
+      # return a mpa with teh query and offer invite ids
+      %{query: query, offer_invite_ids: user.invite_offers}
+
+    else
+      # return a mpa with teh query and offer invite ids
+      %{query: query, offer_invite_ids: []}
+    end # end of updating the query
+
     # check if the cursor is given
     page = if cursor == "false" do
       # return the first 10 invites
-      Repo.paginate(query, cursor_fields: [:inserted_at], limit: 10)
+      Repo.paginate(query_map.query, cursor_fields: [:inserted_at], limit: 10)
     else
       # return the list of invites from the last known corsor
-       Repo.paginate(query, after: cursor, cursor_fields: [:inserted_at], limit: 10)
-    end
+       Repo.paginate(query_map.query, after: cursor, cursor_fields: [:inserted_at], limit: 10)
+    end # end of gettiing the data
 
     # return the results
     conn
     # put the status
     |> put_status(:ok)
     # render the results
-    |> render("display_invites.json", invites: page.entries, next_cursor: page.metadata.after, offer_invite_ids: user.invite_offers)
+    |> render("display_invites.json", invites: page.entries, next_cursor: page.metadata.after, offer_invite_ids: query_map.offer_invite_ids)
   end # end of list unassigned invites
 
   @doc """
     Returns the current user's collaboration invites
   """
   def list_current_user_invite_offers(conn, %{"filter" => filter}, user, _invite) do
-    # query for getting the offers
-    query = from(
-      offer in InviteOffer,
-      # ensure the offer belongs to the user
-      where: offer.user_id == ^user.id,
-      # preload the order
-      join: invite in assoc(offer, :invite),
-      # join hte order in the invite
-      join: order in assoc(invite, :order),
-      # preload the offer
-      preload: [invite: {invite, order: order}]
-    )
-    # get the offers
-    offers = case filter do
-      # return the pending offers
-      "pending" ->
-        from(offer in query, where: offer.is_pending == true)
+    # ensure the user is a contractor or if the user is a recently upgraded contractor
+    if user.user_type == "Independent Contractor" or user.is_upgraded_contractor do
+      # query for getting the offers
+      query = from(
+        offer in InviteOffer,
+        # ensure the offer belongs to the user
+        where: offer.user_id == ^user.id,
+        # preload the order
+        join: invite in assoc(offer, :invite),
+        # join hte order in the invite
+        join: order in assoc(invite, :order),
+        # preload the offer
+        preload: [invite: {invite, order: order}]
+      )
+      # get the offers
+      offers = case filter do
+        # return the pending offers
+        "pending" ->
+          from(offer in query, where: offer.is_pending == true)
 
-      # return the accepted offers
-      "accepted" ->
-        from(offer in query, where: offer.is_accepted == true)
+        # return the accepted offers
+        "accepted" ->
+          from(offer in query, where: offer.is_accepted == true)
 
-      # return the rejected offers
-      "rejected" ->
-        from(offer in query, where: offer.is_rejected == true)
-    end # end of case
-    # get all the offers
-    |> Repo.all()
+        # return the rejected offers
+        "rejected" ->
+          from(offer in query, where: offer.is_rejected == true)
+      end # end of case
+      # get all the offers
+      |> Repo.all()
 
-    # return the results
-    conn
-    # put the status
-    |> put_status(:ok)
-    # render the offers
-    |> render("my_offers.json", offers: offers)
-  end
+      # return the results
+      conn
+      # put the status
+      |> put_status(:ok)
+      # render the offers
+      |> render("my_offers.json", offers: offers)
+
+    else
+      # the user is a client
+      conn
+      # put status
+      |> put_status(:forbidden)
+      # put view
+      |> put_view(EworksWeb.ErrorView)
+      # render is client
+      |> render("is_client.json", message: "Complete the One Time Upgrade and submit collaboration offers to see them.")
+    end # end of checking if the user is contractor
+  end # end of list invite offers for the current user
 
   @doc """
     List order offers

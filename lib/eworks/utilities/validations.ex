@@ -16,10 +16,10 @@ defmodule Eworks.Utils.Validations do
     case Regex.run(~r/^[\w.!#$%&’*+\-\/=?\^`{|}~]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*$/i, email) do
       # the email is valid
       nil ->
-        :error
+        false
       # the email is invalid
       _ ->
-        :ok
+        true
     end
   end # end of is valid_email
 

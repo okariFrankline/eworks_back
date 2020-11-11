@@ -11,7 +11,7 @@ defmodule EworksWeb.Plugs.CanSubmitOrderOffer do
   # call functions
   def call(%{assigns: %{current_user: user}} = conn, _opts) do
     # check if the current user is a practise
-    if user.user_type == "Practise" do
+    if user.user_type == "Independent Controller" do
       # return the conn
       conn
     else # the user is not a practise
@@ -24,11 +24,11 @@ defmodule EworksWeb.Plugs.CanSubmitOrderOffer do
           # return the conn
           conn
           # put the status to bad request
-          |> put_status(:unauthorized)
+          |> put_status(:forbidden)
           # put the error view
           |> Controller.put_view(EworksWeb.ErrorView)
           # render the is client.json
-          |> Controller.render("is_client.json")
+          |> Controller.render("is_client.json", message: "Failed. You have a client account and it does not have a one time upgrade")
           # halt the processing of the other conn
           |> halt()
 
@@ -37,7 +37,7 @@ defmodule EworksWeb.Plugs.CanSubmitOrderOffer do
           # return the conn
           conn
           # put the status to bad request
-          |> put_status(:unauthorized)
+          |> put_status(:forbidden)
           # put the error view
           |> Controller.put_view(EworksWeb.ErrorView)
           # render the is client.json

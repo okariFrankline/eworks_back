@@ -29,10 +29,10 @@ defmodule EworksWeb.ErrorView do
   end # end of the same_email.json
 
   # function for handling the is client error
-  def render("is_client.json", _assigns) do
+  def render("is_client.json", %{message: message}) do
     %{
       errors: %{
-        details: "Failed. Offer not placed because you are a client."
+        details: message
       }
     }
   end

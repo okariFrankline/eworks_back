@@ -2,10 +2,10 @@ defmodule Eworks.Uploaders.ProfilePicture do
   @moduledoc """
   Defines a module that will be used to handle uploads of profile photos
   """
-  use Arc.Definition
+  use Waffle.Definition
 
   # Include ecto support (requires package arc_ecto installed):
-  use Arc.Ecto.Definition
+  use Waffle.Ecto.Definition
 
   # To add a thumbnail version:
   @versions [:original, :thumb]
@@ -16,6 +16,8 @@ defmodule Eworks.Uploaders.ProfilePicture do
   # def bucket do
   #   :custom_bucket_name
   # end
+  def acl(:thumb, _), do: :public_read
+
 
   # Whitelist file extensions:
   def validate({file, _}) do
@@ -29,13 +31,19 @@ defmodule Eworks.Uploaders.ProfilePicture do
 
   # file name should be in the form of user.id_version
   # example hhfjh-KhU8_thumb.png
-  def filename(version, {_file, scope}) do
-    "#{scope.id}_#{version}"
-  end
+  # def filename(version, {file, _scope}) do
+  #   IO.inspect(file)
+  #   # generate a unique name
+  #   uuid = UUID.uuid4()
+  #   # get the current timestamp
+  #   # current_date = DateTime.utc_now() |> DateTime.to_iso8601() |> String.replace(":", "_")
+  #   # return the file name
+  #   "#{file.file_name}_#{uuid}_#{version}.#{Path.extname(fil)}"
+  # end
 
   # Override the storage directory:
   def storage_dir(_version, {_file, scope}) do
-    "uploads/user/avatars/#{scope.id}"
+    "uploads/avatars/#{scope.id}"
   end
 
   # Provide a default URL if there hasn't been a file uploaded

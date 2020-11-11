@@ -43,8 +43,8 @@ defmodule EworksWeb.Users.UserView do
           is_company: user.is_company,
           full_name: user.full_name,
           profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
-          emails: user.emails,
-          phones: user.phones,
+          auth_email: user.auth_email,
+          phone: user.phone,
           # work profile
           work_profile: %{
             skills: user.work_profile.skills,
@@ -62,34 +62,75 @@ defmodule EworksWeb.Users.UserView do
   end # end of render contrator profile .json
 
   @doc """
-    Renders the profile.json
+  Renders client profile.json
   """
-  def render("profile.json", %{user: user} = result) do
-    if user.user_type == "Client" do
-      %{
-        data: %{
-          user: render_one(user, __MODULE__, "user.json")
-        }
-      }
-    else
-      # the user is a practise
-      render("practise_profile.json", result)
-    end
-  end # end of profile.json
-
-  @doc """
-    Renders the practise_profile.json
-  """
-  def render("practise_profile.json", %{user: user}) do
+  def render("client_profile.json", %{user: user}) do
     %{
       data: %{
-        user: render_one(user, __MODULE__, "user.json"),
-        work_profile: %{
-          id: user.work_profile.id
-        }
+        user: render_one(user, __MODULE__, "user.json")
       }
     }
-  end # end of practise_profile.json
+  end # end of client profile.json
+
+  @doc """
+   Renders the saved-workers
+  """
+  def render("saved_workers.json", %{users: users}) do
+    IO.inspect(users)
+    %{
+      data: %{
+        workers: render_many(users, __MODULE__, "saved_worker.json")
+      }
+    }
+  end # end of saved workers
+
+  @doc """
+    Renders saved worker
+  """
+  def render("saved_worker.json", %{user: user}) do
+    %{
+      id: user.id,
+      profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
+      about: user.work_profile.professional_intro,
+      show_more: user.work_profile.show_more,
+      job_success: user.work_profile.success_rate,
+      skills: user.work_profile.skills,
+      full_name: user.full_name,
+      rating: user.work_profile.rating
+    }
+  end # end of saved_worker.json
+
+
+
+  # @doc """
+  #   Renders the profile.json
+  # """
+  # def render("profile.json", %{user: user} = result) do
+  #   if user.user_type == "Client" do
+  #     %{
+  #       data: %{
+  #         user: render_one(user, __MODULE__, "user.json")
+  #       }
+  #     }
+  #   else
+  #     # the user is a practise
+  #     render("practise_profile.json", result)
+  #   end
+  # end # end of profile.json
+
+  # @doc """
+  #   Renders the practise_profile.json
+  # """
+  # def render("practise_profile.json", %{user: user}) do
+  #   %{
+  #     data: %{
+  #       user: render_one(user, __MODULE__, "user.json"),
+  #       work_profile: %{
+  #         id: user.work_profile.id
+  #       }
+  #     }
+  #   }
+  # end # end of practise_profile.json
 
   @doc """
     Render of logged_in.json
@@ -119,13 +160,13 @@ defmodule EworksWeb.Users.UserView do
           username: user.username,
           country: user.country,
           city: user.city,
-          profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
+          profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb))
         },
         # profile information
         id: profile.id,
         skills: profile.skills,
         professional_intro: profile.professional_intro,
-        cover_letter: profile.cover_letter,
+        cover_letter: profile.professional_intro,
         success_rate: profile.success_rate,
         job_hires: profile.job_hires,
         rating: profile.rating
@@ -166,7 +207,7 @@ defmodule EworksWeb.Users.UserView do
     # return the user's firstname, last name and is active
     %{
       id: user.id,
-      name: user.full_name,
+      full_name: user.full_name,
       is_active: user.is_active,
       username: user.username,
       auth_email: user.auth_email,
@@ -177,8 +218,8 @@ defmodule EworksWeb.Users.UserView do
       user_type: user.user_type,
       is_company: user.is_company,
       profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
-      emails: user.emails,
-      phones: user.phones
+      phone: user.phone,
+      saved_workers: user.saved_workers
     }
   end
 
@@ -197,7 +238,7 @@ defmodule EworksWeb.Users.UserView do
           is_upgrade_expired: profile.is_upgrade_expired,
           skills: profile.skills,
           professional_intro: profile.professional_intro,
-          cover_letter: profile.cover_letter,
+          cover_letter: profile.professional_intro,
           success_rate: profile.succes_rate,
           job_hires: profile.job_hires,
           rating: profile.rating

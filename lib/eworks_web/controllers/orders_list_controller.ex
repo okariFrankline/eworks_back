@@ -182,32 +182,44 @@ defmodule EworksWeb.OrderListController do
     Lists the contracts that have being assigned to the current user
   """
   def list_orders_assigned_to_current_user(conn, %{"filter" => filter}, user) do
-    # preload the work profile of the current user
-    work_profile = Repo.preload(user, [:work_profile]).work_profile
+    if user.user_type == "Independent Contractor" or user.is_upgraded_contractor do
+      # preload the work profile of the current user
+      work_profile = Repo.preload(user, [:work_profile]).work_profile
 
-    # check if the assigned orders is empty
-     orders = if not Enum.empty?(work_profile.assigned_orders) do
-      Dataloader.new
-      # add the source
-      |> Dataloader.add_source(Orders, Orders.data())
-      # load the orders
-      |> Dataloader.load_many(Orders, {Orders.Order, filter: filter}, work_profile.assigned_orders)
-      # run the dataloader
-      |> Dataloader.run()
-      # get the results
-      |> Dataloader.get_many(Orders, {Orders.Order, filter: filter}, work_profile.assigned_orders)
+      # check if the assigned orders is empty
+      orders = if not Enum.empty?(work_profile.assigned_orders) do
+        Dataloader.new
+        # add the source
+        |> Dataloader.add_source(Orders, Orders.data())
+        # load the orders
+        |> Dataloader.load_many(Orders, {Orders.Order, filter: filter}, work_profile.assigned_orders)
+        # run the dataloader
+        |> Dataloader.run()
+        # get the results
+        |> Dataloader.get_many(Orders, {Orders.Order, filter: filter}, work_profile.assigned_orders)
 
-     else # the ids are empty
-      # return an empty list
-      []
-     end
+      else # the ids are empty
+        # return an empty list
+        []
+      end
 
-    # return the resuls
-    conn
-    # put the status
-    |> put_status(:ok)
-    # render the order
-    |> render("assigned_orders.json", orders: orders, in_progress: work_profile.in_progress, un_paid: work_profile.un_paid, paid: work_profile.recently_paid)
+      # return the resuls
+      conn
+      # put the status
+      |> put_status(:ok)
+      # render the order
+      |> render("assigned_orders.json", orders: orders, in_progress: work_profile.in_progress, un_paid: work_profile.un_paid, paid: work_profile.recently_paid)
+
+    else
+      # the user is a client
+      conn
+      # put status
+      |> put_status(:forbidden)
+      # put view
+      |> put_view(EworksWeb.ErrorView)
+      # render is client
+      |> render("is_client.json", message: "Complete a One Time Upgrade and get assigned orders then try again.")
+    end
   end # end of list_order_assigned_to_current_user/3
 
   @doc """

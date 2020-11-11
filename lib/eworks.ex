@@ -10,6 +10,8 @@ defmodule Eworks do
   alias Eworks.Utils.{Mailer, NewEmail}
   alias Eworks.Repo
   alias Eworks.Accounts.{User, WorkProfile}
+  alias Eworks.API.Utils
+  alias Eworks.Uploaders.ProfilePicture
   import Ecto.Query, warn: false
 
   # function for checking whether a user with
@@ -105,58 +107,14 @@ defmodule Eworks do
   end # end of update_profile_location/2
 
   @doc """
-    Updates a user's profile email address
-  """
-  def update_user_profile_emails(%User{} = user, new_email) do
-    # update the phone number
-    with {:ok, user} = result <- Accounts.update_user_emails(user, %{email: new_email}) do
-      if user.user_type == "Client" do
-        # return the user
-        result
-      else
-        # return the user preloaded with the work profile
-        user = Repo.preload(user, [:work_profile])
-        # return the user
-        {:ok, user}
-      end
-    end # end of with
-  end #  end of the update_profile_emails
-
-  @doc """
-    Updates a user's profile phone number
-  """
-  def update_user_profile_phones(%User{} = user, new_phone) do
-    # update the phone number
-    with {:ok, user} = result <- Accounts.update_user_phones(user, %{phone: new_phone}) do
-      if user.user_type == "Client" do
-        # return the user
-        result
-      else
-        # return the user preloaded with the work profile
-        user = Repo.preload(user, [:work_profile])
-        # return the user
-        {:ok, user}
-      end
-    end # end of with
-  end #  end of the update_profile_emails
-
-  @doc """
     Function for updating the user profile
   """
   def update_user_profile_picture(%User{} = user, %Plug.Upload{} = profile_pic) do
-    # update the current user
-
-    with {:ok, user} <- Accounts.update_user_profile_pic(user, %{profile_pic: profile_pic}) do
-      if user.user_type == "Client" do
-        # retun the result
-        {:ok, user}
-      else
-        # preload the work profile
-        user = Repo.preload(user, [:work_profile])
-        # reurn the result
-        {:ok, user}
-      end # end of with
-    end # end of with
+    # generste a new name for the file
+    profile_pic = Utils.new_upload_name(profile_pic)
+    IO.inspect(profile_pic)
+    # update the profile pciture
+    Accounts.update_user_profile_pic(user, %{profile_pic: profile_pic})
   end # end of update_user_profile/2
 
 

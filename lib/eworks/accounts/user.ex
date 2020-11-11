@@ -1,7 +1,7 @@
 defmodule Eworks.Accounts.User do
   use Ecto.Schema
   # use the arc ecto
-  use Arc.Ecto.Schema
+  use Waffle.Ecto.Schema
   import Ecto.Changeset
   alias Ecto.Changeset
 
@@ -26,10 +26,9 @@ defmodule Eworks.Accounts.User do
     # profile information
     field :city, :string
     field :country, :string
-    field :email, :string, virtual: true
-    field :emails, {:array, :string}
-    field :phone, :string, virtual: true
-    field :phones, {:array, :string}
+    # phone
+    field :phone, :string
+    #field :phones, {:array, :string}
     field :saved_workers, {:array, :binary_id}
     field :profile_pic, Eworks.Uploaders.ProfilePicture.Type
     # virtual fields
@@ -70,12 +69,11 @@ defmodule Eworks.Accounts.User do
       :username,
       :country,
       :city,
-      :emails,
-      :phones,
       :is_suspended,
       :saved_workers,
       :profile_complete,
-      :is_upgraded_contractor
+      :is_upgraded_contractor,
+      :phone,
     ])
     # cast the profile_pic attachmetns
     |> cast_attachments(attrs, [
@@ -83,7 +81,7 @@ defmodule Eworks.Accounts.User do
     ])
   end
 
-  @doc false
+
   def profile_pic_changeset(user, attrs) do
     changeset(user, attrs)
     # cast the profile_pic
@@ -140,26 +138,9 @@ defmodule Eworks.Accounts.User do
     |> add_username()
     # generate the activation key
     |> add_activation_key()
-    # add name
-    #|> add_name()
     # ensure the email is unique
     |> unique_constraint(:auth_email)
   end # end of the creation changeset
-
-  @doc false
-  def email_changeset(profile, attrs) do
-    changeset(profile, attrs)
-    # cast the email
-    |> cast(attrs, [
-      :email
-    ])
-    # ensure the email is provided
-    |> validate_required([
-      :email
-    ], message: "Failed. Email address is required.")
-    # validate the email address
-    |> validate_email_and_add_to_emails()
-  end
 
   @doc false
   def phone_changeset(profile, attrs) do
@@ -173,8 +154,23 @@ defmodule Eworks.Accounts.User do
       :phone
     ], message: "Failed. Phone number is required.")
     # validate the phone number
-    |> validate_phone_and_add_to_phones()
+    |> validate_phone()
+    # ensure the phone is unique
+    |> unique_constraint(:phone)
   end # end of the phone changeset
+
+  @doc false
+  def auth_email_changeset(user, attrs) do
+    changeset(user, attrs)
+    # ensure the auth email is given
+    |> validate_required([
+      :auth_email
+    ])
+    # validate the email address
+    |> validate_auth_email_format()
+    # add the new username
+    |> add_username()
+  end # end of adding the auth email
 
 
   @doc false
@@ -187,34 +183,12 @@ defmodule Eworks.Accounts.User do
     ])
   end # end of the location changeset
 
-  # function for adding the full name if the user is a companu
-  defp add_name(%Changeset{valid?: true, changes: %{is_company: is_company}} = changeset) when is_company == true do
-    changeset
-    |> validate_required([
-      :company_name
-    ])
-    |> put_change(:full_name, changeset.changes.company_name)
-  end
-  # function for adding the full name if the user is not a compnay
-  defp add_name(%Changeset{valid?: true, changes: %{is_company: is_company}} = changeset) when is_company == false do
-    # create the full name
-    full_name = "#{String.capitalize(changeset.changes.first_name)} #{String.capitalize(changeset.changes.last_name)}"
-    changeset
-    |> validate_required([
-      :first_name,
-      :last_name
-    ])
-    |> put_change(:full_name, full_name)
-  end
-  # called if changeset is invalid
-  defp add_name(changeset), do: changeset
-
   # functon for validaing the email address
   defp validate_auth_email_format(%Changeset{valid?: true, changes: %{auth_email: email }} = changeset) do
     # validate the email
     if Validations.is_valid_email?(email) do
       # return the changeset as is
-      changeset |> put_change(:emails, [email])
+      changeset
     else
       # add an error in the changeset
       changeset |> add_error(:auth_email, "Failed. The email address: #{email} has an invalid format")
@@ -247,36 +221,21 @@ defmodule Eworks.Accounts.User do
   defp add_activation_key(changeset), do: changeset
 
   # function for validating phone numbers and adding to the list of phone numbers
-  def validate_phone_and_add_to_phones(%Changeset{valid?: true, changes: %{phone: phone}, data: %__MODULE__{phones: phones, country: country}} = changeset) do
+  def validate_phone(%Changeset{valid?: true, changes: %{phone: phone}, data: %__MODULE__{country: country}} = changeset) do
     case Validations.is_valid_phone?(phone, country) do
       # the phone number is valid
       {:ok, phone_number} ->
         # add the phone number to the list of phone numbers and update the changeset
-        changeset |> put_change(:phones, [phone_number | phones]) |> put_change(:phone, nil)
+        changeset |> put_change(:phone, phone_number)
 
       # the phone number is invalid
       :error ->
         changeset
         # add error message to changeset phone
-        |> add_error(:phone, "Failed. The phone number #{phone} has an invalid format or is invalid for your country.")
-        # set the phone to nil
-        |> put_change(:phone, nil)
+        |> add_error(:phone, "Failed. The phone number #{phone} has an invalid format or is invalid for your country, #{country}.")
     end # end of if
   end # end ov validate_phone_and_add_to_phones/1
-  def validate_phon_and_add_to_phones(changeset), do: changeset
-
-  # function for validating the email format
-  defp validate_email_and_add_to_emails(%Changeset{valid?: true, changes: %{email: email}, data: %__MODULE__{emails: emails}} = changeset) do
-    # check if the email given is valid
-    if Validations.is_valid_email?(email) do
-      # add the email to the list of emails and upadate the changeset
-      changeset |> put_change(:emails, [email | emails])
-    else
-      # add an error to the changeset
-      changeset |> add_error(:email, "Failed. The email address: #{email} is invalid.")
-    end # end of if
-  end # end of validate_email_format/1
-  defp validate_email_and_add_to_emails(changeset), do: changeset
+  def validate_phone(changeset), do: changeset
 
   # function that updates the password
   defp update_password(%Changeset{valid?: true, changes: %{password: new_pass, current_password: current_pass}, data: %__MODULE__{password_hash: hash}} = changeset) do

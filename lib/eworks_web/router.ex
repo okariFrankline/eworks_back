@@ -116,14 +116,20 @@ defmodule EworksWeb.Router do
     get "/new/activation", UserController, :new_activation_key_request
     # route for getting the current user's profile
     get "/current/profile", UserController, :get_user_profile
+    # route for getting the saved workers
+    get "/saved/contractors", UserController, :get_saved_contractors
 
     ######################################## POST ROUTES ###############################
     # updates the current user's location information
     post "/profile/location", UserController, :update_user_profile_location
     # updates the current user's email information
-    post "/profile/emails", UserController, :update_user_profile_emails
+    # post "/profile/emails", UserController, :update_user_profile_emails
+    # updates the user's auth email address
+    post "/change/email", UserController, :change_auth_email
+    # route for changing/updating the phone number
+    post "/update/phone", UserController, :change_user_phone
     # updates the current user's phone numbers
-    post "/profile/phones", UserController, :update_user_profile_phones
+    # post "/profile/phones", UserController, :update_user_profile_phones
     # updates the current user's profile picture
     post "/profile/picture", UserController, :update_user_profile_picture
     # updates the current user's password
@@ -174,6 +180,8 @@ defmodule EworksWeb.Router do
     post "/:order_id/tag", OrderController, :tag_order
     # cancels an order
     post "/:order_id/cancel", OrderController, :cancel_order
+    # delete order
+    post "/:order_id/delete", OrderController, :delete_order
     # creates a new offer for agiven order
     post "/offer/:order_id/new", OrderController, :submit_order_offer
     # rejects an offer for a given order

@@ -8,7 +8,6 @@ defmodule Eworks.Repo.Migrations.CreateWorkProfiles do
       add :success_rate, :float, default: 50.0
       add :skills, {:array, :string}, default: []
       add :professional_intro, :text, null: true
-      add :cover_letter, :text, null: true
       add :job_hires, :integer, defualt: 0
       add :is_upgraded, :boolean, default: false
       add :assigned_orders, {:array, :binary_id}, default: []
@@ -30,7 +29,6 @@ defmodule Eworks.Repo.Migrations.CreateWorkProfiles do
     end
 
     create index(:work_profiles, [:user_id])
-    create index(:work_profiles, [:cover_letter])
     create index(:work_profiles, [:skills])
   end
 end

@@ -20,7 +20,11 @@ defmodule Eworks.MixProject do
   def application do
     [
       mod: {Eworks.Application, []},
-      extra_applications: [:logger, :runtime_tools, :timex]
+      extra_applications: [
+        :logger,
+        :runtime_tools,
+        :timex,
+      ]
     ]
   end
 
@@ -57,6 +61,8 @@ defmodule Eworks.MixProject do
       {:arc, "~> 0.11.0"},
       # arc ecto to allow for the storing of information to the db
       {:arc_ecto, "~> 0.11.3"},
+      {:waffle, "~> 1.1"},
+      {:waffle_ecto, "~> 0.0.9"},
       # ex_aws for handling the interactions with aws storage
       {:ex_aws, "~> 2.1"},
       # ex_aws_s3 for handling uploads and downloads from aws s3 storage\
@@ -71,7 +77,13 @@ defmodule Eworks.MixProject do
       # paginator library
       {:paginator, "~> 1.0"},
       # cores
-      {:cors_plug, "~> 2.0"}
+      {:cors_plug, "~> 2.0"},
+      # uuid
+      {:uuid, "~> 1.1"},
+      # httpoison
+      {:httpoison, "~> 1.7"},
+      # ex_pesa
+      {:ex_pesa, "~> 0.1.1"}
     ]
   end
 

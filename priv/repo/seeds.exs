@@ -70,7 +70,7 @@ created_users = Enum.map(users, fn user ->
     # create a work profile for the user
     %WorkProfile{
       user_id: user.id,
-      cover_letter: "Not too bad! We grab our loader and load a batch exactly like we were doing in IEx previously. New to the helper team is on_load , which we’re importing from Absinthe.Resolution.Helpers . The callback function we pass to on_load is a lot like the callback function we pass to the batch helper. Similar to batch , on_load hands off control to the Absinthe.Middleware.Dataloader module, which arranges to run our callback after the Dataloader batches have been run.",
+      #cover_letter: "Not too bad! We grab our loader and load a batch exactly like we were doing in IEx previously. New to the helper team is on_load , which we’re importing from Absinthe.Resolution.Helpers . The callback function we pass to on_load is a lot like the callback function we pass to the batch helper. Similar to batch , on_load hands off control to the Absinthe.Middleware.Dataloader module, which arranges to run our callback after the Dataloader batches have been run.",
       professional_intro: "Not too bad! We grab our loader and load a batch exactly like we were doing in IEx previously. New to the helper team is on_load , which we’re importing from Absinthe.Resolution.Helpers . The callback function we pass to on_load is a lot like the callback function we pass to the batch helper. Similar to batch , on_load hands off control to the Absinthe.Middleware.Dataloader module, which arranges to run our callback after the Dataloader batches have been run.",
       success_rate: 50.0,
       rating: 3.0,
@@ -134,6 +134,8 @@ frank = %User{
   auth_email: "okarifrankline1@gmail.com",
   user_type: "Independent Contractor",
   password_hash: Argon2.hash_pwd_salt("okari5678"),
+  city: "Nairobi",
+  country: "Kenya",
   is_active: true,
   profile_complete: true,
   username: "okarifrankline1"
@@ -142,7 +144,7 @@ frank = %User{
 # create a work profile for the user
 frank_profile = %WorkProfile{
   user_id: frank.id,
-  cover_letter: "Not too bad! We grab our loader and load a batch exactly like we were doing in IEx previously. New to the helper team is on_load , which we’re importing from Absinthe.Resolution.Helpers . The callback function we pass to on_load is a lot like the callback function we pass to the batch helper. Similar to batch , on_load hands off control to the Absinthe.Middleware.Dataloader module, which arranges to run our callback after the Dataloader batches have been run.",
+  #cover_letter: "Not too bad! We grab our loader and load a batch exactly like we were doing in IEx previously. New to the helper team is on_load , which we’re importing from Absinthe.Resolution.Helpers . The callback function we pass to on_load is a lot like the callback function we pass to the batch helper. Similar to batch , on_load hands off control to the Absinthe.Middleware.Dataloader module, which arranges to run our callback after the Dataloader batches have been run.",
   professional_intro: "Not too bad! We grab our loader and load a batch exactly like we were doing in IEx previously. New to the helper team is on_load , which we’re importing from Absinthe.Resolution.Helpers . The callback function we pass to on_load is a lot like the callback function we pass to the batch helper. Similar to batch , on_load hands off control to the Absinthe.Middleware.Dataloader module, which arranges to run our callback after the Dataloader batches have been run.",
   success_rate: 50.0,
   rating: 3.0,
@@ -221,7 +223,7 @@ Enum.each(invites, fn invite ->
       user_id: user.id,
       asking_amount: 4000,
       owner_name: user.full_name,
-      owner_about: user.work_profile.cover_letter,
+      owner_about: user.work_profile.professional_intro,
       owner_rating: user.work_profile.rating,
       owner_job_success: user.work_profile.success_rate,
       owner_profile_pic: nil

@@ -5,7 +5,7 @@ defmodule EworksWeb.Users.UserController do
   alias Eworks
   alias Eworks.Accounts.User
   alias Eworks.Utils.{Mailer, NewEmail}
-  alias Eworks.{Repo, Orders}
+  alias Eworks.{Repo, Orders, Accounts}
 
 
   action_fallback EworksWeb.FallbackController
@@ -82,32 +82,6 @@ defmodule EworksWeb.Users.UserController do
   end # end of the update_user_profile_location/2
 
   @doc """
-    Updates the email address of the current user
-  """
-  def update_user_profile_emails(conn, %{"user_profile" => %{"new_email" => new_email}}, user) do
-    with {:ok, user} <- Eworks.update_user_profile_emails(user, new_email) do
-      conn
-      # put ok on the status
-      |> put_status(:ok)
-      # render the profiles view
-      |> render("profile.json", user: user)
-    end # end of the updating the emails
-  end # end of the update_user_profile_emails
-
-  @doc """
-    Updates the phone number of the current user
-  """
-  def update_user_profile_phones(conn, %{"user_profile" => %{"new_phone" => new_phone}}, user) do
-    with {:ok, user} <- Eworks.update_user_profile_phones(user, new_phone) do
-      conn
-      # put ok on the status
-      |> put_status(:ok)
-      # render the profiles view
-      |> render("profile.json", user: user)
-    end # end of the updating the emails
-  end # end of the update_user_profile_emails
-
-  @doc """
     Updates the current user's work profile skills
   """
   def update_work_profile_skills(conn, %{"user_profile" => %{"new_skills" => new_skills}}, user) do
@@ -146,12 +120,12 @@ defmodule EworksWeb.Users.UserController do
     # preload the work profile
     profile = Repo.preload(user, [:work_profile]).work_profile
     # update the profile
-    with {:ok, work_profile} <- Eworks.update_work_profile_prof_intro(user, profile, prof_intro) do
+    with {:ok, _work_profile} <- Eworks.update_work_profile_prof_intro(user, profile, prof_intro) do
       conn
       # update the status
       |> put_status(:ok)
       # render the work profile
-      |> render("work_profile.json", work_profile: work_profile, user: user)
+      |> render("success.json", message: "Success. Account detailed description successfully updated.")
     end # end of with
   end # end of the update the workprofile cover letter
 
@@ -172,13 +146,24 @@ defmodule EworksWeb.Users.UserController do
     Updates the profile picture of the current user
   """
   def update_user_profile_picture(conn, %{"profile_pic" => profile_picture_params}, user) do
+    IO.inspect(profile_picture_params)
     # update the profile picture
-    with {:ok, user} <- Eworks.update_user_profile_picture(user, profile_picture_params) do
-      conn
-      # set the status to ok
-      |> put_status(:ok)
-      # render the user_profile
-      |> render("profile.json", user: user)
+    case Eworks.update_user_profile_picture(user, profile_picture_params) do
+      {:ok, _user} ->
+        conn
+        # set the status to ok
+        |> put_status(:ok)
+        # render the user_profile
+        |> render("success.json", message: "Success. Profile Image has been successfully updated.")
+
+      {:error, _} ->
+        conn
+        # set the status to ok
+        |> put_status(:bad_request)
+        # add the error view
+        |> put_view(EworksWeb.ErrorView)
+        # render the user_profile
+        |> render("failed.json", message: "Failed. Profile image could not be updated")
     end # end of with
   end # end of function for updating the profile picture
 
@@ -211,50 +196,143 @@ defmodule EworksWeb.Users.UserController do
   end # end of change user password
 
   @doc """
+    Function for changing the auth email
+  """
+  def change_auth_email(conn, %{"auth_email" => email}, user) do
+    # check if the user with that given email address does not exitst
+    if not Repo.exists?(from(user in User, where: user.auth_email == ^email)) do
+      # change the email
+      case Accounts.update_auth_email(user, %{auth_email: email}) do
+        # the update was successfull
+        {:ok, _user} ->
+          # return a response
+          conn
+          # put status
+          |> put_status(:ok)
+          # render successs
+          |> render("success.json", message: "Success. You have successfully updated your auth email.")
+
+        {:error, _} ->
+          # return a response
+          conn
+          # put status
+          |> put_status(:bad_request)
+          # put the error view
+          |> put_view(EworksWeb.ErrorView)
+          # render successs
+          |> render("failed.json", message: "Failed. Auth email could not be updated. Please try again later.")
+      end # end of case
+
+    else # email is already in use
+      # return a failed
+       conn
+       # put status
+       |> put_status(:bad_request)
+       # put the error view
+       |> put_view(EworksWeb.ErrorView)
+       # render successs
+       |> render("failed.json", message: "Failed. The email address #{email} is already in use by another account.")
+    end # end of if
+  end # end of changing the auth email
+
+   @doc """
+    Function for changing the user's phone number
+  """
+  def change_user_phone(conn, %{"phone" => phone}, user) do
+    # check if the user with that given email address does not exitst
+    if not Repo.exists?(from(user in User, where: user.phone == ^phone)) do
+      # change the email
+      case Accounts.update_user_phone(user, %{phone: phone}) do
+        # the update was successfull
+        {:ok, _user} ->
+          # return a response
+          conn
+          # put status
+          |> put_status(:ok)
+          # render successs
+          |> render("success.json", message: "Success. You have successfully updated your phone number.")
+
+        {:error, _} ->
+          # return a response
+          conn
+          # put status
+          |> put_status(:bad_request)
+          # put the error view
+          |> put_view(EworksWeb.ErrorView)
+          # render successs
+          |> render("failed.json", message: "Failed. Phone number could not be updated. Please try again later.")
+      end # end of case
+
+    else # email is already in use
+      # return a failed
+       conn
+       # put status
+       |> put_status(:bad_request)
+       # put the error view
+       |> put_view(EworksWeb.ErrorView)
+       # render successs
+       |> render("failed.json", message: "Failed. The phone number #{phone} is already in use by another account.")
+    end # end of if
+  end # end of changing the auth email
+
+  @doc """
     Gets the user's offers
   """
   def get_user_offers(conn, %{"next_cursor" => after_cursor, "filter" => filter}, user) do
-    # query for getting the offers
-    query = from(
-      offer in Eworks.Orders.OrderOffer,
-      # ensure user id is is similar
-      where: offer.user_id == ^user.id and offer.is_cancelled ==false,
-      # order by the date of inserted
-      order_by: [asc: offer.inserted_at, asc: offer.id],
-      # join the user order
-      join: order in assoc(offer, :order),
-      # preload the order
-      preload: [order: order]
-    )
+    # ensure the user is a contractor or if the user is a recently upgraded contractor
+    if user.user_type == "Independent Contractor" or user.is_upgraded_contractor do
+      # query for getting the offers
+      query = from(
+        offer in Eworks.Orders.OrderOffer,
+        # ensure user id is is similar
+        where: offer.user_id == ^user.id and offer.is_cancelled ==false,
+        # order by the date of inserted
+        order_by: [asc: offer.inserted_at, asc: offer.id],
+        # join the user order
+        join: order in assoc(offer, :order),
+        # preload the order
+        preload: [order: order]
+      )
 
-    # return a new query based on the filter
-    query = case filter do
-      "pending" ->
-        from(offer in query, where: offer.is_pending == true)
+      # return a new query based on the filter
+      query = case filter do
+        "pending" ->
+          from(offer in query, where: offer.is_pending == true)
 
-      "accepted" ->
-        from(offer in query, where: offer.is_accepted == true and offer.has_accepted_order == false)
+        "accepted" ->
+          from(offer in query, where: offer.is_accepted == true and offer.has_accepted_order == false)
 
-      "rejected" ->
-        from(offer in query, where: offer.is_rejected == true)
-    end # end of query
+        "rejected" ->
+          from(offer in query, where: offer.is_rejected == true)
+      end # end of query
 
-    # check if the after_cursor is given
-    page = if after_cursor == "false" do
-      # get the offers
-      Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 10)
+      # check if the after_cursor is given
+      page = if after_cursor == "false" do
+        # get the offers
+        Repo.paginate(query, cursor_fields: [:inserted_at, :id], limit: 10)
+      else
+        # get the next page
+        Repo.paginate(query, after: after_cursor, cursor_fields: [:inserted_at, :id], limit: 10)
+      end # end of if
+
+      # return the result
+      conn
+      # put the status
+      |> put_status(:ok)
+      # render he results
+      |> render("offers.json", offers: page.entries, next_cursor: page.metadata.after)
+
     else
-      # get the next page
-      Repo.paginate(query, after: after_cursor, cursor_fields: [:inserted_at, :id], limit: 10)
-    end # end of if
-
-    # return the result
-    conn
-    # put the status
-    |> put_status(:ok)
-    # render he results
-    |> render("offers.json", offers: page.entries, next_cursor: page.metadata.after)
-  end
+      # the user is a client
+      conn
+      # put status
+      |> put_status(:forbidden)
+      # put view
+      |> put_view(EworksWeb.ErrorView)
+      # render is client
+      |> render("is_client.json", message: "Complete a One Time Upgrade and submit order offers then try again.")
+    end # end of checking if the user is contractor
+  end # end of get user
 
   @doc """
     Returns the profile of the current user
@@ -280,9 +358,36 @@ defmodule EworksWeb.Users.UserController do
       # put the status
       |> put_status(:ok)
       # render the profile
-      |> render("user.json", user: user)
+      |> render("client_profile.json", user: user)
     end # end of checking the user type
   end # end of gettingthe user profile
+
+  @doc """
+    Returns the current user's saved contractors
+  """
+  def get_saved_contractors(conn, _params, user) do
+    users = if not Enum.empty?(user.saved_workers) do
+      # create a dataloader
+      Dataloader.new()
+      # set the data source
+      |> Dataloader.add_source(Accounts, Accounts.data())
+      # load the users
+      |> Dataloader.load_many(Accounts, Accounts.User, user.saved_workers)
+      # run the dataloader
+      |> Dataloader.run()
+      # get the users
+      |> Dataloader.get_many(Accounts, Accounts.User, user.saved_workers)
+    else
+      # return an empty list
+      []
+    end # end of if for getting the workers
+
+    conn
+    # put the status
+    |> put_status(:ok)
+    # render the saved workers
+    |> render("saved_workers.json", users: users)
+  end # end of get_saved_contractors
 
 
   ## function for loading the previous hires
