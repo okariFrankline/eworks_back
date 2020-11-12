@@ -75,7 +75,7 @@ defmodule EworksWeb.Orders.OrderView do
         is_complete: order.is_complete,
         is_paid_for: order.is_paid_for,
         is_cancelled: order.is_cancelled,
-        accepted_offers: order.accepted_offers,
+        # accepted_offers: order.accepted_offers,
         specialty: order.specialty,
         category: order.category,
         order_type: order.order_type,

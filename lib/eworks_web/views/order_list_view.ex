@@ -55,14 +55,14 @@ defmodule EworksWeb.OrderListView do
     }
   end # end of assigned_orders.json
 
-  def render("my_assigned_orders.json", %{orders: orders}) do
-    orders = Enum.filter(orders, fn order -> not is_nil(order) end)
-    %{
-      data: %{
-        orders: render_many(orders, __MODULE__, "assigned_order.json")
-      }
-    }
-  end
+  # def render("my_assigned_orders.json", %{orders: orders}) do
+  #   orders = Enum.filter(orders, fn order -> not is_nil(order) end)
+  #   %{
+  #     data: %{
+  #       orders: render_many(orders, __MODULE__, "assigned_order.json")
+  #     }
+  #   }
+  # end
 
   @doc """
     Renders my_order.json
@@ -93,9 +93,20 @@ defmodule EworksWeb.OrderListView do
       show_more: order.show_more,
       posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
       attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),
-      owner_name: order.owner_name
+      owner_name: order.owner_name,
+      offers: render_offers(order.order_offers)
     }
   end # end of assigned_order.json
+
+  @doc """
+   Renders offer.json
+  """
+  def render("offer.json", %{order_list: offer}) do
+    %{
+      id: offer.id,
+      asking_amount: offer.asking_maount
+    }
+  end # end of render offer
 
   @doc """
     Renders the created_order.json
@@ -207,5 +218,9 @@ defmodule EworksWeb.OrderListView do
   # function for rendering the request
   defp render_request(request) when is_nil(request), do: nil
   defp render_request(request), do: render_one(request, __MODULE__, "request.json")
+
+  # function for rendering offers
+  defp render_offers(offers) when is_list(offers), do: render_many(offers, __MODULE__, "offer.json")
+  defp render_offers(_offers), do: []
 
 end # end of module

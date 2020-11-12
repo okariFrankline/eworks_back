@@ -23,7 +23,7 @@ defmodule Eworks.Orders do
   end # end of daaloader
 
   # query for getting orders in progress
-  def query(Order, %{filter: "in_progress"}) do
+  def query(Order, %{filter: "in_progress", user_id: _user_id}) do
     # query for the getting the orders
     from(
       order in Order,
@@ -35,19 +35,25 @@ defmodule Eworks.Orders do
   end # end of in progress orders
 
   # get all the orders that are complete and unpaid
-  def query(Order, %{filter: "unpaid"}) do
+  def query(Order, %{filter: "unpaid", user_id: user_id}) do
     # query for the getting the orders
     from(
       order in Order,
       # ensure the filter is unassigned
       where: order.is_complete == true and order.is_paid_for == false,
+      # join the offer
+      left_join: offer in assoc(order, :order_offers),
+      # ensure offer belongs to user id
+      on: offer.user_id == ^user_id,
       # order by the date of being update
-      order_by: [desc: order.updated_at]
+      order_by: [desc: order.updated_at],
+      # preload the offer
+      preload: [order_offers: offer]
     )
   end # end of in progress orders
 
   # get all the orders that have recently being paid
-  def query(Order, %{filter: "recently_paid"}) do
+  def query(Order, %{filter: "recently_paid", user_id: _user_id}) do
     # query for the getting the orders
     from(
       order in Order,

@@ -192,11 +192,11 @@ defmodule EworksWeb.OrderListController do
         # add the source
         |> Dataloader.add_source(Orders, Orders.data())
         # load the orders
-        |> Dataloader.load_many(Orders, {Orders.Order, filter: filter}, work_profile.assigned_orders)
+        |> Dataloader.load_many(Orders, {Orders.Order, filter: filter, user_id: user.id}, work_profile.assigned_orders)
         # run the dataloader
         |> Dataloader.run()
         # get the results
-        |> Dataloader.get_many(Orders, {Orders.Order, filter: filter}, work_profile.assigned_orders)
+        |> Dataloader.get_many(Orders, {Orders.Order, filter: filter, user_id: user.id}, work_profile.assigned_orders)
 
       else # the ids are empty
         # return an empty list
