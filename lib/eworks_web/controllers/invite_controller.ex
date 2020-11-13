@@ -150,6 +150,18 @@ defmodule EworksWeb.Invites.InviteController do
       |> put_status(:created)
       # render the offer
       |> render("success.json", message: "Success. You have successfully submitted an offer for the invite.")
+
+    else
+
+      {:error, _reason} ->
+        # return failure
+        conn
+        # put status
+        |> put_status(:bad_request)
+        # put the view
+        |> put_view(EworksWeb.ErrorView)
+        # render failed
+        |> render("failed.json", message: "Failed. Invite offer could not be submitted. Please try again later")
     end # end of with
   end # end of submit invite ffer
 
@@ -157,12 +169,34 @@ defmodule EworksWeb.Invites.InviteController do
     Accepts an invitation offer
   """
   def accept_invite_offer(conn, %{"invite_offer_id" => id}, user, invite) do
-    with {:ok, invite} <- API.accept_invite_offer(user, invite, id) do
+    with {:ok, _invite} <- API.accept_invite_offer(user, invite, id) do
       conn
       # put status
       |> put_status(:ok)
       # render the invite
-      |> render("invite.json", invite: invite, user: user)
+      |> render("success.json", message: "Success. Invite offer successfully accepted.")
+
+    else
+      # the invite has already been assigned
+      {:error, :already_assigned} ->
+        # return failure
+        conn
+        # put status
+        |> put_status(:bad_request)
+        # put the view
+        |> put_view(EworksWeb.ErrorView)
+        # render failed
+        |> render("failed.json", message: "Failed. Number of required contractors already reached.")
+
+      {:error, reason} when reason != :not_owner ->
+        # return failure
+        conn
+        # put status
+        |> put_status(:bad_request)
+        # put the view
+        |> put_view(EworksWeb.ErrorView)
+        # render failed
+        |> render("failed.json", message: "Failed. Invite offer could not be accepted. Please try again later")
     end # end of with
   end # end of accepting offer invite
 
@@ -170,13 +204,26 @@ defmodule EworksWeb.Invites.InviteController do
     Cacncels an invitation offer
   """
   def cancel_invite_offer(conn, %{"invite_offer_id" => id}, user, _invite) do
-    {:ok, _offer} =  API.cancel_invite_offer(user, id)
-    # render the page
-    conn
-    # put the status
-    |> put_status(:ok)
-    # render succes
-    |> render("success.json", message: "Success. You have successfully cancelled your offer on the collaboratioin invite.")
+    with {:ok, _offer} <-  API.cancel_invite_offer(user, id) do
+      # render the page
+      conn
+      # put the status
+      |> put_status(:ok)
+      # render succes
+      |> render("success.json", message: "Success. You have successfully cancelled your offer on the collaboratioin invite.")
+
+    else
+      # error occured
+      {:error, reason} when reason != :not_owner ->
+        # return failure
+        conn
+        # put status
+        |> put_status(:bad_request)
+        # put the view
+        |> put_view(EworksWeb.ErrorView)
+        # render failed
+        |> render("failed.json", message: "Failed. Invite offer could not be cancelled. Please try again later")
+    end # end of with
   end # end of cancel_invitaion_offeer
 
   @doc """
@@ -189,6 +236,17 @@ defmodule EworksWeb.Invites.InviteController do
       |> put_status(:ok)
       # render success
       |> render("success.json", message: "Success. You have successfully cancelled the collaboration invite")
+
+    else
+      {:error, reason} when reason != :not_owner ->
+        # return failure
+        conn
+        # put status
+        |> put_status(:bad_request)
+        # put the view
+        |> put_view(EworksWeb.ErrorView)
+        # render failed
+        |> render("failed.json", message: "Failed. Invite could not be cancelled. Please try again later")
     end # end of with
   end # end of canceling an invite
 
@@ -201,7 +259,19 @@ defmodule EworksWeb.Invites.InviteController do
       # put status
       |> put_status(:ok)
       # render the success
-      |> render("success.json", message: "Offer successfully rejected.")
+      |> render("success.json", message: "Success. You have successfully rejected the invite offer.")
+
+    else
+      # error occured
+      {:error, reason} when reason != :not_owner ->
+        # return failure
+        conn
+        # put status
+        |> put_status(:bad_request)
+        # put the view
+        |> put_view(EworksWeb.ErrorView)
+        # render failed
+        |> render("failed.json", message: "Failed. Invite offer could not be rejected. Please try again later")
     end # end of with
   end # end of reject invite offer
 
@@ -246,6 +316,8 @@ defmodule EworksWeb.Invites.InviteController do
         # return the list of invites from the last known corsor
         Repo.paginate(query, after: cursor, cursor_fields: [:inserted_at], limit: 10)
       end
+
+      IO.inspect(page.entries)
 
       # return the results
       conn

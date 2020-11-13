@@ -19,6 +19,7 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
       add :description, :text, null: true
       add :verification_code, :integer, null: true
       add :collaborators, {:array, :binary_id}, default: []
+      add :already_accepted, :integer, null: false, default: 0
       #add :order_id, :binary_id
 
       # order for which the invite is for

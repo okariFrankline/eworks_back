@@ -135,6 +135,7 @@ defmodule EworksWeb.Invites.InviteView do
       is_cancelled: offer.is_cancelled,
       is_rejected: offer.is_rejected,
       is_pending: offer.is_pending,
+      is_accepted: offer.is_accepted,
       placed_on: NaiveDateTime.to_iso8601(offer.inserted_at),
       has_accepted_invite: offer.has_accepted_invite,
       asking_amount: offer.asking_amount,
@@ -169,6 +170,7 @@ defmodule EworksWeb.Invites.InviteView do
       has_accepted_invite: offer.has_accepted_invite,
       asking_amount: offer.asking_amount,
       show_more: offer.show_more,
+      is_accepted: offer.is_accepted,
       owner: %{
         full_name: offer.owner_name,
         rating: offer.owner_rating,

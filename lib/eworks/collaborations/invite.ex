@@ -16,6 +16,8 @@ defmodule Eworks.Collaborations.Invite do
     field :deadline, :date
     field :required_collaborators, :integer
     field :show_more, :boolean, default: false
+    # holds the number of the already accepted offers
+    field :already_accepted, :integer, defult: 0
 
     # payment information
     field :payable_amount, :string
@@ -62,7 +64,8 @@ defmodule Eworks.Collaborations.Invite do
       :verification_code,
       :show_more,
       :is_draft,
-      :owner_name
+      :owner_name,
+      :already_accepted
     ])
   end
 
