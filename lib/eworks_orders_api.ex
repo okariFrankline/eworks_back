@@ -10,7 +10,6 @@ defmodule Eworks.Orders.API do
   alias Eworks.Orders.{Order, OrderOffer}
   alias Eworks.Utils.{Mailer, NewEmail}
   alias EworksWeb.Endpoint
-  alias Eworks.API.Utils
 
   @doc """
     Gets an order
@@ -131,33 +130,42 @@ defmodule Eworks.Orders.API do
     Submits an offer
   """
   def submit_order_offer(%User{} = user, %Order{} = order, asking_amount) do
-    # create a new order offer
-    with offer <- user |> Ecto.build_assoc(:order_offers, %{order_id: order.id, asking_amount: asking_amount}) |> Repo.insert!() do
-      # create a notification about the submitting of the offer
-      Task.start(fn ->
-        # preload the owner of the order
-        owner = Accounts.get_user!(order.user_id)
-        # message
-        message = "#{user.full_name} has submitted an offer of KES #{asking_amount} to work of your order **#{order.category}::#{order.specialty}**."
-        # send an email notification to the owner of the order
-        NewEmail.new_email_notification(owner, "Offer submission for order: **#{order.category} :: #{order.specialty}**", "#{message} \n Login to your account for more details.")
-        # send the email
-        |> Mailer.deliver_later()
+    # get all the ids of the users who have already made an offer fot this order
+    offer_ids = order |> Repo.preload([order_offers: from(offer in OrderOffer, select: [offer.user_id])]).order_offers
+    # ensure current user id is not in the offers
+    if user.id not in offer_ids do
+      # create a new order offer
+      with offer <- user |> Ecto.build_assoc(:order_offers, %{order_id: order.id, asking_amount: asking_amount}) |> Repo.insert!() do
+        # create a notification about the submitting of the offer
+        Task.start(fn ->
+          # preload the owner of the order
+          owner = Accounts.get_user!(order.user_id)
+          # message
+          message = "#{user.full_name} has submitted an offer of KES #{asking_amount} to work of your order **#{order.category}::#{order.specialty}**."
+          # send an email notification to the owner of the order
+          NewEmail.new_email_notification(owner, "Offer submission for order: **#{order.category} :: #{order.specialty}**", "#{message} \n Login to your account for more details.")
+          # send the email
+          |> Mailer.deliver_later()
 
-        # create a new notification
-        {:ok, notification} = Notifications.create_notification(%{
-          user_id: owner.id,
-          asset_type: "Offer",
-          asset_id: order.id,
-          notification_type: "Order Offer Submission",
-          message: message
-        })
-        # send the notification to the user using websocket
-        Endpoint.broadcast!("notification:#{order.user_id}", "new_notification", %{notification: notification})
-      end) # end of the task
-      # return ok
-      {:ok, offer}
-    end # end of with creating an offer
+          # create a new notification
+          {:ok, notification} = Notifications.create_notification(%{
+            user_id: owner.id,
+            asset_type: "Offer",
+            asset_id: order.id,
+            notification_type: "Order Offer Submission",
+            message: message
+          })
+          # send the notification to the user using websocket
+          Endpoint.broadcast!("notification:#{order.user_id}", "new_notification", %{notification: notification})
+        end) # end of the task
+        # return ok
+        {:ok, offer}
+      end # end of with creating an offer
+
+    else
+      # user has already submitted the offer
+      {:error, :already_submitted}
+    end # end of of checking if the user.id is in the offer ids
   end # end of submitting an order offer
 
 
@@ -391,24 +399,21 @@ defmodule Eworks.Orders.API do
     Cancels an offer
   """
   def cancel_order_offer(offer_id) do
-    # start a task to cancel the offer
-    Task.start(fn ->
-      # get the offer
-      offer = Orders.get_order_offer!(offer_id)
-      # cancel the offer only if the order's status is in pending
-      with true <- offer.is_pending do
-        offer
-        # set the is-penidng to false and the is_cancelled to true
-        |> Ecto.Changeset.change(%{
-          is_pending: false,
-          is_cancelled: true
-        })
-        # update the offer
-        |> Repo.update!()
-      end # end of with
-    end)
-    # return ok
-    :ok
+    with offer <- Orders.get_order_offer!(offer_id) do
+      # ensure the offer is strill pending
+      if offer.is_pending do
+        # reject the offer
+        offer = offer |> Ecto.Changeset.change(%{is_pending: false, is_cancelled: true}) |> Repo.update!()
+        # start a task to delete the offer
+        Task.start(fn -> Orders.delete_order(offer) end)
+        # return ok
+        :ok
+
+      else
+        # the offer has been accepted
+        {:error, :already_accepted}
+      end # end of if
+    end # end of getting the offer
   end # end of cancel_order_offer/1
 
   @doc """

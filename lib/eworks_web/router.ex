@@ -194,6 +194,8 @@ defmodule EworksWeb.Router do
     post "/:order_id/accept/:order_offer_id", OrderController, :accept_order
     # cancels a given order
     post "/offer/:order_offer_id/cancel", OrderController, :cancel_order_offer
+    # cancels a given order
+    post "/offer/:order_offer_id/delete", OrderController, :delete_order_offer
     # rejects an order
     post "/:order_id/reject/:order_offer_id", OrderController, :reject_order
     # marks an order as complete

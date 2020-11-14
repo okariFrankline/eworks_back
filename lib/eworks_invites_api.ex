@@ -359,11 +359,4 @@ defmodule Eworks.Collaborations.API do
         {:error, :invalid_code}
     end # end of if
   end # end of verify invite
-
-
-  ############################## PRIVATE FUNCTIONS ######################
-  defp upload_url(url) do
-    if url, do: url |> String.split("?") |> List.first(), else: nil
-  end
-
 end # end of module

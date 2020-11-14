@@ -185,7 +185,8 @@ defmodule EworksWeb.OrderListView do
       required_contractors: order.required_contractors,
       posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
       show_more: order.show_more,
-      owner_name: order.owner_name
+      owner_name: order.owner_name,
+      offer_owners: show_offer_owners(order.order_offers)
     }
   end # end of order.json
 
@@ -222,5 +223,12 @@ defmodule EworksWeb.OrderListView do
   # function for rendering offers
   defp render_offers(offers) when is_list(offers), do: render_many(offers, __MODULE__, "offer.json")
   defp render_offers(_offers), do: []
+
+  # function for showing offer owners
+  defp show_offer_owners(offers) when offers == [], do: []
+  defp show_offer_owners(offers) do
+    # for each of the offers return the user-id
+    Enum.map(offers, fn offer -> offer.user_id end)
+  end # end of show offer owners
 
 end # end of module

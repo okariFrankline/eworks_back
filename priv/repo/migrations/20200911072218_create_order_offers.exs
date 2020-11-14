@@ -11,6 +11,7 @@ defmodule Eworks.Repo.Migrations.CreateOrderOffers do
       add :is_cancelled, :boolean, default: false, null: false
       add :asking_amount, :string, null: false
       add :has_rejected_order, :boolean, default: false, null: false
+      add :order_accepting_pending, :boolean, null: false, default: true
       # order for which the offer is for
       add :order_id, references(:orders, on_delete: :nothing, type: :binary_id)
       # owner of the offer

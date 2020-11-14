@@ -27,12 +27,12 @@ defmodule EworksWeb.OrderListController do
       order in Order,
       # ensure the order is unassigned and they do not belong to current user
       where: order.is_assigned == false and order.is_cancelled == false and order.user_id != ^user.id,
-      # preload the user
-      join: user in assoc(order, :user),
+      # join the offers
+      join: offer in assoc(order, :order_offers),
       # order by
       order_by: [asc: order.inserted_at, asc: order.id],
       # preload the user
-      preload: [user: user]
+      preload: [order_offers: offer]
     )
     # get the page
     page = if cursor == "false" do

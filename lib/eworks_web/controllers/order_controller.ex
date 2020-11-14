@@ -6,7 +6,7 @@ defmodule EworksWeb.Orders.OrderController do
   alias EworksWeb.Plugs
   alias Eworks.{Repo, Accounts, Orders}
 
-  plug Plugs.OrderById when  action not in [:create_new_order, :cancel_order_offer]
+  plug Plugs.OrderById when  action not in [:create_new_order, :cancel_order_offer, :delete_order_offer]
   plug Plugs.CanSubmitOrderOffer when action in [:submit_order_offer]
 
   action_fallback EworksWeb.FallbackController
@@ -165,12 +165,23 @@ defmodule EworksWeb.Orders.OrderController do
   """
   def submit_order_offer(conn, %{"new_offer" => %{"asking_amount" => asking_amount}}, user, order) do
     # place the offer
-    {:ok, _order} = API.submit_order_offer(user, order, asking_amount)
-    conn
-    # put the status
-    |> put_status(:created)
-    # send a response to the user
-    |> render("success.json", message: "Success. Your offer has been successfully submitted.")
+    with {:ok, _order} <- API.submit_order_offer(user, order, asking_amount) do
+      conn
+      # put the status
+      |> put_status(:created)
+      # send a response to the user
+      |> render("success.json", message: "Success. Your offer has been successfully submitted.")
+
+    else
+      {:error, :already_submitted} ->
+        conn
+        # put the status
+        |> put_status(:forbidden)
+        # put view
+        |> put_view(EworksWeb.ErrorView)
+        # render failed
+        |> render("failed.json", message: "Failed. You have previously placed an offer for this order.")
+    end # end of submitting an offer
   end # end of submit offer
 
 
@@ -184,19 +195,19 @@ defmodule EworksWeb.Orders.OrderController do
     # send a response
     |> put_status(:ok)
     # render success
-    |> render("success.json", message: "Offer successfully rejected.")
+    |> render("success.json", message: "Success. You have successfully rejected the offer.")
   end # end of reject_order_offer
 
   @doc """
     Accepts a given offer for a particular order
   """
   def accept_order_offer(conn, %{"order_offer_id" => order_offer_id}, user, order) do
-    with {:ok, order} <- API.accept_order_offer(user, order, order_offer_id) do
+    with {:ok, _order} <- API.accept_order_offer(user, order, order_offer_id) do
       conn
       # put a status
       |> put_status(:ok)
       # render the order
-      |> render("order.json", order: order)
+      |> render("success.json", message: "Succee. You have successfully accepted the offer.")
     end # end of accepting the offer
   end # end of accept_order_offer
 
@@ -232,7 +243,7 @@ defmodule EworksWeb.Orders.OrderController do
       # put status
       |> put_status(:ok)
       # render the offer
-      |> render("success.json", message: "Success. Order successfully accepted.")
+      |> render("success.json", message: "Success. You have successfully accepted to work on the hire.")
     end # end of the with
   end
 
@@ -267,14 +278,25 @@ defmodule EworksWeb.Orders.OrderController do
     Cancel order offer
   """
   def cancel_order_offer(conn, %{"order_offer_id" => id}, _user, _order) do
-    API.cancel_order_offer(id)
-    # return a response
-    conn
-    # send a response
-    |> put_status(:ok)
-    # render success
-    |> render("success.json", message: "Success. You have successfully cancelled your offer.")
-  end
+   with :ok <- API.cancel_order_offer(id) do
+      conn
+      # put status
+      |> put_status(:ok)
+      # render success
+      |> render("success.json", message: "Success. You have successfully cancelled the offer.")
+
+   else
+    # offer is already assigned
+    {:error, :already_accepted} ->
+      conn
+      # put the status
+      |> put_status(:forbidden)
+      # error view
+      |> put_view(EworksWeb.ErrorView)
+      # render failed
+      |> render("failed.json", message: "Failed. Offer has already been accepted.")
+   end # end of with
+  end # end of cancel order offer
 
   @doc """
     Cancels an order
@@ -340,6 +362,23 @@ defmodule EworksWeb.Orders.OrderController do
   end # end of marking an order complete
 
   @doc """
+    Deletes an offer
+  """
+  def delete_order_offer(conn, %{"order_offer_id" => id}, _user, _order) do
+    # get the offer with the given offer
+    Orders.get_order_offer!(id)
+    # delete the offer
+    |> Orders.delete_order_offer()
+
+    # return the result
+    conn
+    # put the status
+    |> put_status(:ok)
+    # send the result
+    |> render("success.json", message: "Success. You have successfully deleted the offer.")
+  end # end of delete order offer
+
+  @doc """
     Gets an order specified by a given id that belongs to the current user
   """
   def get_order(conn, _params, _user, order) do
@@ -372,17 +411,17 @@ defmodule EworksWeb.Orders.OrderController do
     # modify the query based on the filter
     query = case filter do
       "pending" ->
-        from(offer in query, where: offer.is_pending == false)
+        from(offer in query, where: offer.is_pending == true)
 
       "accepted" ->
-        from(offer in query, where: offer.is_accepted == true and offer.has_accepted_order == false)
+        from(offer in query, where: offer.is_accepted == true)
     end # end of query modification
 
     # return the results based on the next_cursor
     page = if cursor == "false" do
-      Repo.paginate(query, cursor_fields: [:inserted_at], limit: 5)
+      Repo.paginate(query, cursor_fields: [:inserted_at], limit: 3)
     else
-      Repo.paginate(query, after: cursor, cursor_fields: [:inserted_at], limit: 5)
+      Repo.paginate(query, after: cursor, cursor_fields: [:inserted_at], limit: 3)
     end # end of if for getting the result
 
     IO.inspect(page.entries)

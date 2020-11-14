@@ -197,7 +197,9 @@ defmodule EworksWeb.Users.UserView do
       is_accepted: offer.is_accepted,
       is_rejected: offer.is_rejected,
       is_cancelled: offer.is_cancelled,
+      is_pending: offer.is_pending,
       has_accepted_order: offer.has_accepted_order,
+      order_accepting_pending: offer.order_accepting_pending,
       order: render_one(offer.order, OrderListView, "order.json")
     }
   end
