@@ -28,7 +28,7 @@ defmodule EworksWeb.OrderListController do
       # ensure the order is unassigned and they do not belong to current user
       where: order.is_assigned == false and order.is_cancelled == false and order.user_id != ^user.id,
       # join the offers
-      join: offer in assoc(order, :order_offers),
+      left_join: offer in assoc(order, :order_offers),
       # order by
       order_by: [asc: order.inserted_at, asc: order.id],
       # preload the user

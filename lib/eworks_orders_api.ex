@@ -131,7 +131,7 @@ defmodule Eworks.Orders.API do
   """
   def submit_order_offer(%User{} = user, %Order{} = order, asking_amount) do
     # get all the ids of the users who have already made an offer fot this order
-    offer_ids = order |> Repo.preload([order_offers: from(offer in OrderOffer, select: [offer.user_id])]).order_offers
+    offer_ids = Repo.preload(order, [order_offers: from(offer in OrderOffer, select: [offer.user_id])]).order_offers
     # ensure current user id is not in the offers
     if user.id not in offer_ids do
       # create a new order offer
@@ -264,7 +264,7 @@ defmodule Eworks.Orders.API do
     |> Repo.one!()
 
     # check if the job has already been assigned or the number of already assigned orders matches the number of required contractors
-    if not order.is_assigned and order.already_assigned != order.required_contractors do
+    if not order.is_assigned or order.already_assigned != order.required_contractors do
       # chek if the one be assigned is not suspeded
       if not profile.user.is_suspended do # the person being assigned the order has not being suspended
         # assign the job
@@ -302,48 +302,49 @@ defmodule Eworks.Orders.API do
             # update the offer
             |> Repo.update!()
             # preload the assignees and the order offers
-            |> Repo.preload([
-              order_offers: from(
-                offer in OrderOffer,
-                # make sure the offer is is not cancelled and not rejected
-                where: offer.is_accepted == true,
-                # get the owner of the offer
-                join: owner in assoc(offer, :user),
-                # preload the work profile of the user
-                join: profile in assoc(owner, :work_profile),
-                # preload the user
-                preload: [user: {owner, work_profile: profile}]
-              )
-            ])
+            # |> Repo.preload([
+            #   order_offers: from(
+            #     offer in OrderOffer,
+            #     # make sure the offer is is not cancelled and not rejected
+            #     where: offer.is_accepted == true,
+            #     # get the owner of the offer
+            #     join: owner in assoc(offer, :user),
+            #     # preload the work profile of the user
+            #     join: profile in assoc(owner, :work_profile),
+            #     # preload the user
+            #     preload: [user: {owner, work_profile: profile}]
+            #   )
+            # ])
 
           else # the number of already assigned is not yet equals to the number of required contractractors
             # update the order
             order
             # increase the number of assigned by one
-            |> Ecto.Changeset.change(%{already_assigned: order.already_assigned + 1,
+            |> Ecto.Changeset.change(%{
+              already_assigned: order.already_assigned + 1,
               assignees: [to_assign_id | order.assignees]
             })
             # update the offer
             |> Repo.update!()
             # preload the assignees and the order offers
-            |> Repo.preload([
-              # preload offers
-              order_offers: from(
-                offer in OrderOffer,
-                # make sure the offer is is not cancelled and not rejected
-                where: offer.is_accepted == true,
-                # get the owner of the offer
-                join: owner in assoc(offer, :user),
-                # preload the work profile of the user
-                join: profile in assoc(owner, :work_profile),
-                # preload the user
-                preload: [user: {owner, work_profile: profile}]
-              )
-            ])
+            # |> Repo.preload([
+            #   # preload offers
+            #   order_offers: from(
+            #     offer in OrderOffer,
+            #     # make sure the offer is is not cancelled and not rejected
+            #     where: offer.is_accepted == true,
+            #     # get the owner of the offer
+            #     join: owner in assoc(offer, :user),
+            #     # preload the work profile of the user
+            #     join: profile in assoc(owner, :work_profile),
+            #     # preload the user
+            #     preload: [user: {owner, work_profile: profile}]
+            #   )
+            # ])
           end # end of checking if the number of already assigned equals that of the required contractors
 
           # return the result
-          {:ok, updated_order}
+          {:ok, profile.user.full_name}
 
         end # end of the assigning the work
 

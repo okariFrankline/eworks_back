@@ -43,6 +43,7 @@ defmodule EworksWeb.Orders.OrderView do
         is_paid_for: order.is_paid_for,
         is_cancelled: order.is_cancelled,
         accepted_offers: order.accepted_offers,
+        assignees: order.assignees,
         specialty: order.specialty,
         category: order.category,
         order_type: order.order_type,
@@ -82,6 +83,7 @@ defmodule EworksWeb.Orders.OrderView do
         duration: order.duration,
         show_more: order.show_more,
         owner_name: order.owner_name,
+        assignees: order.assignees,
         # payment info
         payment_schedule: order.payment_schedule,
         payable_amount: order.payable_amount,
@@ -128,6 +130,7 @@ defmodule EworksWeb.Orders.OrderView do
       is_cancelled: offer.is_cancelled,
       has_accepted_order: offer.has_accepted_order,
       is_pending: offer.is_pending,
+      order_id: offer.order_id,
       order_accepting_pending: offer.order_accepting_pending,
       # owner of the offer
       owner: %{
@@ -165,6 +168,7 @@ defmodule EworksWeb.Orders.OrderView do
         id: offer.id,
         asking_amount: offer.asking_amount,
         is_accepted: offer.is_accepted,
+        order_id: offer.order_id,
         is_rejected: offer.is_rejected,
         is_cancelled: offer.is_cancelled,
         has_accepted_order: offer.has_accepted_order,

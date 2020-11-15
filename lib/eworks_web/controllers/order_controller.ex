@@ -215,12 +215,12 @@ defmodule EworksWeb.Orders.OrderController do
     Assign a job to a given user
   """
   def assign_order(conn, %{"to_assign_id" => to_assign_id}, user, order) do
-    with {:ok, order} <- API.assign_order(user, order, to_assign_id) do
+    with {:ok, assignee_name} <- API.assign_order(user, order, to_assign_id) do
       conn
       # ok
       |> put_status(:ok)
       # render the order
-      |> render("order.json", order: order)
+      |> render("success.json",message: "Success. Your have successfully assigned the order to #{assignee_name}")
 
     else
       {:error, :already_assigned} ->
@@ -230,7 +230,7 @@ defmodule EworksWeb.Orders.OrderController do
         # rput a view
         |> put_view(EworksWeb.ErrorView)
         # render the already assigned
-        |> render("already_assigned.json")
+        |> render("failed.json", message: "Failed. The order has already completely been assigned.")
     end # end of with for assigning of the order to the user
   end # end of assign order
 
