@@ -72,12 +72,12 @@ defmodule EworksWeb.Users.UserController do
     Updates the current user's location details
   """
   def update_user_profile_location(conn, %{"user_profile" => %{"location" => location_params}}, user) do
-    with {:ok, new_user} <- Eworks.update_user_profile_location(user, location_params) do
+    with {:ok, _new_user} <- Eworks.update_user_profile_location(user, location_params) do
       conn
-      # put an ok status
-      |> put_status(:ok)
       # render the profiles view
-      |> render("profile.json", user: new_user)
+      |> put_status(:ok)
+      # send response
+      |> render("success.json", message: "Success. Account detailed description successfully updated.")
     end # end of update the profile update
   end # end of the update_user_profile_location/2
 
@@ -88,12 +88,12 @@ defmodule EworksWeb.Users.UserController do
     # preload the work profile
     profile = Repo.preload(user, [:work_profile]).work_profile
     # update the profile
-    with {:ok, work_profile} <- Eworks.update_work_profile_skills(user, profile, new_skills) do
+    with {:ok, _work_profile} <- Eworks.update_work_profile_skills(user, profile, new_skills) do
       conn
       # put ok on the status
       |> put_status(:ok)
       # render the work profile
-      |> render("work_profile.json", work_profile: work_profile, user: user)
+      |> render("success.json", message: "Success. SKills successfully updated.")
     end # end of with
   end # end of the uodate_work_profile_skills/2
 

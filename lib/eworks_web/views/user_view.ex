@@ -1,9 +1,8 @@
 defmodule EworksWeb.Users.UserView do
   use EworksWeb, :view
 
-  alias Eworks.Uploaders.ProfilePicture
+  alias Eworks.Uploaders.{ProfilePicture, OrderAttachment}
   alias Eworks.API.Utils
-  alias EworksWeb.OrderListView
 
   @doc """
     Renders of new_user.json
@@ -200,10 +199,36 @@ defmodule EworksWeb.Users.UserView do
       is_pending: offer.is_pending,
       order_id: offer.order_id,
       has_accepted_order: offer.has_accepted_order,
+      has_rejected_order: offer.has_rejected_order,
       order_accepting_pending: offer.order_accepting_pending,
-      order: render_one(offer.order, OrderListView, "order.json")
+      order: render_one(offer.order, __MODULE__, "offer_order.json")
     }
   end
+
+   @doc """
+    Renders order.json
+  """
+  def render("offer_order.json", %{user: order}) do
+    %{
+      # order info
+      id: order.id,
+      order_type: order.order_type,
+      description: order.description,
+      is_verified: order.is_verified,
+      specialty: order.specialty,
+      category: order.category,
+      attachments: Utils.upload_url(OrderAttachment.url({order.attachments, order})),
+      duration: order.duration,
+      # payment info
+      payment_schedule: order.payment_schedule,
+      payable_amount: order.payable_amount,
+      deadline: show_deadline(order.deadline),
+      required_contractors: order.required_contractors,
+      posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
+      show_more: order.show_more,
+      owner_name: order.owner_name
+    }
+  end # end of order.json
 
   # user.json
   def render("user.json", %{user: user}) do
@@ -274,4 +299,7 @@ defmodule EworksWeb.Users.UserView do
   # render the orders
   defp render_previous_hires(previous_hires) when is_list(previous_hires), do: render_many(previous_hires, __MODULE__, "order.json")
   defp render_previous_hires(_), do: nil
+
+  defp show_deadline(date) when is_nil(date), do: nil
+  defp show_deadline(date), do: Date.to_iso8601(date)
 end # end of the module

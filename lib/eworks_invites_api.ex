@@ -177,7 +177,7 @@ defmodule Eworks.Collaborations.API do
   @doc """
     Function for accepting an invite offer and also adds the user to the assigned orders
   """
-  def accept_invite_offer(_user, %Invite{required_collaborators: collaborators}, _offer_id) when collaborators + 1 > collaborators, do: {:error, :already_assigned}
+  def accept_invite_offer(_user, %Invite{required_collaborators: collaborators, already_accepted: accepted}, _offer_id) when accepted == collaborators, do: {:error, :already_assigned}
   def accept_invite_offer(%User{} = user, %Invite{} = invite, offer_id) do
     # preload the work profile
     profile = Repo.preload(user, [:work_profile]).work_profile

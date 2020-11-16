@@ -129,6 +129,7 @@ defmodule EworksWeb.Orders.OrderView do
       is_rejected: offer.is_rejected,
       is_cancelled: offer.is_cancelled,
       has_accepted_order: offer.has_accepted_order,
+      has_rejected_order: offer.has_rejected_order,
       is_pending: offer.is_pending,
       order_id: offer.order_id,
       order_accepting_pending: offer.order_accepting_pending,
@@ -183,6 +184,7 @@ defmodule EworksWeb.Orders.OrderView do
         is_rejected: offer.is_rejected,
         is_cancelled: offer.is_cancelled,
         has_accepted_order: offer.has_accepted_order,
+        has_rejected_order: offer.has_rejected_order,
         is_pending: offer.is_pending,
         order_accepting_pending: offer.order_accepting_pending,
         # owner of the offer

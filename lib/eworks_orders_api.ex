@@ -440,7 +440,7 @@ defmodule Eworks.Orders.API do
     # ensure that the current user if the owner of the offer
     if order_offer.user_id == user.id do
       # update the offer to set the rejected_order to true
-      with offer <- Ecto.Changeset.change(order_offer, %{has_rejected_order: true}) |> Repo.update!() do
+      with offer <- Ecto.Changeset.change(order_offer, %{has_rejected_order: true, order_accepting_pending: false}) |> Repo.update!() do
         # # create a notification for the owner of the order about the accepting of the order
         Task.start(fn ->
           # preload the owner of the order
