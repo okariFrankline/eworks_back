@@ -158,7 +158,7 @@ defmodule EworksWeb.Router do
     # gets the verification for the given order
     get "/:order_id/verification", OrderController, :send_order_verification_code
     # resends the order verification code
-    get "/order/:order_id/verification/resend", OrderController, :resend_order_verification_code
+    get "/:order_id/verification/resend", OrderController, :resend_order_verification_code
 
     ##################################### POST ROUTES ################################################
     # creates a new order

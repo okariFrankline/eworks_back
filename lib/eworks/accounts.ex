@@ -13,6 +13,21 @@ defmodule Eworks.Accounts do
     Dataloader.Ecto.new(Repo, query: &query/2)
   end # end of daaloader
 
+  def query(User, %{order_id: id}) do
+    # return the user and his/her workprofile
+    from(
+      user in User,
+      # join the work profile
+      join: profile in assoc(user, :work_profile),
+      # get the order offers
+      left_join: offer in assoc(user, :order_offers),
+      # ensure the order offer is for the given order
+      on: offer.order_id == ^id and offer.is_accepted == true,
+      # preload the profile
+      preload: [work_profile: profile, order_offers: offer]
+    )
+  end
+
   def query(User, _) do
     # return the user and his/her workprofile
     from(
@@ -407,23 +422,11 @@ defmodule Eworks.Accounts do
     |> Repo.update()
   end
 
-  @doc """
-  Updates a work profile's cover letter.
-
-  ## Examples
-
-      iex> update_work_cover_letter(profile, %{email: new_value})
-      {:ok, %Profile{}}
-
-      iex> update_work_cover_letter(profile, %{email: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_work_profile_cover_letter(%WorkProfile{} = profile, attrs) do
-    profile
-    |> WorkProfile.cover_letter_changeset(attrs)
-    |> Repo.update()
-  end
+  # def update_work_profile_cover_letter(%WorkProfile{} = profile, attrs) do
+  #   profile
+  #   |> WorkProfile.cover_letter_changeset(attrs)
+  #   |> Repo.update()
+  # end
 
   @doc """
   Deletes a work_profile.

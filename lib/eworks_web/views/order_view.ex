@@ -155,9 +155,20 @@ defmodule EworksWeb.Orders.OrderView do
       rating: user.work_profile.rating,
       job_success: user.work_profile.success_rate,
       show_more: user.work_profile.show_more,
-      profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}))
+      profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user})),
+      asking_amount: assignee_asking_amount(user.order_offers)
     }
   end # end of assignee.json
+
+  @doc """
+    Renders assignee_offer.json
+  """
+  def render("assignee_offer.json", %{order: offer}) do
+    %{
+      id: offer.id,
+      asking_amount: offer.asking_amount
+    }
+  end # end of assignee_offer.json
 
   @doc """
     Renders accepted_offer.json
@@ -204,5 +215,7 @@ defmodule EworksWeb.Orders.OrderView do
 
   defp show_deadline(date) when is_nil(date), do: nil
   defp show_deadline(date), do: Date.to_iso8601(date)
+
+  defp assignee_asking_amount(offers), do: List.first(offers).asking_amount
 
 end # end of the module

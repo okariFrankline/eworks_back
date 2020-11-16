@@ -291,7 +291,7 @@ defmodule Eworks.Orders.API do
           end) # end of task for sending a notification to the user about the job assignment
 
           # check if once the added assignee is added, it brings the number of assigned equal to the required orders
-          updated_order = if order.required_contractors == order.already_assigned + 1 do
+          if order.required_contractors == order.already_assigned + 1 do
             # update the order
             order
             # increase the number of assigned by one and set the assigned to true
@@ -301,20 +301,6 @@ defmodule Eworks.Orders.API do
             })
             # update the offer
             |> Repo.update!()
-            # preload the assignees and the order offers
-            # |> Repo.preload([
-            #   order_offers: from(
-            #     offer in OrderOffer,
-            #     # make sure the offer is is not cancelled and not rejected
-            #     where: offer.is_accepted == true,
-            #     # get the owner of the offer
-            #     join: owner in assoc(offer, :user),
-            #     # preload the work profile of the user
-            #     join: profile in assoc(owner, :work_profile),
-            #     # preload the user
-            #     preload: [user: {owner, work_profile: profile}]
-            #   )
-            # ])
 
           else # the number of already assigned is not yet equals to the number of required contractractors
             # update the order
@@ -326,21 +312,6 @@ defmodule Eworks.Orders.API do
             })
             # update the offer
             |> Repo.update!()
-            # preload the assignees and the order offers
-            # |> Repo.preload([
-            #   # preload offers
-            #   order_offers: from(
-            #     offer in OrderOffer,
-            #     # make sure the offer is is not cancelled and not rejected
-            #     where: offer.is_accepted == true,
-            #     # get the owner of the offer
-            #     join: owner in assoc(offer, :user),
-            #     # preload the work profile of the user
-            #     join: profile in assoc(owner, :work_profile),
-            #     # preload the user
-            #     preload: [user: {owner, work_profile: profile}]
-            #   )
-            # ])
           end # end of checking if the number of already assigned equals that of the required contractors
 
           # return the result

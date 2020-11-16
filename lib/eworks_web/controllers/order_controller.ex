@@ -424,8 +424,6 @@ defmodule EworksWeb.Orders.OrderController do
       Repo.paginate(query, after: cursor, cursor_fields: [:inserted_at], limit: 3)
     end # end of if for getting the result
 
-    IO.inspect(page.entries)
-
     # return the results
     conn
     # put the status
@@ -441,17 +439,17 @@ defmodule EworksWeb.Orders.OrderController do
     # get the assignees
     assignees = order.assignees
     # get the assignees
-    assignees = if  not Enum.empty?(assignees) do
+    assignees = if not Enum.empty?(assignees) do
       # load the dataloader
       Dataloader.new()
       # add the source
       |> Dataloader.add_source(Accounts, Accounts.data())
       # load the assignees
-      |> Dataloader.load_many(Accounts, Accounts.User, assignees)
+      |> Dataloader.load_many(Accounts, {Accounts.User, order_id: order.id}, assignees)
       # run the dataloader
       |> Dataloader.run()
       # get the results
-      |> Dataloader.get_many(Accounts, Accounts.User, assignees)
+      |> Dataloader.get_many(Accounts, {Accounts.User, order_id: order.id}, assignees)
     else
       []
     end # end of assignees
