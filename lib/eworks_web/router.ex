@@ -122,14 +122,10 @@ defmodule EworksWeb.Router do
     ######################################## POST ROUTES ###############################
     # updates the current user's location information
     post "/profile/location", UserController, :update_user_profile_location
-    # updates the current user's email information
-    # post "/profile/emails", UserController, :update_user_profile_emails
     # updates the user's auth email address
     post "/change/email", UserController, :change_auth_email
     # route for changing/updating the phone number
     post "/update/phone", UserController, :change_user_phone
-    # updates the current user's phone numbers
-    # post "/profile/phones", UserController, :update_user_profile_phones
     # updates the current user's profile picture
     post "/profile/picture", UserController, :update_user_profile_picture
     # updates the current user's password
@@ -140,6 +136,8 @@ defmodule EworksWeb.Router do
     post "/profile/intro", UserController, :update_work_profile_prof_intro
     # updates the cover letter of the current user
     post "/profile/letter", UserController, :update_work_profile_cover_letter
+    # route for one time uprade account
+    post "/client/upgrade", UserController, :one_time_upgrade
 
   end # end of users' scope
 
@@ -223,6 +221,10 @@ defmodule EworksWeb.Router do
     # route for cancellation of the nvite
     post "/:direct_hire_id/cancel", DirectHireController, :cancel_direct_hire_request
   end # end of direct hire's scope
+
+  scope "/api/pay", EworksWeb.Mpesa do
+    post "/lnmp/callback", MpesaController, :lnmp_handler
+  end
 
 
   # scope for the logged in user

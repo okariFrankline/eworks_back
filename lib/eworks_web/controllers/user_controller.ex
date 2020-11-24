@@ -389,6 +389,17 @@ defmodule EworksWeb.Users.UserController do
     |> render("saved_workers.json", users: users)
   end # end of get_saved_contractors
 
+  @doc """
+    One time account upgrade
+  """
+  def one_time_upgrade(conn, %{"upgrade_data" => %{"length" => duration, "phone" => phone}}, user) do
+    with {:ok, _user} <- Eworks.one_time_upgrade(user, duration, phone) do
+      conn
+      |> put_status(:ok)
+      |> render("success.json", message: "Received: Phone: #{phone} and Length: #{duration}")
+    end
+  end # end of one time upgrade
+
 
   ## function for loading the previous hires
   defp load_previous_hires(ids) when ids == [], do: []

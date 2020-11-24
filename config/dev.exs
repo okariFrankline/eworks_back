@@ -55,3 +55,21 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# mpesa
+config :mpesa,
+  # sandbox for development and
+  base_url: "https://sandbox.safaricom.co.ke",
+  consumer_secret: "GpYmA3vIirOxel5Y",
+  consumer_key: "pUc4sZSssH5dcXKDAm6lGeLHQ6bxMt5C"
+
+
+# lipa na mpesa
+config :lipa_na_mpesa,
+  callback_url: "",
+  pass_key: "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919",
+  short_code: "174379"
+
+# b2c
+config :b2c,
+  cert_file_path: "/home/Desktop/mean/cert.cer"

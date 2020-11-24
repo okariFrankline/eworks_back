@@ -17,7 +17,8 @@ defmodule EworksWeb.Users.UserView do
           full_name: user.full_name,
           is_active: user.is_active,
           username: user.username,
-          auth_email: user.auth_email
+          auth_email: user.auth_email,
+          profile_complete: user.profile_complete
         },
         message: "Thank you, #{user.full_name}, for creating an account. Your activation key has been sent to #{user.auth_email}"
       }
@@ -245,6 +246,7 @@ defmodule EworksWeb.Users.UserView do
       profile_complte: user.profile_complete,
       user_type: user.user_type,
       is_company: user.is_company,
+      has_complete_work_profile: user.has_complete_work_profile,
       profile_pic: Utils.upload_url(ProfilePicture.url({user.profile_pic, user}, :thumb)),
       phone: user.phone,
       saved_workers: user.saved_workers

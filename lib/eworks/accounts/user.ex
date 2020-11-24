@@ -23,6 +23,8 @@ defmodule Eworks.Accounts.User do
     field :username, :string
     # indicates whether the user has a work profile due to an upgrade
     field :is_upgraded_contractor, :boolean, default: false
+    # indicates whether an upgrade contractor has a complete work profile
+    field :has_complete_work_profile, :boolean, default: false
     # profile information
     field :city, :string
     field :country, :string
@@ -74,6 +76,7 @@ defmodule Eworks.Accounts.User do
       :profile_complete,
       :is_upgraded_contractor,
       :phone,
+      :has_complete_work_profile
     ])
     # cast the profile_pic attachmetns
     |> cast_attachments(attrs, [

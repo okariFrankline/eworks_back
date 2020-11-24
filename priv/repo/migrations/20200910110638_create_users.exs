@@ -23,7 +23,8 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
       # check of the profile is complete
       add :profile_complete, :boolean, default: false
       # is upgraded contractor
-      add :is_upgraded_contractor, :boolean, default: false
+      add :is_upgraded_contractor, :boolean, default: false, null: false
+      add :has_complete_work_profile, :boolean, default: false, null: false
       # full name
       add :full_name, :string, null: false
       # city

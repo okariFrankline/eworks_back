@@ -199,4 +199,11 @@ defmodule Eworks do
     {:ok, user}
   end # end of resending activation key
 
+  @doc """
+    One time upgrade
+  """
+  def one_time_upgrade(%User{} = user, duration, phone) do
+    :ok
+  end
+
 end # end of the Eworks module
