@@ -29,7 +29,7 @@ config :phoenix, :json_library, Jason
 
 # configuration of the cor plugs
 config :cors_plug,
-  origin: ["http://localhost:3000", "https://eworks-front.vercel.app/"],
+  origin: ["http://localhost:3000", "https://eworks-front.vercel.app"],
   max_age: 86400,
   methods: ["GET", "POST"]
 
