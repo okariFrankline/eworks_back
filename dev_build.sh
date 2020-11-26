@@ -8,9 +8,6 @@ set -o errexit
 mix deps.get --only prod
 MIX_ENV=prod mix compile
 
-# add the required environments
-source .env
-
 # remove the build
 rm -rf "_build"
 
