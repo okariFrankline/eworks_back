@@ -14,7 +14,8 @@ database_url =
 config :eworks, Eworks.Repo,
   # ssl: true,
   url: database_url,
-  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
+  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+  start_apps_before_migration: [:logger]
 
 secret_key_base =
   System.get_env("SECRET_KEY_BASE") ||

@@ -12,6 +12,7 @@ defmodule Eworks.Release.EctoTasks do
   def migrate do
     # load the app
     load_app()
+    # start the ssl app
     # perform migrations for all the apps
     for repo <- repos() do
       {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))

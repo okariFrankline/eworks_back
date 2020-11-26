@@ -12,3 +12,5 @@ rm -rf "_build"
 MIX_ENV=prod mix release --overwrite
 
 _build/prod/rel/eworks/bin/eworks eval "Eworks.Release.EctoTasks.migrate"
+# seed the database
+_build/prod/rel/eworks/bin/eworks eval 'Eworks.Release.Seeder.seed(Eworks.Repo, "seeds.exs")'

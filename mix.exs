@@ -23,7 +23,8 @@ defmodule Eworks.MixProject do
       extra_applications: [
         :logger,
         :runtime_tools,
-        :timex
+        :timex,
+        :ssl
       ]
     ]
   end
