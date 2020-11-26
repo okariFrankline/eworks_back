@@ -13,9 +13,9 @@ defmodule Eworks.PaymentAPI do
   """
   def upgrade_payment(%User{country: country} = _user, phone, duration) do
     # get the payable amount
-    payable_amount = duration * @constant_upgrade_fee
+    _payable_amount = duration * @constant_upgrade_fee
     # get the internationalized phone number'
-    case Validations.is_valid_number?(phone, country) do
+    case Validations.is_valid_phone?(phone, country) do
       # is a valid number
       {:ok, _phone} ->
         # initiate the payment
@@ -30,7 +30,7 @@ defmodule Eworks.PaymentAPI do
   # private function for getting the international number
   def international_number(%User{country: country} = _user, phone) do
     # check if the number is valid
-    case Validations.is_valid_number?(phone, country) do
+    case Validations.is_valid_phone?(phone, country) do
       # is a valid number
       {:ok, number} -> number
 

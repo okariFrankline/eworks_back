@@ -1,17 +1,16 @@
 defmodule Eworks do
   @moduledoc """
-  Eworks keeps the contexts that define your domain
-  and business logic.
+    Eworks keeps the contexts that define your domain
+    and business logic.
 
-  Contexts are also responsible for managing your data, regardless
-  if it comes from the database, an external API or others.
+    Contexts are also responsible for managing your data, regardless
+    if it comes from the database, an external API or others.
   """
   alias Eworks.{Accounts}
   alias Eworks.Utils.{Mailer, NewEmail}
   alias Eworks.Repo
   alias Eworks.Accounts.{User, WorkProfile}
   alias Eworks.API.Utils
-  alias Eworks.Uploaders.ProfilePicture
   import Ecto.Query, warn: false
 
   # function for checking whether a user with
@@ -151,14 +150,6 @@ defmodule Eworks do
   end # end of the update_work_profile_prof_intro/2
 
   @doc """
-    Updates a user's cover letter
-  """
-  def update_work_profile_cover_letter(%User{} = _user, %WorkProfile{} = work_profile, cover_letter) do
-    # update the profile
-    with {:ok, _profile} = result <- Accounts.update_work_profile_cover_letter(work_profile, %{cover_letter: cover_letter}), do: result
-  end # end of the update_work_profile_prof_intro/2
-
-  @doc """
     false
   """
   def upgrade_client_to_practise(%User{} = user, duration) do
@@ -202,7 +193,7 @@ defmodule Eworks do
   @doc """
     One time upgrade
   """
-  def one_time_upgrade(%User{} = user, duration, phone) do
+  def one_time_upgrade(%User{} = _user, _duration, _phone) do
     :ok
   end
 

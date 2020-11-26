@@ -36,7 +36,7 @@ defmodule EworksWeb.NotificationChannel do
   @doc """
     Handle out
   """
-  def handle_out("notificcation::" <> type, payload, socket) do
+  def handle_out("notification::" <> _type, payload, socket) do
     IO.inspect(payload)
     {:noreply, socket}
   end # end of handle_out

@@ -1,6 +1,6 @@
 defmodule Eworks.Orders.Order do
   use Ecto.Schema
-  use Arc.Ecto.Schema
+  use Waffle.Ecto.Schema
   import Ecto.Changeset
 
   alias Ecto.Changeset

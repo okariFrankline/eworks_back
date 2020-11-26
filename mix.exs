@@ -23,7 +23,7 @@ defmodule Eworks.MixProject do
       extra_applications: [
         :logger,
         :runtime_tools,
-        :timex,
+        :timex
       ]
     ]
   end
@@ -52,15 +52,12 @@ defmodule Eworks.MixProject do
       # library for validating the phone number
       {:ex_phone_number, "~> 0.2.0"},
       # bamboo library for sending an email
-      {:bamboo, "~> 1.5"},
+      {:bamboo, github: "thoughtbot/bamboo"},
       # guardian for authentication
       {:guardian, "~> 2.1"},
       # guardian db for the tracking of the tokens
       {:guardian_db, "~> 2.0"},
-      # arc for handing uploads and downloads of files
-      {:arc, "~> 0.11.0"},
-      # arc ecto to allow for the storing of information to the db
-      {:arc_ecto, "~> 0.11.3"},
+      # waffle
       {:waffle, "~> 1.1"},
       {:waffle_ecto, "~> 0.0.9"},
       # ex_aws for handling the interactions with aws storage
@@ -81,9 +78,7 @@ defmodule Eworks.MixProject do
       # uuid
       {:uuid, "~> 1.1"},
       # httpoison
-      {:httpoison, "~> 1.7"},
-      # ex_pesa
-      {:ex_pesa, "~> 0.1.1"}
+      {:httpoison, "~> 1.7"}
     ]
   end
 

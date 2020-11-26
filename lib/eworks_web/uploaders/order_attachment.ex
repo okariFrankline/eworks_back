@@ -1,9 +1,11 @@
 defmodule Eworks.Uploaders.OrderAttachment do
-  use Arc.Definition
+  @moduledoc false
 
   # Include ecto support (requires package arc_ecto installed):
-  use Arc.Ecto.Definition
-  # alias the orders
+  use Waffle.Definition
+  # Include ecto support (requires package arc_ecto installed):
+  use Waffle.Ecto.Definition
+
   alias Eworks.Orders
 
   @versions [:original]
