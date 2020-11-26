@@ -10,3 +10,5 @@ MIX_ENV=prod mix compile
 rm -rf "_build"
 
 MIX_ENV=prod mix release --overwrite
+
+_build/prod/rel/eworks/bin/eworks eval "Eworks.Release.EctoTasks.migrate"
