@@ -4,7 +4,6 @@ defmodule EworksWeb.Router do
   alias EworksWeb.Plugs
 
   pipeline :api do
-    plug CORSPlug, origin: ["http://localhost:3000", "https://eworks-front.vercel.app"]
     plug :accepts, ["json"]
     plug Plug.Parsers,
       parsers: [:urlencoded, :multipart, :json],

@@ -24,7 +24,8 @@ defmodule Eworks.MixProject do
         :logger,
         :runtime_tools,
         :timex,
-        :ssl
+        :ssl,
+        :corsica
       ]
     ]
   end
@@ -79,7 +80,8 @@ defmodule Eworks.MixProject do
       # uuid
       {:uuid, "~> 1.1"},
       # httpoison
-      {:httpoison, "~> 1.7"}
+      {:httpoison, "~> 1.7"},
+      {:corsica, "~> 1.1"}
     ]
   end
 
