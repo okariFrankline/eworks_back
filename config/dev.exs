@@ -9,6 +9,42 @@ config :eworks, Eworks.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+  # configure guardian
+config :eworks, EworksWeb.Authentication.Guardian,
+  issuer: "eworks",
+  secret_key: System.get_env("GUARDIAN_SECRET_KEY")
+
+# configure the aws
+config :ex_aws,
+  # use the default phoenix jason_library
+  json_codec: Jason,
+  secret_access_key: [{:system, "SECRET_ACCESS_KEY"}, :instance_role],
+  access_key_id: [{:system, "ACCESS_KEY_ID"}, :instance_role],
+  region: {:system, "AWS_REGION"}
+
+# configuration for aws s3 storage
+# config :ex_aws,
+#   # use the default phoenix jason_library
+#   json_codec: Jason,
+#   access_key_id: System.get_env("SECRET_ACCESS_KEY"),
+#   secret_access_key: System.get_env("ACCESS_KEY_ID"),
+#   region: System.get_env("AWS_REGION")
+
+config :waffle,
+  storage: Waffle.Storage.S3,
+  # set the virtual to true
+  virtual_host: true,
+  # bucket name
+  bucket: System.get_env("AWS_S3_BUCKET_NAME"),
+  # the asset host
+  asset_host: System.get_env("AWS_S3_ASSET_HOST"),
+  # the version timroute
+  version_timeout: 100_000
+
+# configuration for bamboo
+config :eworks, Eworks.Utils.Mailer,
+  adapter: Bamboo.LocalAdapter
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #
@@ -16,6 +52,8 @@ config :eworks, Eworks.Repo,
 # watchers to your application. For example, we use it
 # with webpack to recompile .js and .css sources.
 config :eworks, EworksWeb.Endpoint,
+  secret_key_base: System.get_env("SECRET_KEY_BASE"),
+  url: [host: "localhost"],
   http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
@@ -55,21 +93,3 @@ config :phoenix, :stacktrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
-
-# mpesa
-config :mpesa,
-  # sandbox for development and
-  base_url: "https://sandbox.safaricom.co.ke",
-  consumer_secret: "GpYmA3vIirOxel5Y",
-  consumer_key: "pUc4sZSssH5dcXKDAm6lGeLHQ6bxMt5C"
-
-
-# lipa na mpesa
-config :lipa_na_mpesa,
-  callback_url: "",
-  pass_key: "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919",
-  short_code: "174379"
-
-# b2c
-config :b2c,
-  cert_file_path: "/home/Desktop/mean/cert.cer"
