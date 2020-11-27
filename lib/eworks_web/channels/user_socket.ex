@@ -7,7 +7,7 @@ defmodule EworksWeb.UserSocket do
   import Ecto.Query, warn: false
 
   ## Channels
-  channel "notification:*", EworksWeb.NotificationChannel
+  #channel "notification:*", EworksWeb.NotificationChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After

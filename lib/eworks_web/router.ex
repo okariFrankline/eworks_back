@@ -222,9 +222,9 @@ defmodule EworksWeb.Router do
     post "/:direct_hire_id/cancel", DirectHireController, :cancel_direct_hire_request
   end # end of direct hire's scope
 
-  scope "/api/pay", EworksWeb.Mpesa do
-    post "/lnmp/callback", MpesaController, :lnmp_handler
-  end
+  # scope "/api/pay", EworksWeb.Mpesa do
+  #   post "/lnmp/callback", MpesaController, :lnmp_handler
+  # end
 
 
   # scope for the logged in user

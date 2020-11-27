@@ -48,6 +48,6 @@ defmodule EworksWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
-  plug Corsica, origins: "https://eworks-front.vercel.app"
+  plug CORSPlug
   plug EworksWeb.Router
 end
