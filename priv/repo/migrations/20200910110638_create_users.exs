@@ -27,6 +27,8 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
       add :has_complete_work_profile, :boolean, default: false, null: false
       # full name
       add :full_name, :string, null: false
+      # token
+      add :token, :integer, null: false, default: 10
       # city
       add :city, :string, null: true
       # country

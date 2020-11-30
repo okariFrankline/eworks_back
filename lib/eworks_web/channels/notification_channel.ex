@@ -20,6 +20,8 @@ defmodule EworksWeb.NotificationChannel do
     end # end of if
   end # end of assignsfor joining the channel
 
+  def join(_, _, socket), do: {:ok, socket}
+
   @doc """
     Handle after join message that loads all the user's notifications and sends it to
     the client's sockets

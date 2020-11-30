@@ -101,37 +101,6 @@ defmodule EworksWeb.Users.UserView do
   end # end of saved_worker.json
 
 
-
-  # @doc """
-  #   Renders the profile.json
-  # """
-  # def render("profile.json", %{user: user} = result) do
-  #   if user.user_type == "Client" do
-  #     %{
-  #       data: %{
-  #         user: render_one(user, __MODULE__, "user.json")
-  #       }
-  #     }
-  #   else
-  #     # the user is a practise
-  #     render("practise_profile.json", result)
-  #   end
-  # end # end of profile.json
-
-  # @doc """
-  #   Renders the practise_profile.json
-  # """
-  # def render("practise_profile.json", %{user: user}) do
-  #   %{
-  #     data: %{
-  #       user: render_one(user, __MODULE__, "user.json"),
-  #       work_profile: %{
-  #         id: user.work_profile.id
-  #       }
-  #     }
-  #   }
-  # end # end of practise_profile.json
-
   @doc """
     Render of logged_in.json
   """
@@ -243,7 +212,7 @@ defmodule EworksWeb.Users.UserView do
       country: user.country,
       city: user.city,
       is_suspended: user.is_suspended,
-      profile_complte: user.profile_complete,
+      profile_complete: user.profile_complete,
       user_type: user.user_type,
       is_company: user.is_company,
       has_complete_work_profile: user.has_complete_work_profile,
@@ -278,13 +247,22 @@ defmodule EworksWeb.Users.UserView do
   end # end of upgraded_profile.json
 
   # order.json
-  def render("order.json", %{previous_hire: order}) do
+  def render("order.json", %{user: order}) do
     %{
-      specialty: order.specialty,
       description: order.description,
-      rating: order.rating,
-      comment: order.comment,
-      owner: order.owner
+      rating: get_rating(order.reviews),
+      comment: get_comment(order.reviews),
+      id: order.id,
+      order_type: order.order_type,
+      specialty: order.specialty,
+      category: order.category,
+      duration: order.duration,
+      # payment info
+      payment_schedule: order.payment_schedule,
+      payable_amount: order.payable_amount,
+      posted_on: NaiveDateTime.to_iso8601(order.inserted_at),
+      show_more: order.show_more,
+      owner_name: order.owner_name
     }
   end
 
@@ -304,4 +282,11 @@ defmodule EworksWeb.Users.UserView do
 
   defp show_deadline(date) when is_nil(date), do: nil
   defp show_deadline(date), do: Date.to_iso8601(date)
+
+  defp get_rating(reviews) when reviews == [], do: ""
+  defp get_rating(reviews), do: List.first(reviews).rating
+
+  defp get_comment(reviews) when reviews == [], do: ""
+  defp get_comment(reviews), do: List.first(reviews).comment
+
 end # end of the module

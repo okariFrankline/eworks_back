@@ -2,8 +2,14 @@ defmodule Eworks.Orders.Order do
   use Ecto.Schema
   use Waffle.Ecto.Schema
   import Ecto.Changeset
-
   alias Ecto.Changeset
+
+  @description "
+    This is a draft order project that is complete and is yet to be verified. Please edit the order in order to begin
+    receiving offers from some of the best professional registered on the platform. Always keep in mind that, you,
+    the client are always in control of the payment rate and the entire hiring process (including how and when the payment will be made).
+    Alternatively, you can delete this order and remove it from your list of orders.
+  "
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -42,6 +48,9 @@ defmodule Eworks.Orders.Order do
     belongs_to :user, Eworks.Accounts.User, type: :binary_id
     # has many assignees
     field :assignees, {:array, :binary_id}
+    field :paid_assignees, {:array, :binary_id}
+    # has many reviews
+    has_many :reviews, Eworks.Reviews.Review
     # has many order_offers
     has_many :order_offers, Eworks.Orders.OrderOffer
     # has one direct hire request
@@ -79,7 +88,8 @@ defmodule Eworks.Orders.Order do
       :show_more,
       :owner_name,
       :is_public,
-      :is_cancelled
+      :is_cancelled,
+      :paid_assignees
     ])
     # cast teh changeset
     |> cast_attachments(attrs, [
@@ -98,6 +108,9 @@ defmodule Eworks.Orders.Order do
 
   @doc false
   def creation_changeset(order, attrs) do
+    # add the default description to the attrs
+    attrs = Map.put(attrs, :description, @description)
+    # get the changeset
     changeset(order, attrs)
     # ensure the category and the specialty are given
     |> validate_required([

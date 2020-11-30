@@ -14,9 +14,10 @@ defmodule Eworks.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Eworks.PubSub},
       # Start the Endpoint (http/https)
-      EworksWeb.Endpoint
+      EworksWeb.Endpoint,
       # Start a worker by calling: Eworks.Worker.start_link(arg)
       # {Eworks.Worker, arg}
+      Eworks.Supervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

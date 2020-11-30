@@ -650,6 +650,61 @@ defmodule Eworks.Orders.API do
     end # end of with
   end # end of mark order
 
+  @doc """
+    approve payment for the given user
+  """
+  def approve_payment(%User{} = _user, %Order{} = order, contractor_id, contractor_rating, comment) do
+    # get the invite that belongs to the given user
+    offer = from(
+      offer in OrderOffer,
+      # ensure the offer belongs to the contractor and is for the specified invite
+      where: offer.user_id == ^contractor_id and offer.order_id == ^order.id,
+      # get the user for which the offer belongs to
+      join: user in assoc(offer, :user),
+      # get the workprofile of the user as weel
+      join: profile in assoc(user, :work_profile),
+      # preload teh user
+      preload: [user: {user, work_profile: profile}]
+    )
+    # get the offer
+    |> Repo.one!()
+
+    # start a task that will update the contractors rating
+    Task.start(fn ->
+      # update the user's average rating
+      new_rating = new_contractor_rating(offer.user, contractor_rating)
+      # update the work profile of the contractor
+      Ecto.Changeset.change(offer.user.work_profile, %{
+        rating: new_rating
+      })
+      # update the profile
+      |> Repo.update!()
+    end)
+
+    # initiate the payment for the user
+    with :ok <- Eworks.Payment.API.pay_contractor(%{phone: offer.user.phone, amount: offer.asking_amount}) do
+      # add the current contractor id to the paid contractors
+      Ecto.Changeset.change(order, %{
+        paid_assignees: [contractor_id | order.paid_assignees]
+      })
+      # update the
+      |> Repo.update!()
+      # create a new review
+      |> Ecto.build_assoc(:reviews)
+      # build a changeset
+      |> Eworks.Reviews.Review.changeset(%{
+        user_id: contractor_id,
+        comment: comment,
+        rating: contractor_rating
+      })
+      # create the new review
+      |> Repo.insert!()
+      # create a transaction for this payment for the current user
+      # return ok
+      :ok
+    end
+  end # end of approve payment
+
   ####################################### PRIVATE FUNCTIONS #########################################
 
   defp accept_offer(offer, order_owner_name, order_specialty, order_category) do
@@ -687,5 +742,8 @@ defmodule Eworks.Orders.API do
       {:error, :offer_cancelled}
     end # end of the checking if the offer has being cancelled
   end
+
+  # function for calcultaing the contractor's new rating
+  defp new_contractor_rating(%User{work_profile: %WorkProfile{previous_hires: hires, rating: current_rating}}, new_rating), do: (current_rating + new_rating) / (Enum.count(hires) + 1)
 
 end # end of the api module for orders and order offers

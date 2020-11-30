@@ -112,13 +112,16 @@ defmodule EworksWeb.OrderListController do
     # modify query depending on the filter
     query = case filter do
       "unassigned" ->
-        from(order in query, where: order.is_assigned == false)
+        from(order in query, where: order.is_assigned == false and order.is_draft == false)
 
       "in_progress" ->
-        from(order in query, where: order.is_assigned == true and order.is_complete == false)
+        from(order in query, where: order.is_assigned == true and order.is_complete == false and order.is_draft == false)
 
       "complete" ->
-        from(order in query, where: order.is_complete == true and order.is_paid_for == false)
+        from(order in query, where: order.is_complete == true and order.is_paid_for == false and order.is_draft == false)
+
+      "draft" ->
+        from(order in query, where: order.is_draft == true)
 
     end
 
@@ -149,7 +152,7 @@ defmodule EworksWeb.OrderListController do
     query = from(
       order in Order,
       # ensure user id matches the id of the current user
-      where: order.user_id == ^user.id and order.is_cancelled == false and  order.is_assigned == false,
+      where: order.user_id == ^user.id and order.is_cancelled == false and  order.is_assigned == false and order.is_draft == false,
       # join the direct hires
       left_join: hire in assoc(order, :direct_hire),
       # order by inserted at
@@ -208,7 +211,7 @@ defmodule EworksWeb.OrderListController do
       # put the status
       |> put_status(:ok)
       # render the order
-      |> render("assigned_orders.json", orders: orders, in_progress: work_profile.in_progress, un_paid: work_profile.un_paid, paid: work_profile.recently_paid)
+      |> render("assigned_orders.json", orders: orders)
 
     else
       # the user is a client

@@ -343,7 +343,7 @@ defmodule EworksWeb.Users.UserController do
       # load the work profile
       user = Repo.preload(user, [:work_profile])
       # get the previous hires
-      previous_hires = load_previous_hires(user.work_profile.previous_hires)
+      previous_hires = load_previous_hires(user.work_profile.previous_hires, user.id)
       # return the result
       conn
       # put the status
@@ -402,18 +402,18 @@ defmodule EworksWeb.Users.UserController do
 
 
   ## function for loading the previous hires
-  defp load_previous_hires(ids) when ids == [], do: []
+  defp load_previous_hires(ids, _id) when ids == [], do: []
   # when the ids are not empaty
-  defp load_previous_hires(ids) do
+  defp load_previous_hires(ids, user_id) do
     Dataloader.new
     # add the source
     |> Dataloader.add_source(Orders, Orders.data())
     # load the orders
-    |> Dataloader.load_many(Orders, Orders.Order, ids)
+    |> Dataloader.load_many(Orders, {Orders.Order, review_owner: user_id}, ids)
     # run the loader
     |> Dataloader.run()
     # get the results
-    |> Dataloader.get_many(Orders, Orders.Order, ids)
+    |> Dataloader.get_many(Orders, {Orders.Order, review_owner: user_id}, ids)
   end # end of load previous hires
 
 end # end of the module

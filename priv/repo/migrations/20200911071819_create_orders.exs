@@ -10,20 +10,21 @@ defmodule Eworks.Repo.Migrations.CreateOrders do
       add :is_complete, :boolean, default: false, null: false
       add :is_paid_for, :boolean, default: false, null: false
       add :is_cancelled, :boolean, default: false, null: false
-      add :duration, :string, null: true
+      add :duration, :string, null: false, default: "1 day - 1 week"
       add :deadline, :date, null: true
-      add :order_type, :string, null: true
-      add :category, :string, null: true
-      add :payable_amount, :string, null: true
-      add :required_contractors, :integer, null: true
-      add :specialty, :string, null: true
+      add :order_type, :string, null: false, default: "Add Order type"
+      add :category, :string, null: false, default: "Add category"
+      add :payable_amount, :string, null: false, default: "0"
+      add :required_contractors, :integer, null: false, default: 1
+      add :specialty, :string, null: false, default: "Add Specialty"
       add :attachments, :string, null: true
-      add :payment_schedule, :string, null: true
+      add :payment_schedule, :string, null: false, default: "Upon job completion"
       add :verification_code, :integer, null: true
       add :is_draft, :boolean, default: true
       add :already_assigned, :integer, default: 0, null: false
       add :accepted_offers, :integer, default: 0, null: false
       add :assignees, {:array, :binary_id}, default: []
+      add :paid_assignees, {:array, :binary_id}, default: []
       add :tags, {:array, :binary_id}, default: []
       add :show_more, :boolean, default: false
       add :owner_name, :string

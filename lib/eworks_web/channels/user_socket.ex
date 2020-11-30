@@ -7,7 +7,7 @@ defmodule EworksWeb.UserSocket do
   import Ecto.Query, warn: false
 
   ## Channels
-  #channel "notification:*", EworksWeb.NotificationChannel
+  channel "notification:*", EworksWeb.NotificationChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
@@ -42,7 +42,7 @@ defmodule EworksWeb.UserSocket do
         {:ok, assign(socket, :current_user, user)}
     end # end of cond
 
-    #{:ok, socket}
+    {:ok, socket}
   end # end of the connect function
 
   # Socket id's are topics that allow you to identify all sockets for a given user:

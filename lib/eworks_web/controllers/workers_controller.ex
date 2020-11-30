@@ -18,7 +18,7 @@ defmodule EworksWeb.WorkersController do
     apply(__MODULE__, action_name(conn), args)
   end # end of action
 
-  defp load_previous_hires(previous_hires_ids) do
+  defp load_previous_hires(previous_hires_ids, user_id) do
     # check to ensure the ids are not emlty
     if not Enum.empty?(previous_hires_ids) do
       # get the dataloader
@@ -26,11 +26,11 @@ defmodule EworksWeb.WorkersController do
       # add source
       |> Dataloader.add_source(Orders, Orders.data())
       # load the order orders with the ids
-      |> Dataloader.load_many(Orders, Orders.Order, previous_hires_ids)
+      |> Dataloader.load_many(Orders, {Orders.Order, review_owner: user_id}, previous_hires_ids)
       # run the loader
       |> Dataloader.run()
       # get the results
-      |> Dataloader.get_many(Orders, Orders.Order, previous_hires_ids)
+      |> Dataloader.get_many(Orders, {Orders.Order, review_owner: user_id}, previous_hires_ids)
     else
       # return an empty list
       []
@@ -55,7 +55,7 @@ defmodule EworksWeb.WorkersController do
     |> Repo.one!()
 
     # get the previous hires
-    previous_hires = load_previous_hires(user.work_profile.previous_hires)
+    previous_hires = load_previous_hires(user.work_profile.previous_hires, id)
 
     # return the results
     conn
@@ -80,12 +80,12 @@ defmodule EworksWeb.WorkersController do
   @doc """
     Lists current workers
   """
-  def list_workers(conn, %{"metadata" => after_cursor}, _user) do
+  def list_workers(conn, %{"metadata" => after_cursor}, current_user) do
     # query for getting the workers
     query = from(
       user in User,
       # ensure the user is active, not suspended and is an independent contractor
-      where: user.user_type == "Independent Contractor" and user.is_suspended == false and user.is_active == true,
+      where: user.user_type == "Independent Contractor" and user.is_suspended == false and user.is_active == true and user.id != ^current_user.id,
       # get the work profile as well
       join: work_profile in assoc(user, :work_profile),
       # order by the inserted at and id
@@ -282,7 +282,7 @@ defmodule EworksWeb.WorkersController do
       # the user has being found
       user ->
         # get the previous hires
-        hires = load_previous_hires(user.work_profile.previous_hires)
+        hires = load_previous_hires(user.work_profile.previous_hires, id)
         # return the results
         conn
         # put the status

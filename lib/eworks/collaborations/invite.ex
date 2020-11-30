@@ -4,6 +4,13 @@ defmodule Eworks.Collaborations.Invite do
 
   alias Ecto.Changeset
 
+  @description "
+    This is a draft order project that is complete and is yet to be verified. Please edit the order in order to begin
+    receiving offers from some of the best professional registered on the platform. Always keep in mind that, you,
+    the client are always in control of the payment rate and the entire hiring process (including how and when the payment will be made).
+    Alternatively, you can delete this order and remove it from your list of orders.
+  "
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "invites" do
@@ -32,6 +39,8 @@ defmodule Eworks.Collaborations.Invite do
     field :owner_name, :string
 
     field :collaborators, {:array, :binary_id} # holds the ids of the people assigned as collaborators
+    # paid collaborators holds the collaborators for the already paid collaborators
+    field :paid_collaborators, {:array, :binary_id}
     field :description, :string
     # virtual fields
 
@@ -65,12 +74,16 @@ defmodule Eworks.Collaborations.Invite do
       :show_more,
       :is_draft,
       :owner_name,
-      :already_accepted
+      :already_accepted,
+      :paid_collaborators
     ])
   end
 
   @doc false
   def creation_changeset(invite, attrs) do
+    # add the description to the invite
+    attrs = Map.put(attrs, :description, @description)
+
     changeset(invite, attrs)
     |> cast(attrs, [
       :category,

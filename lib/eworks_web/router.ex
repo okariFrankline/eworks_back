@@ -99,8 +99,12 @@ defmodule EworksWeb.Router do
     post "/:invite_id/offer/:invite_offer_id/accept", InviteController, :accept_invite_offer
     # route for cancelling an invite
     post "/:invite_id/cancel", InviteController, :cancel_invite
+    # route for deleting an invite
+    post "/:invite_id/delete", InviteController, :delete_invite
     # route for cancelling an invite offer
     post "/offer/:invite_offer_id/cancel", InviteController, :cancel_invite_offer
+    # route for paying a contractor
+    post "/:invite_id/pay/:contractor_id", InviteController, :approve_payment
 
   end # end of invite scope
 

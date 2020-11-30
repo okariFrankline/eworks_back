@@ -4,7 +4,7 @@ defmodule EworksWeb.Invites.InviteController do
   alias EworksWeb.Plugs
   alias Eworks.Collaborations.{Invite, API, InviteOffer}
   import Ecto.Query, warn: false
-  alias Eworks.Repo
+  alias Eworks.{Repo, Collaborations}
 
   plug Plugs.InviteById when action not in [
     :create_new_invite,
@@ -182,7 +182,7 @@ defmodule EworksWeb.Invites.InviteController do
         # return failure
         conn
         # put status
-        |> put_status(:bad_request)
+        |> put_status(:forbidden)
         # put the view
         |> put_view(EworksWeb.ErrorView)
         # render failed
@@ -192,7 +192,7 @@ defmodule EworksWeb.Invites.InviteController do
         # return failure
         conn
         # put status
-        |> put_status(:bad_request)
+        |> put_status(:forbidden)
         # put the view
         |> put_view(EworksWeb.ErrorView)
         # render failed
@@ -302,10 +302,14 @@ defmodule EworksWeb.Invites.InviteController do
       query = case filter do
         # in progress
         "unassigned" ->
-          from(invite in query, where: invite.is_assigned == false)
+          from(invite in query, where: invite.is_assigned == false and invite.is_draft == false)
         # completed
         "in_progress" ->
-          from(invite in query, where: invite.is_assigned == true)
+          from(invite in query, where: invite.is_assigned == true and invite.is_draft == false)
+
+        # draft
+        "draft" ->
+          from(invite in query, where: invite.is_draft == true)
       end # end of query
 
       # check if the cursor is given
@@ -316,8 +320,6 @@ defmodule EworksWeb.Invites.InviteController do
         # return the list of invites from the last known corsor
         Repo.paginate(query, after: cursor, cursor_fields: [:inserted_at], limit: 10)
       end
-
-      IO.inspect(page.entries)
 
       # return the results
       conn
@@ -398,10 +400,8 @@ defmodule EworksWeb.Invites.InviteController do
         where: offer.user_id == ^user.id,
         # preload the order
         join: invite in assoc(offer, :invite),
-        # join hte order in the invite
-        join: order in assoc(invite, :order),
         # preload the offer
-        preload: [invite: {invite, order: order}]
+        preload: [invite: invite]
       )
       # get the offers
       offers = case filter do
@@ -493,5 +493,36 @@ defmodule EworksWeb.Invites.InviteController do
       |> render("invite.json", invite: invite)
     end
   end # end of get invite
+
+  @doc """
+    Deletes an invite
+  """
+  def delete_invite(conn, _params, _user, invite) do
+    with {:ok, _invite} <- Collaborations.delete_invite(invite) do
+      conn
+      |> put_status(:ok)
+      |> render("success.json", message: "Success. Order has been successfully deleted")
+
+    else
+      {:error, _reason} ->
+        conn
+        |> put_status(:bad_request)
+        |> put_view(Eworks.ErrorView)
+        |> render("failed.json", message: "Failed. Order could not be deleted. Try again later.")
+
+    end # end of deleting an invite
+  end # end of deleting an invite
+
+  @doc """
+    Approve payment for a given contractor
+  """
+  def approve_payment(conn, %{"contractor_id" => contId, "rating" => rating}, user, invite) do
+    with :ok <- API.approve_payment(user, invite, contId, rating) do
+      # return the response
+      conn
+      |> put_status(:ok)
+      |> render("success.json", message: "Success. Payment has been successfully approved.")
+    end
+  end # end of approving the payment for the contractor
 
 end # end of module

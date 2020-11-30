@@ -39,6 +39,8 @@ defmodule Eworks.Accounts.User do
     field :first_name, :string, virtual: true
     field :last_name, :string, virtual: true
     field :company_name, :string, virtual: true
+    # tokens
+    field :token, :integer
     # has many sessions ( for authentication )
     has_many :sessions, Eworks.Accounts.Session
     # has many order offers
@@ -76,7 +78,8 @@ defmodule Eworks.Accounts.User do
       :profile_complete,
       :is_upgraded_contractor,
       :phone,
-      :has_complete_work_profile
+      :has_complete_work_profile,
+      :token
     ])
     # cast the profile_pic attachmetns
     |> cast_attachments(attrs, [

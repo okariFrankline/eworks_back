@@ -45,9 +45,9 @@ config :eworks, EworksWeb.Authentication.Guardian,
 config :ex_aws,
   # use the default phoenix jason_library
   json_codec: Jason,
-  secret_access_key: [{:system, "AWS_SECRET_ACCESS_KEY"}, :instance_role],
-  access_key_id: [{:system, "AWS_ACCESS_KEY_ID"}, :instance_role],
-  region: {:system, "AWS_REGION"}
+  secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY"),
+  access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
+  region: System.get_env("AWS_REGION")
 
 # configuration for aws s3 storage
 # config :ex_aws,

@@ -139,7 +139,7 @@ defmodule EworksWeb.Invites.InviteView do
       placed_on: NaiveDateTime.to_iso8601(offer.inserted_at),
       has_accepted_invite: offer.has_accepted_invite,
       asking_amount: offer.asking_amount,
-      order: render_one(offer.invite.order, OrderListView, "hire_order.json")
+      invite: render_one(offer.invite, __MODULE__, "display_invite.json")
     }
   end # end of my_offer.json
 

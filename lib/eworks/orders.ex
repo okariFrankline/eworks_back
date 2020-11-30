@@ -23,14 +23,20 @@ defmodule Eworks.Orders do
   end # end of daaloader
 
   # query for getting orders in progress
-  def query(Order, %{filter: "in_progress", user_id: _user_id}) do
+  def query(Order, %{filter: "in_progress", user_id: user_id}) do
     # query for the getting the orders
     from(
       order in Order,
       # ensure the filter is unassigned
       where: order.is_complete == false,
+      # join the offer for which this order was assigned to the user
+      left_join: offer in assoc(order, :order_offers),
+      # ensure the offer belong s to the current user
+      on: offer.user_id == ^user_id,
       # order by the date of being update
-      order_by: [desc: order.updated_at]
+      order_by: [desc: order.updated_at],
+      # preload the offer
+      preload: [order_offers: offer]
     )
   end # end of in progress orders
 
@@ -53,16 +59,35 @@ defmodule Eworks.Orders do
   end # end of in progress orders
 
   # get all the orders that have recently being paid
-  def query(Order, %{filter: "recently_paid", user_id: _user_id}) do
+  def query(Order, %{filter: "recently_paid", user_id: user_id}) do
     # query for the getting the orders
     from(
       order in Order,
       # ensure the filter is unassigned
       where: order.is_complete == true and order.is_paid_for == true,
+      # join the offer for which this order was assigned to the user
+      left_join: offer in assoc(order, :order_offers),
+      # ensure the offer belong s to the current user
+      on: offer.user_id == ^user_id,
       # order by the date of being update
-      order_by: [desc: order.updated_at]
+      order_by: [desc: order.updated_at],
+      # preload the offer
+      preload: [order_offers: offer]
     )
   end # end of in progress orders
+
+  # get the orders with the previous hires
+  def query(Order, %{review_owner: user_id}) do
+    from(
+      order in Order,
+      # join the reviews
+      left_join: review in assoc(order, :reviews),
+      # ensure the revie belongs to the current user
+      on: review.user_id == ^user_id,
+      # preload the reviews
+      preload: [reviews: review]
+    )
+  end # end of getting the order with it's reviews
 
   def query(queryable, _), do: queryable
 

@@ -10,15 +10,16 @@ defmodule Eworks.Repo.Migrations.CreateInvites do
       add :is_cancelled, :boolean, default: false, null: false
       add :is_assigned, :boolean, default: false, null: false
       add :is_draft, :boolean, default: true, null: false
-      add :payable_amount, :string, null: true
-      add :payment_schedule, :string, null: true
-      add :category, :string, null: false
+      add :payable_amount, :string, null: false, default: "0"
+      add :payment_schedule, :string, null: false, default: "Upon job completion"
+      add :category, :string, null: false, default: "Add category"
       add :owner_name, :string, null: false
-      add :specialty, :string, null: false
+      add :specialty, :string, null: false, default: "Add Specialty"
       add :show_more, :boolean, default: false, null: false
       add :description, :text, null: true
       add :verification_code, :integer, null: true
       add :collaborators, {:array, :binary_id}, default: []
+      add :paid_collaborators, {:array, :binary_id}, default: []
       add :already_accepted, :integer, null: false, default: 0
       #add :order_id, :binary_id
 
