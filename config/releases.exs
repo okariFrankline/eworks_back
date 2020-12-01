@@ -28,10 +28,10 @@ config :eworks, EworksWeb.Endpoint,
   # set the server to true
   server: true,
   # use the port provided by the render
-  url: [host: System.get_env("RENDER_EXTERNAL_HOSTNAME") || "localhost", port: 80],
+  url: [host: System.get_env("APP_NAME") <> ".gigalixirapp.com", port: 443],
   # cache_static_manifest: "priv/static/cache_manifest.json"
   http: [
-    port: String.to_integer(System.get_env("PORT") || "4000"),
+    port: String.to_integer(System.get_env("PORT") || 443),
     transport_options: [socket_opts: [:inet6]]
   ],
   secret_key_base: secret_key_base
