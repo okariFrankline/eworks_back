@@ -211,6 +211,7 @@ defmodule EworksWeb.Users.UserView do
       auth_email: user.auth_email,
       country: user.country,
       city: user.city,
+      tokens: user.tokens,
       is_suspended: user.is_suspended,
       profile_complete: user.profile_complete,
       user_type: user.user_type,

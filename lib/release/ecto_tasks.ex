@@ -20,6 +20,16 @@ defmodule Eworks.Release.EctoTasks do
   end
 
   @doc """
+    function for resetting the db
+  """
+  def reset_db do
+    load_app()
+    for repo <- repos() do
+      {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :down, all: true))
+    end
+  end
+
+  @doc """
      Performs rolling back of the migration
   """
   def rollback(repo, version) do
