@@ -17,7 +17,7 @@ defmodule Eworks.Application do
       EworksWeb.Endpoint,
       # Start a worker by calling: Eworks.Worker.start_link(arg)
       # {Eworks.Worker, arg}
-      Eworks.Supervisor
+      Eworks.Upgrade.Manager
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

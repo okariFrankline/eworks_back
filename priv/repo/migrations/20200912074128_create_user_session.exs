@@ -7,6 +7,8 @@ defmodule Eworks.Repo.Migrations.CreateUserSession do
       add :token, :text, null: true
 
       add :user_id, references(:users, type: :binary_id, on_delete: :nothing)
+
+      timestamps()
     end # end of create table function
 
     # indes for the token

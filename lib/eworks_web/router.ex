@@ -202,6 +202,8 @@ defmodule EworksWeb.Router do
     post "/:order_id/reject/:order_offer_id", OrderController, :reject_order
     # marks an order as complete
     post "/:order_id/complete", OrderController, :mark_order_complete
+    # route for paying a contractor
+    post "/:order_id/pay/:contractor_id", OrderController, :approve_payment
   end # end of order's scope
 
   # scope for direct hires

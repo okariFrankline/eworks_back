@@ -10,9 +10,9 @@ defmodule Eworks.Accounts.WorkProfile do
     # date for indicating how long the upgraded status should last
     field :upgrade_duration, :string, virtual: true
     # field for indicating the date for which the upgrade was made
-    field :last_upgraded_on, :utc_datetime
+    field :last_upgraded_on, :date
     # field indicating the date the upgrade would end
-    field :upgrade_expiry_date, :utc_datetime
+    field :upgrade_expiry_date, :date
     # field for indicating whether the upgrade of an account is expired
     field :has_upgrade_expired, :boolean, default: false
     field :job_hires, :integer
@@ -21,9 +21,6 @@ defmodule Eworks.Accounts.WorkProfile do
     field :skills, {:array, :string}
     field :success_rate, :float
     field :show_more, :boolean, default: false
-    field :in_progress, :integer, default: 0
-    field :un_paid, :integer, default: 0
-    field :recently_paid, :integer, default: 0
     # has many assigned orders
     field :assigned_orders, {:array, :binary_id}
     # embeds many previous hires
@@ -54,9 +51,7 @@ defmodule Eworks.Accounts.WorkProfile do
       :has_upgrade_expired,
       :assigned_orders,
       :show_more,
-      :recently_paid,
-      :un_paid,
-      :in_progress
+      :previous_hires
     ])
   end
 
@@ -70,15 +65,6 @@ defmodule Eworks.Accounts.WorkProfile do
     # add the skills to the skills already in the changeset
     |> add_to_skills()
   end # end of the skills_changeset/2
-
-  # @doc false
-  # def cover_letter_changeset(profile, attrs) do
-  #   changeset(profile, attrs)
-  #   # ensure the cover letter is give
-  #   |> validate_required([
-  #     :cover_letter
-  #   ])
-  # end # end of cover_letter changeset/2
 
   @doc false
   def professional_intro_changeset(profile, attrs) do
@@ -106,70 +92,25 @@ defmodule Eworks.Accounts.WorkProfile do
     |> foreign_key_constraint(:user_id)
   end # end of upgrade_changeset/2
 
-  # function adding the upgrade information
-  defp add_upgrade_information(%Changeset{valid?: true, changes: %{upgrade_duration: duration, duration_type: d_type}} = changeset) do
-    # ensure the duration does not exceed two weeks
-    if is_valid_duration?(duration, d_type) do
-      # check the duration type
-      case d_type do
-        # the duration is days
-        "Day(s)" ->
-          # get the current date
-          current_date = Timex.now()
-          # set the expiry date to a date duration times ahead
-          expiry_date = Timex.shift(current_date, days: duration)
-          # put the changeset
-          changeset
-          # put the last_updated_on
-          |> put_change(:last_upgraded_on, current_date)
-          # set the expiry date on
-          |> put_change(:upgrade_expiry_date, expiry_date)
-          # set the is pugraded to true
-          |> put_change(:is_upgraded, true)
-
-        # the duration type is in weeks
-        "Week(s)" ->
-          # get the current date
-          current_date = Timex.now()
-          # set the expiry date
-          expiry_date = Timex.shift(current_date, days: duration * 7)
-          # put the changeset
-          changeset
-          # put the last_updated_on
-          |> put_change(:last_upgraded_on, current_date)
-          # set the expiry date on
-          |> put_change(:upgrade_expiry_date, expiry_date)
-          # set the is pugraded to true
-          |> put_change(:is_upgraded, true)
-      end # end of case for d_type
-    else
-      # the duration is not valid
-      changeset
-      # add en error to the duration
-      |> add_error(:duration, "Failed. Total upgrade duration cannot be less than 1 day or exceed 2 weeks.")
-    end
-  end # end of add_upgrade_information
+  # function for adding upgrade information
+  defp add_upgrade_information(%Changeset{valid?: true, changes: %{upgrade_duration: duration}} = changeset) do
+    # get the current date
+    current_date = Timex.now()
+    # set the expiration date to duration + 1 day after the current date
+    expiry_date = Timex.shift(current_date, days: duration + 1)
+    # convert the date time to date
+    |> DateTime.to_date()
+    # update the changeset
+    changeset
+    # set the date of last upgrade
+    |> put_change(:last_upgrade, DateTime.to_date(current_date))
+    # set the expiry date
+    |> put_change(:upgrade_expiry_date, expiry_date)
+    # set the has upgrade expired to false
+    |> put_change(:has_upgrade_expired, false)
+  end # end of add upgrade inforamtion
   defp add_upgrade_information(changeset), do: changeset
 
-  # function for validating the information
-  defp is_valid_duration?(duration, duration_type) when duration_type == "Day(s)" do
-    # ensure the duration is not greater then 14
-    cond do
-      # duration is greater than 0
-      duration <= 0 -> false
-      # duration is greater than zero but less than 14
-      duration <= 14 -> true
-      # duration is greater than 14
-      true -> false
-    end # end of cond
-  end # end of is_valid_duration
-  # called when the duration type is weeks
-  defp is_valid_duration?(duration, duration_type) do
-    duration_length = "#{duration} #{duration_type}"
-    # ensure the duration type is either 1 week or 2 weeks
-    if duration_length != "1 Week(s)" or duration_length != "2 Week(s)", do: false, else: true
-  end # end of is_valid duration type
-  # function for adding the skills to the changeset
   def add_to_skills(%Changeset{valid?: true, changes: %{skills: new_skills}, data: %__MODULE__{skills: saved_skills}} = changeset) do
     # check that any of the elements in the new skills is not in the saved skills
     to_save_skills = Enum.filter(new_skills, fn skill -> not Enum.member?(saved_skills, skill) end)

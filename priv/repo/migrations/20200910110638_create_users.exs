@@ -28,7 +28,7 @@ defmodule Eworks.Repo.Migrations.CreateUsers do
       # full name
       add :full_name, :string, null: false
       # token
-      add :token, :integer, null: false, default: 10
+      add :tokens, :integer, null: false, default: 10
       # city
       add :city, :string, null: true
       # country

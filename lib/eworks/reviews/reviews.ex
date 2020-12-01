@@ -17,6 +17,8 @@ defmodule Eworks.Reviews.Review do
     field :user_id, :binary_id
     # belongs to a given order
     belongs_to :order, Eworks.Orders.Order, type: :binary_id
+    # add the timestamp
+    timestamps()
   end # end of the defintion of the schema
 
   @doc false

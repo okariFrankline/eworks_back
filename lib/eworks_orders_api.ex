@@ -608,45 +608,34 @@ defmodule Eworks.Orders.API do
     Marks an order as completed
   """
   def mark_order_complete(%User{} = user, %Order{} = order) do
-    # preload the work profile
-    profile = Repo.preload(user, [:work_profile]).work_profile
-    # set the in profress count
-    in_progress = if profile.in_progress == 0 do
-      0
-    else
-      profile.in_progress - 1
-    end
-
     # mark the order as complete
-    with _order <- Ecto.Changeset.change(order, %{is_complete: true}) |> Repo.update!(),
-      # update the profile
-      profile <- Ecto.Changeset.change(profile, %{un_paid: profile.un_paid + 1, in_progress: in_progress}) |> Repo.update!() do
-        # send the owner of the order a notification
-        Task.start(fn ->
-          # send an email notification to the order owner
-          owner = Repo.preload(order, [:user]).user
-          # message
-          message = "#{user.full_name} has completed working on your order *#{order.category} :: #{order.specialty}**. Please review the order and approve the contractor's payment."
-          # send an email notification to the owner of the order
-          NewEmail.new_email_notification(owner, "Order Completion for order: **#{order.category} :: #{order.specialty}**", "#{message} \n Login to your account for more details.")
-          # send the email
-          |> Mailer.deliver_later()
+    with order <- Ecto.Changeset.change(order, %{is_complete: true}) |> Repo.update!() do
+      # send the owner of the order a notification
+      Task.start(fn ->
+        # send an email notification to the order owner
+        owner = Repo.preload(order, [:user]).user
+        # message
+        message = "#{user.full_name} has completed working on your order *#{order.category} :: #{order.specialty}**. Please review the order and approve the contractor's payment."
+        # send an email notification to the owner of the order
+        NewEmail.new_email_notification(owner, "Order Completion for order: **#{order.category} :: #{order.specialty}**", "#{message} \n Login to your account for more details.")
+        # send the email
+        |> Mailer.deliver_later()
 
-          # create the notification
-          {:ok, notification} = Notifications.create_notification(%{
-            user_id: order.user_id,
-            asset_type: "Order",
-            asset_id: order.id,
-            notification_type: "Order Completion",
-            message: message
-          })
+        # create the notification
+        {:ok, notification} = Notifications.create_notification(%{
+          user_id: order.user_id,
+          asset_type: "Order",
+          asset_id: order.id,
+          notification_type: "Order Completion",
+          message: message
+        })
 
-          # send the notification to the user
-          Endpoint.broadcast!("notification:#{owner.id}", "new_notification", %{notification: notification})
-        end) # end of task
+        # send the notification to the user
+        Endpoint.broadcast!("notification:#{owner.id}", "new_notification", %{notification: notification})
+      end) # end of task
 
-        # return the result
-        {:ok, profile}
+      # return the result
+      {:ok, order}
     end # end of with
   end # end of mark order
 
@@ -669,20 +658,21 @@ defmodule Eworks.Orders.API do
     # get the offer
     |> Repo.one!()
 
-    # start a task that will update the contractors rating
-    Task.start(fn ->
-      # update the user's average rating
-      new_rating = new_contractor_rating(offer.user, contractor_rating)
-      # update the work profile of the contractor
-      Ecto.Changeset.change(offer.user.work_profile, %{
-        rating: new_rating
-      })
-      # update the profile
-      |> Repo.update!()
-    end)
-
     # initiate the payment for the user
     with :ok <- Eworks.Payment.API.pay_contractor(%{phone: offer.user.phone, amount: offer.asking_amount}) do
+      # start a task that will update the contractors rating
+      Task.start(fn ->
+        # update the user's average rating
+        new_rating = new_contractor_rating(offer.user, contractor_rating)
+        # update the work profile of the contractor
+        Ecto.Changeset.change(offer.user.work_profile, %{
+          rating: new_rating,
+          # add the order id to the list of previous hires
+          previous_hires: [order.id | offer.user.work_profile.previous_hires]
+        })
+        # update the profile
+        |> Repo.update!()
+      end)
       # add the current contractor id to the paid contractors
       Ecto.Changeset.change(order, %{
         paid_assignees: [contractor_id | order.paid_assignees]

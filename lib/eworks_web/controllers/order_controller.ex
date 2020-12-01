@@ -351,7 +351,7 @@ defmodule EworksWeb.Orders.OrderController do
     marks an order complete
   """
   def mark_order_complete(conn, _params, user, order) do
-    with {:ok, _profile} <- API.mark_order_complete(user, order) do
+    with {:ok, _order} <- API.mark_order_complete(user, order) do
       # return a response
       conn
       # put the status
@@ -461,5 +461,17 @@ defmodule EworksWeb.Orders.OrderController do
     # render the assignees
     |> render("assignees.json", assignees: assignees)
   end # end of list_order_assignees
+
+  @doc """
+    Approve payment for a given contractor
+  """
+  def approve_payment(conn, %{"contractor_id" => contId, "rating" => rating, "comment" => comment}, user, order) do
+    with :ok <- API.approve_payment(user, order, contId, rating, comment) do
+      # return the response
+      conn
+      |> put_status(:ok)
+      |> render("success.json", message: "Success. Payment has been successfully approved.")
+    end
+  end # end of approving the payment for the contractor
 
 end # end of the module

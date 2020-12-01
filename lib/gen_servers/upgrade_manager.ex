@@ -15,14 +15,12 @@ defmodule Eworks.Upgrade.Manager do
   @doc """
     start link function
   """
-  def start_link do
+  def start_link(_) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end # end of start_link
 
 
   def init(_) do
-    # start the process
-    send(self(), {:start, nil})
     # schedule the next time the genserver will run
     schedule_next_start()
     # return the reult
@@ -99,6 +97,4 @@ defmodule Eworks.Upgrade.Manager do
       Endpoint.broadcast!("user:#{user.id}", "new_notification", %{notification: notification})
     end)
   end # end of cancel_upgrade
-
-
 end # end of Upgrade.Manger

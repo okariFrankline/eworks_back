@@ -11,6 +11,9 @@ defmodule Eworks.Accounts.Session do
       field :token, :string
       # belongs to user
       belongs_to :user, Eworks.Accounts.User, type: :binary_id
+
+      # add the timestamp
+      timestamps()
     end # end of the schema function
 
     @spec changeset(
