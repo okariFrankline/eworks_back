@@ -210,7 +210,7 @@ defmodule EworksWeb.Users.UserView do
       username: user.username,
       auth_email: user.auth_email,
       country: user.country,
-      location: "#{String.capitalize(user.city)}, #{String.capitalize(user.country)}",
+      location: get_location(user.country, user.city),
       city: user.city,
       tokens: user.tokens,
       is_suspended: user.is_suspended,
@@ -290,5 +290,8 @@ defmodule EworksWeb.Users.UserView do
 
   defp get_comment(reviews) when reviews == [], do: ""
   defp get_comment(reviews), do: List.first(reviews).comment
+
+  defp get_location(country, city) when is_nil(country) and is_nil(city), do: nil
+  defp get_location(country, city), do: "#{String.capitalize(city)}, #{String.capitalize(country)}"
 
 end # end of the module
