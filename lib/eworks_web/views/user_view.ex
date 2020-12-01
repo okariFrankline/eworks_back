@@ -210,6 +210,7 @@ defmodule EworksWeb.Users.UserView do
       username: user.username,
       auth_email: user.auth_email,
       country: user.country,
+      location: "#{String.capitalize(user.city)}, #{String.capitalize(user.country)}",
       city: user.city,
       tokens: user.tokens,
       is_suspended: user.is_suspended,

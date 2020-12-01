@@ -42,6 +42,7 @@ defmodule Eworks.Seeds.Users do
         user_type: "Independent Contractor",
         full_name: user.full_name,
         is_active: true,
+        profile_complete: true,
         username: String.split(user.email, "@") |> List.first(),
       }
       # insert into the db

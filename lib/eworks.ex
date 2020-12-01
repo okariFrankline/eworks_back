@@ -111,9 +111,15 @@ defmodule Eworks do
   def update_user_profile_picture(%User{} = user, %Plug.Upload{} = profile_pic) do
     # generste a new name for the file
     profile_pic = Utils.new_upload_name(profile_pic)
-    IO.inspect(profile_pic)
     # update the profile pciture
-    Accounts.update_user_profile_pic(user, %{profile_pic: profile_pic})
+    with Accounts.update_user_profile_pic(user, %{profile_pic: profile_pic}) do
+      # set the profile to complete
+      Ecto.Changeset.change(user, %{
+        profile_complete: true
+      })
+      # update the user
+      |> Repo.update()
+    end
   end # end of update_user_profile/2
 
 

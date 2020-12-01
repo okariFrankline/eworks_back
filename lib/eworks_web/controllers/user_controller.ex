@@ -146,7 +146,6 @@ defmodule EworksWeb.Users.UserController do
     Updates the profile picture of the current user
   """
   def update_user_profile_picture(conn, %{"profile_pic" => profile_picture_params}, user) do
-    IO.inspect(profile_picture_params)
     # update the profile picture
     case Eworks.update_user_profile_picture(user, profile_picture_params) do
       {:ok, _user} ->
