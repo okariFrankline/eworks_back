@@ -243,7 +243,9 @@ defmodule EworksWeb.Users.UserController do
       # change the email
       case Accounts.update_user_phone(user, %{phone: phone}) do
         # the update was successfull
-        {:ok, _user} ->
+        {:ok, user} ->
+          # set the profile to complete if the user is aclient
+          if user.user_type == "Client", do: Ecto.Changeset.change(user, %{profile_complete: true}) |> Repo.update!()
           # return a response
           conn
           # put status

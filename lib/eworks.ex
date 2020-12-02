@@ -150,9 +150,17 @@ defmodule Eworks do
   @doc """
     Updates a user's professional introduction
   """
-  def update_work_profile_prof_intro(%User{} = _user, %WorkProfile{} = work_profile, prof_intro) do
+  def update_work_profile_prof_intro(%User{} = user, %WorkProfile{} = work_profile, prof_intro) do
     # update the profile
-    with {:ok, _profile} = result <- Accounts.update_work_profile_prof_intro(work_profile, %{professional_intro: prof_intro}), do: result
+    with {:ok, _profile} = result <- Accounts.update_work_profile_prof_intro(work_profile, %{professional_intro: prof_intro}) do
+      # set the profile of the user to true
+      Ecto.Changeset.change(user, %{
+        profile_complete: true
+      })
+      |> Repo.update!()
+      # return the result
+      result
+    end
   end # end of the update_work_profile_prof_intro/2
 
   @doc """
