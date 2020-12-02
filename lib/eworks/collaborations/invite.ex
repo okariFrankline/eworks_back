@@ -55,6 +55,10 @@ defmodule Eworks.Collaborations.Invite do
     timestamps()
   end
 
+  @spec changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def changeset(invite, attrs) do
     invite
@@ -79,10 +83,14 @@ defmodule Eworks.Collaborations.Invite do
     ])
   end
 
+  @spec creation_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          map
+        ) :: Ecto.Changeset.t()
   @doc false
   def creation_changeset(invite, attrs) do
     # add the description to the invite
-    attrs = Map.put(attrs, :description, @description)
+    attrs = Map.put(attrs, "description", @description)
 
     changeset(invite, attrs)
     |> cast(attrs, [
@@ -100,6 +108,10 @@ defmodule Eworks.Collaborations.Invite do
     |> foreign_key_constraint(:work_profile)
   end # end of the creation_changeset/2
 
+  @spec category_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def category_changeset(invite, attrs) do
     changeset(invite, attrs)
@@ -111,6 +123,10 @@ defmodule Eworks.Collaborations.Invite do
   end # end of the creation_changeset/2
 
 
+  @spec deadline_collaborators_required_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def deadline_collaborators_required_changeset(invite, attrs) do
     changeset(invite, attrs)
@@ -127,6 +143,10 @@ defmodule Eworks.Collaborations.Invite do
     |> set_deadline_date()
   end
 
+  @spec description_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def description_changeset(invite, attrs) do
     changeset(invite, attrs)
@@ -136,6 +156,10 @@ defmodule Eworks.Collaborations.Invite do
     ])
   end
 
+  @spec payment_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def payment_changeset(invite, attrs) do
     changeset(invite, attrs)

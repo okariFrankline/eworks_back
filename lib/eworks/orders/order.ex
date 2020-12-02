@@ -60,6 +60,10 @@ defmodule Eworks.Orders.Order do
     timestamps()
   end
 
+  @spec changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def changeset(order, attrs) do
     order
@@ -97,6 +101,10 @@ defmodule Eworks.Orders.Order do
     ])
   end # end of changeset
 
+  @spec attachments_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def attachments_changeset(order, attrs) do
     changeset(order, attrs)
@@ -106,10 +114,14 @@ defmodule Eworks.Orders.Order do
     ])
   end # end of attachment changeset
 
+  @spec creation_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          map
+        ) :: Ecto.Changeset.t()
   @doc false
   def creation_changeset(order, attrs) do
     # add the default description to the attrs
-    attrs = Map.put(attrs, :description, @description)
+    attrs = Map.put(attrs, "description", @description)
     # get the changeset
     changeset(order, attrs)
     # ensure the category and the specialty are given
@@ -123,6 +135,10 @@ defmodule Eworks.Orders.Order do
     |> foreign_key_constraint(:user_id)
   end # end of the creation_changeset
 
+  @spec category_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def category_changeset(order, attrs) do
     changeset(order, attrs)
@@ -133,6 +149,10 @@ defmodule Eworks.Orders.Order do
     ])
   end # end of the creation_changeset
 
+  @spec rating_comment_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def rating_comment_changeset(order, attrs) do
     changeset(order, attrs)
@@ -142,6 +162,10 @@ defmodule Eworks.Orders.Order do
     ])
   end # end of the rating_comment_changeset
 
+  @spec payment_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def payment_changeset(order, attrs) do
     changeset(order, attrs)
@@ -162,6 +186,10 @@ defmodule Eworks.Orders.Order do
     |> add_payment_range()
   end # end of the payment changeset
 
+  @spec type_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def type_changeset(order, attrs) do
     changeset(order, attrs)
@@ -172,6 +200,10 @@ defmodule Eworks.Orders.Order do
     ])
   end # end of the category_speciality_changeset/2
 
+  @spec duration_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def duration_changeset(order, attrs) do
     changeset(order, attrs)
@@ -188,6 +220,10 @@ defmodule Eworks.Orders.Order do
     |> set_deadline_date()
   end # end of type_duration_changeset
 
+  @spec description_changeset(
+          {map, map} | %{:__struct__ => atom | %{__changeset__: map}, optional(atom) => any},
+          :invalid | %{optional(:__struct__) => none, optional(atom | binary) => any}
+        ) :: Ecto.Changeset.t()
   @doc false
   def description_changeset(order, attrs), do: changeset(order, attrs) |> validate_required([:description])
 

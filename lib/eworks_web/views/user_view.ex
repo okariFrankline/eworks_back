@@ -36,7 +36,7 @@ defmodule EworksWeb.Users.UserView do
           is_active: user.is_active,
           country: user.country,
           city: user.city,
-          location: "#{String.capitalize(user.city)}, #{String.capitalize(user.country)}",
+          location: get_location(user.country, user.city),
           is_suspended: user.is_suspended,
           profile_complete: user.profile_complete,
           user_type: user.user_type,

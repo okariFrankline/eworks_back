@@ -335,7 +335,9 @@ defmodule EworksWeb.Orders.OrderController do
       # return the result
       conn
       # send the response
-      |> send_resp(:ok, "")
+      |> put_status(:ok)
+      # render success
+      |> render("success.json", message: "Success. Draft order has being successfully deleted.")
 
     else
       # an order occured
@@ -343,7 +345,11 @@ defmodule EworksWeb.Orders.OrderController do
         # order could not be deleted
         conn
         # send response
-        |> send_resp(:bad_request, "")
+        |> put_status(:bad_request)
+        # put errot view
+        |> put_view(EworksWeb.ErrorView)
+        # render failed
+        |> render("failed.json", message: "Failed. Draft order could not be deleted. Please try again later.")
     end # end of deleting an order
   end # end of delete order
 
