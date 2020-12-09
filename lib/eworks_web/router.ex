@@ -55,6 +55,21 @@ defmodule EworksWeb.Router do
     get "/account/activation/key/resend", Users.UserController, :new_activation_key_request
   end
 
+  #scopre for changing the user password
+  scope "/api/password", EworksWeb do
+    pipe_through [:api]
+    # get route for resending the verification code
+    get "/code/resend", Passwords.PasswordController, :resend_verification_code
+
+    # post function for confirmation of the email address
+    post "/email/confirmation", Passwords.PasswordController, :confirm_email
+    # route for verifying code
+    post "/code/verify", Passwords.PasswordController, :verify_code
+    # route for creating a new password
+    post "/new", Passwords.PasswordController, :set_new_password
+
+  end # end of scoper for password
+
 
   # scope for the invites
   scope "/api/invites", EworksWeb.Invites do

@@ -118,6 +118,21 @@ defmodule Eworks.Accounts.User do
   end # end of password_changeset
 
   @doc false
+  def reset_password_changeset(user, attrs) do
+    changeset(user, attrs)
+    # cast the password and current password
+    |> cast(attrs, [
+      :password,
+    ])
+    # ensure they are given
+    |> validate_required([
+      :password,
+    ])
+    # update hte passwrd
+    |> hash_password()
+  end # end of password_changeset
+
+  @doc false
   def creation_changeset(user, attrs) do
     changeset(user, attrs)
     # cast the password
